@@ -8,6 +8,12 @@ VM networks for block chain
 git clone https://github.com/Lamden/vmnet.git
 ```
 
+1. Install VirtualBox and vargrant
+```
+brew cask install virtualbox
+brew cask install vagrant
+```
+
 1. Launch all the VMs
 ```
 vagrant up
@@ -18,7 +24,7 @@ vagrant up
 vagrant ssh mgmt
 ```
 
-1. Allow nodes to talk to each other (ansible uses ssh)
+1. Allow nodes to talk to each other (ansible uses ssh), password = vagrant
 ```
 ansible-playbook /vagrant/playbooks/add_key.yml --ask-pass
 ```
