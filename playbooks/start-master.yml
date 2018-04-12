@@ -1,0 +1,10 @@
+- name: start nodes
+  sudo: yes
+  hosts: master
+  gather_facts: false
+
+  tasks:
+     - name: update scripts
+       copy: src=/home/vagrant/scripts/ dest=/home/vagrant/
+     - name: Start master
+       command: python3 /vagrant/scripts/group-server.py
