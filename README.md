@@ -24,24 +24,29 @@ vagrant up
 vagrant ssh mgmt
 ```
 
-1. Allow nodes to talk to each other (ansible uses ssh), password = vagrant
+1. Allow nodes to talk to each other (ansible uses ssh)
 ```
-ansible-playbook /vagrant/playbooks/add-key.yml --ask-pass
+vagrant@mgmt:~$ cd /vagrant/playbooks
+vagrant@mgmt:/vagrant/playbooks$ ansible-playbook add-key.yml --ask-pass
+SSH Password: vagrant
 ```
 
 1. Install and configure your nodes
 ```
-ansible-playbook /vagrant/playbooks/configure_nodes.yml
+vagrant@mgmt:~$ cd /vagrant/playbooks
+vagrant@mgmt:/vagrant/playbooks$ ansible-playbook configure_nodes.yml
 ```
 
 ## Usage
 
 1. Start witnesses
 ```
-ansible-playbook /vagrant/playbooks/start-witness.yml
+vagrant@mgmt:~$ cd /vagrant/playbooks
+vagrant@mgmt:/vagrant/playbooks$ ansible-playbook start-witness.yml
 ```
 
 1. Start master node
 ```
-ansible-playbook /vagrant/playbooks/start-master.yml
+vagrant@mgmt:~$ cd /vagrant/playbooks
+vagrant@mgmt:/vagrant/playbooks$ ansible-playbook start-master.yml
 ```
