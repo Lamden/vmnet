@@ -7,8 +7,8 @@ apt-get update
 apt-get -y install ansible
 
 # Copy files
-#cp -a /vagrant/* /home/vagrant/
-#chown -R vagrant:vagrant /home/vagrant
+cp -a /vagrant/* /home/vagrant/
+chown -R vagrant:vagrant /home/vagrant
 
 # configure hosts file for our internal network defined by Vagrantfile
 cat >> /etc/hosts <<EOL
@@ -26,6 +26,7 @@ cat >> /etc/hosts <<EOL
 10.0.15.28  node8
 EOL
 
-echo -e  'y\n' | ssh-keygen -t rsa -b 2048 -N "" -f /home/vagrant/.ssh/id_rsa
 ssh-keyscan node0 node1 node2 node3 node4 node5 node6 node7 node8 >> .ssh/known_hosts
+echo -e  'y\n' | ssh-keygen -t rsa -b 2048 -N "" -f /home/vagrant/.ssh/id_rsa
+
 
