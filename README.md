@@ -3,6 +3,11 @@ VM networks for block chain
 
 ## Setup
 
+1. Clone vmnet
+```
+git clone https://github.com/Lamden/vmnet.git
+```
+
 1. Launch all the VMs
 ```
 vagrant up
