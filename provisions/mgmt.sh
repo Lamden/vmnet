@@ -6,9 +6,9 @@ apt-add-repository -y ppa:ansible/ansible
 apt-get update
 apt-get -y install ansible
 
-#apk update
-#apk add --update py-pip build-base && rm -rf /var/cache/apk/**/
-#pip install ansible
+# Copy files
+cp -a /vagrant/* /home/vagrant/
+chown -R vagrant:vagrant /home/vagrant
 
 # configure hosts file for our internal network defined by Vagrantfile
 cat >> /etc/hosts <<EOL
@@ -26,8 +26,5 @@ cat >> /etc/hosts <<EOL
 10.0.15.28  node8
 EOL
 
-ssh-keyscan node0 node1 node2 node3 node4 node5 node6 node7 node8 >> .ssh/known_hosts
 echo -e  'y\n' | ssh-keygen -t rsa -b 2048 -N "" -f /home/vagrant/.ssh/id_rsa
-
-# Install software on all the other nodes
-#ansible-playbook /vagrant/playbooks/configure_nodes.yml --ask-pass
+ssh-keyscan node0 node1 node2 node3 node4 node5 node6 node7 node8 >> .ssh/known_hosts
