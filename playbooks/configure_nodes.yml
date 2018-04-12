@@ -15,4 +15,4 @@
          update_cache: yes
 
      - name: Install requirements
-       command: pip3 install -r /vagrant/requirements.txt
+       command: pip3 install -r /vagrant/scripts/requirements.txt
