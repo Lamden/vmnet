@@ -38,7 +38,7 @@ ansible-playbook /vagrant/playbooks/configure_nodes.yml
 
 1. Start witnesses
 ```
-ansible-playbook /vagrant/playbooks/start-witnesses.yml
+ansible-playbook /vagrant/playbooks/start-witness.yml
 ```
 
 1. Start master node
