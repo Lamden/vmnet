@@ -60,10 +60,11 @@ if __name__ == '__main__':
     ips = load_ips([
         '10.0.15.21',
         '10.0.15.22',
-        '10.0.15.23'
+        '10.0.15.23',
+        '10.0.15.24'
     ])
     # ips = generate_ips()
-    server_ip = '10.0.15.11' if test_ping('10.0.15.11') else 'localhost'
+    server_ip = '10.0.15.20'# if test_ping('10.0.15.20') else 'localhost'
     gs = GroupServer(ips, server_ip=server_ip)
     gs.regroup(2, 1)
     gs.bind()

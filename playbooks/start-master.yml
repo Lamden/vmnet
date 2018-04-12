@@ -4,7 +4,9 @@
   gather_facts: false
 
   tasks:
-     - name: update scripts
-       copy: src=/home/vagrant/scripts/ dest=/home/vagrant/
+     - name: Remove debug.log
+       file:
+         state: absent
+         path: debug.log
      - name: Start master
        command: python3 /vagrant/scripts/group-server.py

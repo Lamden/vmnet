@@ -24,14 +24,14 @@ def generate_ips(count=20):
     } for i in range(count)}
 
 def load_ips(ips):
-    return {uuid.uuid4().hex: {
-        'ip': ip,
-        'groups': []
-    } for ip in ips}
-    # return {ip: {
+    # return {uuid.uuid4().hex: {
     #     'ip': ip,
     #     'groups': []
     # } for ip in ips}
+    return {ip: {
+        'ip': ip,
+        'groups': []
+    } for ip in ips}
 
 def get_logger():
     logging.basicConfig(
