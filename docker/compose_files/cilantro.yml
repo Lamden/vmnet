@@ -1,0 +1,11 @@
+version: "2.3"
+services:
+  cilantro:
+    build:
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro
+    image: cilantro
+    volumes:
+      - type: bind
+        source: ${LOCAL_PATH}/cilantro
+        target: /app/

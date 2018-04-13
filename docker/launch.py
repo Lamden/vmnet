@@ -3,8 +3,10 @@ import copy
 import yaml
 from os.path import dirname, abspath, splitext, basename, join
 
-def set_env():
-    os.environ['LOCAL_PATH'] = dirname(dirname(abspath(__file__)))
+def set_env(local_path=None):
+    if not local_path:
+        local_path = dirname(dirname(dirname(abspath(__file__))))
+    os.environ['LOCAL_PATH'] = local_path
     os.environ['LAUNCH_PATH'] = dirname(abspath(__file__))
 
 def interpolate(compose_file, network_file):
@@ -61,7 +63,7 @@ def run():
     os.system('docker-compose up')
 
 if __name__ == '__main__':
-    compose_file = 'compose_files/app.yml'
+    compose_file = 'compose_files/vmnet.yml'
     network_file = 'network_files/vmnet_example.yml'
     set_env()
     interpolate(compose_file, network_file)

@@ -1,0 +1,20 @@
+version: "2.3"
+services:
+  vmnet_master:
+    build:
+      context: ${LOCAL_PATH}/vmnet/scripts
+      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/master
+    image: vmnet_master
+    volumes:
+      - type: bind
+        source: ${LOCAL_PATH}/vmnet/scripts
+        target: /app/
+  vmnet_witness:
+    build:
+      context: ${LOCAL_PATH}/vmnet/scripts
+      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/witness
+    image: vmnet_witness
+    volumes:
+      - type: bind
+        source: ${LOCAL_PATH}/vmnet/scripts
+        target: /app/

@@ -1883,3 +1883,569 @@
 2018-04-13 21:26:28,942 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "91650af6178e4bd1b2142447976ee027", "group": 2, "key": "172.28.5.6"}
 2018-04-13 21:26:28,942 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "91650af6178e4bd1b2142447976ee027", "group": 2, "key": "172.28.5.6"}
 2018-04-13 21:26:28,994 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "91650af6178e4bd1b2142447976ee027", "group": 2, "key": "172.28.5.6"}
+2018-04-13 22:39:42,135 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10001
+2018-04-13 22:39:42,136 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10006
+2018-04-13 22:39:42,137 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10008
+2018-04-13 22:39:42,137 [MainThread  ] [DEBUG]  Started listening as 172.28.5.6 ...
+2018-04-13 22:39:42,415 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10000
+2018-04-13 22:39:42,415 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10002
+2018-04-13 22:39:42,416 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10007
+2018-04-13 22:39:42,421 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10009
+2018-04-13 22:39:42,423 [MainThread  ] [DEBUG]  Started listening as 172.28.5.7 ...
+2018-04-13 22:39:43,875 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10003
+2018-04-13 22:39:43,911 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10005
+2018-04-13 22:39:43,914 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10007
+2018-04-13 22:39:43,921 [MainThread  ] [DEBUG]  Started listening as 172.28.5.3 ...
+2018-04-13 22:39:43,920 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10000
+2018-04-13 22:39:43,937 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10005
+2018-04-13 22:39:43,943 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10007
+2018-04-13 22:39:43,945 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10009
+2018-04-13 22:39:43,946 [MainThread  ] [DEBUG]  Started listening as 172.28.5.5 ...
+2018-04-13 22:39:44,079 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10002
+2018-04-13 22:39:44,085 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10004
+2018-04-13 22:39:44,087 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10006
+2018-04-13 22:39:44,090 [MainThread  ] [DEBUG]  Started listening as 172.28.5.2 ...
+2018-04-13 22:39:44,497 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10001
+2018-04-13 22:39:44,497 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10003
+2018-04-13 22:39:44,498 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10008
+2018-04-13 22:39:44,499 [MainThread  ] [DEBUG]  Started listening as 172.28.5.8 ...
+2018-04-13 22:39:44,573 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10004
+2018-04-13 22:39:44,574 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10006
+2018-04-13 22:39:44,581 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10008
+2018-04-13 22:39:44,592 [MainThread  ] [DEBUG]  Started listening as 172.28.5.4 ...
+2018-04-13 22:39:44,689 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10001
+2018-04-13 22:39:44,694 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10003
+2018-04-13 22:39:44,700 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10005
+2018-04-13 22:39:44,702 [MainThread  ] [DEBUG]  Started listening as 172.28.5.1 ...
+2018-04-13 22:39:45,524 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10000
+2018-04-13 22:39:45,525 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10002
+2018-04-13 22:39:45,527 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10004
+2018-04-13 22:39:45,528 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10009
+2018-04-13 22:39:45,533 [MainThread  ] [DEBUG]  Started listening as 172.28.5.9 ...
+2018-04-13 22:41:28,385 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10002
+2018-04-13 22:41:28,386 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10004
+2018-04-13 22:41:28,387 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10006
+2018-04-13 22:41:28,388 [MainThread  ] [DEBUG]  Started listening as 172.28.5.2 ...
+2018-04-13 22:41:28,446 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10000
+2018-04-13 22:41:28,474 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10005
+2018-04-13 22:41:28,493 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10007
+2018-04-13 22:41:28,494 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10009
+2018-04-13 22:41:28,495 [MainThread  ] [DEBUG]  Started listening as 172.28.5.5 ...
+2018-04-13 22:41:30,349 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10001
+2018-04-13 22:41:30,351 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10006
+2018-04-13 22:41:30,352 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10008
+2018-04-13 22:41:30,352 [MainThread  ] [DEBUG]  Started listening as 172.28.5.6 ...
+2018-04-13 22:41:30,824 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10004
+2018-04-13 22:41:30,836 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10006
+2018-04-13 22:41:30,837 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10008
+2018-04-13 22:41:30,838 [MainThread  ] [DEBUG]  Started listening as 172.28.5.4 ...
+2018-04-13 22:41:32,285 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10000
+2018-04-13 22:41:32,286 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10002
+2018-04-13 22:41:32,286 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10007
+2018-04-13 22:41:32,287 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10009
+2018-04-13 22:41:32,287 [MainThread  ] [DEBUG]  Started listening as 172.28.5.7 ...
+2018-04-13 22:41:32,451 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10003
+2018-04-13 22:41:32,452 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10005
+2018-04-13 22:41:32,464 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10007
+2018-04-13 22:41:32,469 [MainThread  ] [DEBUG]  Started listening as 172.28.5.3 ...
+2018-04-13 22:41:32,514 [MainThread  ] [DEBUG]  Sending to... 172.28.5.8 from tcp://*:10000
+2018-04-13 22:41:32,515 [MainThread  ] [DEBUG]  	{"tx": "6c69af9226b74fc38105cc31556c2030", "group": 0, "key": "172.28.5.8"}
+2018-04-13 22:41:32,517 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10001
+2018-04-13 22:41:32,529 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10003
+2018-04-13 22:41:32,532 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10005
+2018-04-13 22:41:32,538 [MainThread  ] [DEBUG]  Started listening as 172.28.5.1 ...
+2018-04-13 22:41:32,657 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10001
+2018-04-13 22:41:32,658 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10003
+2018-04-13 22:41:32,659 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10008
+2018-04-13 22:41:32,663 [MainThread  ] [DEBUG]  Started listening as 172.28.5.8 ...
+2018-04-13 22:41:32,885 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10000
+2018-04-13 22:41:32,890 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10002
+2018-04-13 22:41:32,892 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10004
+2018-04-13 22:41:32,924 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10009
+2018-04-13 22:41:32,925 [MainThread  ] [DEBUG]  Started listening as 172.28.5.9 ...
+2018-04-13 22:41:33,518 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10001
+2018-04-13 22:41:33,520 [MainThread  ] [DEBUG]  	{"tx": "9cdb518278cc4f64b7fee90eabe4eae0", "group": 1, "key": "172.28.5.4"}
+2018-04-13 22:41:33,533 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "9cdb518278cc4f64b7fee90eabe4eae0", "group": 1, "key": "172.28.5.4"}
+2018-04-13 22:41:33,534 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "9cdb518278cc4f64b7fee90eabe4eae0", "group": 1, "key": "172.28.5.4"}
+2018-04-13 22:41:33,544 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "9cdb518278cc4f64b7fee90eabe4eae0", "group": 1, "key": "172.28.5.4"}
+2018-04-13 22:41:34,522 [MainThread  ] [DEBUG]  Sending to... 172.28.5.6 from tcp://*:10002
+2018-04-13 22:41:34,523 [MainThread  ] [DEBUG]  	{"tx": "44c7710d1085481899e0b50c16d3e553", "group": 2, "key": "172.28.5.6"}
+2018-04-13 22:41:34,526 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "44c7710d1085481899e0b50c16d3e553", "group": 2, "key": "172.28.5.6"}
+2018-04-13 22:41:34,543 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "44c7710d1085481899e0b50c16d3e553", "group": 2, "key": "172.28.5.6"}
+2018-04-13 22:41:34,553 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "44c7710d1085481899e0b50c16d3e553", "group": 2, "key": "172.28.5.6"}
+2018-04-13 22:41:35,528 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10003
+2018-04-13 22:41:35,529 [MainThread  ] [DEBUG]  	{"tx": "c5cf7dbfb9294327a7b0f4df8caf2126", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:41:35,530 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "c5cf7dbfb9294327a7b0f4df8caf2126", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:41:35,583 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "c5cf7dbfb9294327a7b0f4df8caf2126", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:41:35,603 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "c5cf7dbfb9294327a7b0f4df8caf2126", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:41:36,531 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10004
+2018-04-13 22:41:36,532 [MainThread  ] [DEBUG]  	{"tx": "058eac3c31b5443ba1e30ba244691c17", "group": 4, "key": "172.28.5.4"}
+2018-04-13 22:41:36,534 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "058eac3c31b5443ba1e30ba244691c17", "group": 4, "key": "172.28.5.4"}
+2018-04-13 22:41:36,553 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "058eac3c31b5443ba1e30ba244691c17", "group": 4, "key": "172.28.5.4"}
+2018-04-13 22:41:36,583 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "058eac3c31b5443ba1e30ba244691c17", "group": 4, "key": "172.28.5.4"}
+2018-04-13 22:41:37,533 [MainThread  ] [DEBUG]  Sending to... 172.28.5.1 from tcp://*:10005
+2018-04-13 22:41:37,534 [MainThread  ] [DEBUG]  	{"tx": "80f46f13676b48d2977ced50d544625d", "group": 5, "key": "172.28.5.1"}
+2018-04-13 22:41:37,554 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "80f46f13676b48d2977ced50d544625d", "group": 5, "key": "172.28.5.1"}
+2018-04-13 22:41:37,573 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "80f46f13676b48d2977ced50d544625d", "group": 5, "key": "172.28.5.1"}
+2018-04-13 22:41:37,583 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "80f46f13676b48d2977ced50d544625d", "group": 5, "key": "172.28.5.1"}
+2018-04-13 22:41:38,538 [MainThread  ] [DEBUG]  Sending to... 172.28.5.5 from tcp://*:10006
+2018-04-13 22:41:38,538 [MainThread  ] [DEBUG]  	{"tx": "41060c7315b443ed8a4808c3837caf8e", "group": 6, "key": "172.28.5.5"}
+2018-04-13 22:41:38,539 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "41060c7315b443ed8a4808c3837caf8e", "group": 6, "key": "172.28.5.5"}
+2018-04-13 22:41:38,541 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "41060c7315b443ed8a4808c3837caf8e", "group": 6, "key": "172.28.5.5"}
+2018-04-13 22:41:38,580 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "41060c7315b443ed8a4808c3837caf8e", "group": 6, "key": "172.28.5.5"}
+2018-04-13 22:41:39,542 [MainThread  ] [DEBUG]  Sending to... 172.28.5.8 from tcp://*:10007
+2018-04-13 22:41:39,543 [MainThread  ] [DEBUG]  	{"tx": "a0d6c2a863fd4cbd82252442f941ceb2", "group": 7, "key": "172.28.5.8"}
+2018-04-13 22:41:39,543 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "a0d6c2a863fd4cbd82252442f941ceb2", "group": 7, "key": "172.28.5.8"}
+2018-04-13 22:41:39,561 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "a0d6c2a863fd4cbd82252442f941ceb2", "group": 7, "key": "172.28.5.8"}
+2018-04-13 22:41:39,593 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "a0d6c2a863fd4cbd82252442f941ceb2", "group": 7, "key": "172.28.5.8"}
+2018-04-13 22:41:40,545 [MainThread  ] [DEBUG]  Sending to... 172.28.5.6 from tcp://*:10008
+2018-04-13 22:41:40,546 [MainThread  ] [DEBUG]  	{"tx": "1520217fc4d04dd38ca6139720567dd7", "group": 8, "key": "172.28.5.6"}
+2018-04-13 22:41:40,553 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "1520217fc4d04dd38ca6139720567dd7", "group": 8, "key": "172.28.5.6"}
+2018-04-13 22:41:40,553 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "1520217fc4d04dd38ca6139720567dd7", "group": 8, "key": "172.28.5.6"}
+2018-04-13 22:41:40,554 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "1520217fc4d04dd38ca6139720567dd7", "group": 8, "key": "172.28.5.6"}
+2018-04-13 22:41:41,549 [MainThread  ] [DEBUG]  Sending to... 172.28.5.6 from tcp://*:10009
+2018-04-13 22:41:41,549 [MainThread  ] [DEBUG]  	{"tx": "d157928b45284e25bdd01f154e24ba0e", "group": 9, "key": "172.28.5.6"}
+2018-04-13 22:41:41,565 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "d157928b45284e25bdd01f154e24ba0e", "group": 9, "key": "172.28.5.6"}
+2018-04-13 22:41:41,574 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "d157928b45284e25bdd01f154e24ba0e", "group": 9, "key": "172.28.5.6"}
+2018-04-13 22:41:41,574 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "d157928b45284e25bdd01f154e24ba0e", "group": 9, "key": "172.28.5.6"}
+2018-04-13 22:41:42,552 [MainThread  ] [DEBUG]  Sending to... 172.28.5.8 from tcp://*:10000
+2018-04-13 22:41:42,553 [MainThread  ] [DEBUG]  	{"tx": "d99ac2845a4641218c285032e16fc1be", "group": 0, "key": "172.28.5.8"}
+2018-04-13 22:41:42,556 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "d99ac2845a4641218c285032e16fc1be", "group": 0, "key": "172.28.5.8"}
+2018-04-13 22:41:42,584 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "d99ac2845a4641218c285032e16fc1be", "group": 0, "key": "172.28.5.8"}
+2018-04-13 22:41:42,585 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "d99ac2845a4641218c285032e16fc1be", "group": 0, "key": "172.28.5.8"}
+2018-04-13 22:41:43,555 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10001
+2018-04-13 22:41:43,556 [MainThread  ] [DEBUG]  	{"tx": "58bd1afc529246428c86a357c8027bba", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:41:43,557 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "58bd1afc529246428c86a357c8027bba", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:41:43,558 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "58bd1afc529246428c86a357c8027bba", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:41:43,574 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "58bd1afc529246428c86a357c8027bba", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:41:44,560 [MainThread  ] [DEBUG]  Sending to... 172.28.5.6 from tcp://*:10002
+2018-04-13 22:41:44,560 [MainThread  ] [DEBUG]  	{"tx": "eeea6b1f36d24158b4d6c49ee54802af", "group": 2, "key": "172.28.5.6"}
+2018-04-13 22:41:44,562 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "eeea6b1f36d24158b4d6c49ee54802af", "group": 2, "key": "172.28.5.6"}
+2018-04-13 22:41:44,563 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "eeea6b1f36d24158b4d6c49ee54802af", "group": 2, "key": "172.28.5.6"}
+2018-04-13 22:41:44,594 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "eeea6b1f36d24158b4d6c49ee54802af", "group": 2, "key": "172.28.5.6"}
+2018-04-13 22:41:45,565 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10003
+2018-04-13 22:41:45,567 [MainThread  ] [DEBUG]  	{"tx": "1444d8b58f3848aeb88371ab126a798b", "group": 3, "key": "172.28.5.4"}
+2018-04-13 22:41:45,566 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "1444d8b58f3848aeb88371ab126a798b", "group": 3, "key": "172.28.5.4"}
+2018-04-13 22:41:45,577 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "1444d8b58f3848aeb88371ab126a798b", "group": 3, "key": "172.28.5.4"}
+2018-04-13 22:41:45,581 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "1444d8b58f3848aeb88371ab126a798b", "group": 3, "key": "172.28.5.4"}
+2018-04-13 22:41:46,570 [MainThread  ] [DEBUG]  Sending to... 172.28.5.8 from tcp://*:10004
+2018-04-13 22:41:46,571 [MainThread  ] [DEBUG]  	{"tx": "aaad3d68fe8641a2ad2b8ada055ac3a1", "group": 4, "key": "172.28.5.8"}
+2018-04-13 22:41:46,571 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "aaad3d68fe8641a2ad2b8ada055ac3a1", "group": 4, "key": "172.28.5.8"}
+2018-04-13 22:41:46,595 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "aaad3d68fe8641a2ad2b8ada055ac3a1", "group": 4, "key": "172.28.5.8"}
+2018-04-13 22:41:46,604 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "aaad3d68fe8641a2ad2b8ada055ac3a1", "group": 4, "key": "172.28.5.8"}
+2018-04-13 22:41:47,573 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10005
+2018-04-13 22:41:47,573 [MainThread  ] [DEBUG]  	{"tx": "a822654732ea4a5c8625313faa67aa76", "group": 5, "key": "172.28.5.4"}
+2018-04-13 22:41:47,595 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "a822654732ea4a5c8625313faa67aa76", "group": 5, "key": "172.28.5.4"}
+2018-04-13 22:41:47,595 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "a822654732ea4a5c8625313faa67aa76", "group": 5, "key": "172.28.5.4"}
+2018-04-13 22:41:47,603 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "a822654732ea4a5c8625313faa67aa76", "group": 5, "key": "172.28.5.4"}
+2018-04-13 22:41:48,576 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10006
+2018-04-13 22:41:48,577 [MainThread  ] [DEBUG]  	{"tx": "39c3f76655ce4c33b45c11f4b3bc4088", "group": 6, "key": "172.28.5.7"}
+2018-04-13 22:41:48,579 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "39c3f76655ce4c33b45c11f4b3bc4088", "group": 6, "key": "172.28.5.7"}
+2018-04-13 22:41:48,603 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "39c3f76655ce4c33b45c11f4b3bc4088", "group": 6, "key": "172.28.5.7"}
+2018-04-13 22:41:48,623 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "39c3f76655ce4c33b45c11f4b3bc4088", "group": 6, "key": "172.28.5.7"}
+2018-04-13 22:41:49,579 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10007
+2018-04-13 22:41:49,580 [MainThread  ] [DEBUG]  	{"tx": "461cdf088bfe4b5e808eb784b657f923", "group": 7, "key": "172.28.5.2"}
+2018-04-13 22:41:49,594 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "461cdf088bfe4b5e808eb784b657f923", "group": 7, "key": "172.28.5.2"}
+2018-04-13 22:41:49,614 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "461cdf088bfe4b5e808eb784b657f923", "group": 7, "key": "172.28.5.2"}
+2018-04-13 22:41:49,624 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "461cdf088bfe4b5e808eb784b657f923", "group": 7, "key": "172.28.5.2"}
+2018-04-13 22:41:50,584 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10008
+2018-04-13 22:41:50,586 [MainThread  ] [DEBUG]  	{"tx": "05870a94b40c4243a19a53fedf11f7e7", "group": 8, "key": "172.28.5.9"}
+2018-04-13 22:41:50,587 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "05870a94b40c4243a19a53fedf11f7e7", "group": 8, "key": "172.28.5.9"}
+2018-04-13 22:41:50,588 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "05870a94b40c4243a19a53fedf11f7e7", "group": 8, "key": "172.28.5.9"}
+2018-04-13 22:41:50,613 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "05870a94b40c4243a19a53fedf11f7e7", "group": 8, "key": "172.28.5.9"}
+2018-04-13 22:41:51,590 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10009
+2018-04-13 22:41:51,590 [MainThread  ] [DEBUG]  	{"tx": "f252084a34d041159a527269ff3c8896", "group": 9, "key": "172.28.5.4"}
+2018-04-13 22:41:51,605 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "f252084a34d041159a527269ff3c8896", "group": 9, "key": "172.28.5.4"}
+2018-04-13 22:41:51,605 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "f252084a34d041159a527269ff3c8896", "group": 9, "key": "172.28.5.4"}
+2018-04-13 22:41:51,606 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "f252084a34d041159a527269ff3c8896", "group": 9, "key": "172.28.5.4"}
+2018-04-13 22:41:52,593 [MainThread  ] [DEBUG]  Sending to... 172.28.5.1 from tcp://*:10000
+2018-04-13 22:41:52,594 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "d23e46ce61364f3a92ae1491fc9e606a", "group": 0, "key": "172.28.5.1"}
+2018-04-13 22:41:52,594 [MainThread  ] [DEBUG]  	{"tx": "d23e46ce61364f3a92ae1491fc9e606a", "group": 0, "key": "172.28.5.1"}
+2018-04-13 22:41:52,594 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "d23e46ce61364f3a92ae1491fc9e606a", "group": 0, "key": "172.28.5.1"}
+2018-04-13 22:41:52,612 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "d23e46ce61364f3a92ae1491fc9e606a", "group": 0, "key": "172.28.5.1"}
+2018-04-13 22:41:53,598 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10001
+2018-04-13 22:41:53,598 [MainThread  ] [DEBUG]  	{"tx": "95180ea1fbc8422db8cffd182d2945f4", "group": 1, "key": "172.28.5.9"}
+2018-04-13 22:41:53,612 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "95180ea1fbc8422db8cffd182d2945f4", "group": 1, "key": "172.28.5.9"}
+2018-04-13 22:41:53,612 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "95180ea1fbc8422db8cffd182d2945f4", "group": 1, "key": "172.28.5.9"}
+2018-04-13 22:41:53,612 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "95180ea1fbc8422db8cffd182d2945f4", "group": 1, "key": "172.28.5.9"}
+2018-04-13 22:41:54,602 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10002
+2018-04-13 22:41:54,602 [MainThread  ] [DEBUG]  	{"tx": "f5bf7ececa514bb6b44b2628c15767be", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:41:54,613 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "f5bf7ececa514bb6b44b2628c15767be", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:41:54,614 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "f5bf7ececa514bb6b44b2628c15767be", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:41:54,634 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "f5bf7ececa514bb6b44b2628c15767be", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:41:55,605 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10003
+2018-04-13 22:41:55,605 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "ce8fc202c4054ac5938277fed801e8bc", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:41:55,605 [MainThread  ] [DEBUG]  	{"tx": "ce8fc202c4054ac5938277fed801e8bc", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:41:55,613 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "ce8fc202c4054ac5938277fed801e8bc", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:41:55,646 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "ce8fc202c4054ac5938277fed801e8bc", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:41:56,608 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10004
+2018-04-13 22:41:56,609 [MainThread  ] [DEBUG]  	{"tx": "b3e2d5600b754f20ae30d593b7a1f6f4", "group": 4, "key": "172.28.5.7"}
+2018-04-13 22:41:56,623 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "b3e2d5600b754f20ae30d593b7a1f6f4", "group": 4, "key": "172.28.5.7"}
+2018-04-13 22:41:56,624 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "b3e2d5600b754f20ae30d593b7a1f6f4", "group": 4, "key": "172.28.5.7"}
+2018-04-13 22:41:56,632 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "b3e2d5600b754f20ae30d593b7a1f6f4", "group": 4, "key": "172.28.5.7"}
+2018-04-13 22:41:57,611 [MainThread  ] [DEBUG]  Sending to... 172.28.5.8 from tcp://*:10005
+2018-04-13 22:41:57,612 [MainThread  ] [DEBUG]  	{"tx": "e7b48be4636143b2b3bb8b665cc7385b", "group": 5, "key": "172.28.5.8"}
+2018-04-13 22:41:57,613 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "e7b48be4636143b2b3bb8b665cc7385b", "group": 5, "key": "172.28.5.8"}
+2018-04-13 22:41:57,623 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "e7b48be4636143b2b3bb8b665cc7385b", "group": 5, "key": "172.28.5.8"}
+2018-04-13 22:41:57,625 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "e7b48be4636143b2b3bb8b665cc7385b", "group": 5, "key": "172.28.5.8"}
+2018-04-13 22:41:58,615 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10006
+2018-04-13 22:41:58,616 [MainThread  ] [DEBUG]  	{"tx": "f174457823f94ebdb1e46de80385bb4a", "group": 6, "key": "172.28.5.2"}
+2018-04-13 22:41:58,616 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "f174457823f94ebdb1e46de80385bb4a", "group": 6, "key": "172.28.5.2"}
+2018-04-13 22:41:58,643 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "f174457823f94ebdb1e46de80385bb4a", "group": 6, "key": "172.28.5.2"}
+2018-04-13 22:41:58,643 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "f174457823f94ebdb1e46de80385bb4a", "group": 6, "key": "172.28.5.2"}
+2018-04-13 22:41:59,618 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10007
+2018-04-13 22:41:59,619 [MainThread  ] [DEBUG]  	{"tx": "007ae6f57c6042c5834827c43c46b255", "group": 7, "key": "172.28.5.7"}
+2018-04-13 22:41:59,621 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "007ae6f57c6042c5834827c43c46b255", "group": 7, "key": "172.28.5.7"}
+2018-04-13 22:41:59,635 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "007ae6f57c6042c5834827c43c46b255", "group": 7, "key": "172.28.5.7"}
+2018-04-13 22:41:59,653 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "007ae6f57c6042c5834827c43c46b255", "group": 7, "key": "172.28.5.7"}
+2018-04-13 22:42:00,622 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10008
+2018-04-13 22:42:00,622 [MainThread  ] [DEBUG]  	{"tx": "79e47e0e098946be90ffeee642c50e04", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:00,623 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "79e47e0e098946be90ffeee642c50e04", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:00,639 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "79e47e0e098946be90ffeee642c50e04", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:00,644 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "79e47e0e098946be90ffeee642c50e04", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:01,625 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10009
+2018-04-13 22:42:01,626 [MainThread  ] [DEBUG]  	{"tx": "0a27deeade3c4f39a51fc656c91f31ba", "group": 9, "key": "172.28.5.4"}
+2018-04-13 22:42:01,634 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "0a27deeade3c4f39a51fc656c91f31ba", "group": 9, "key": "172.28.5.4"}
+2018-04-13 22:42:01,635 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "0a27deeade3c4f39a51fc656c91f31ba", "group": 9, "key": "172.28.5.4"}
+2018-04-13 22:42:01,653 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "0a27deeade3c4f39a51fc656c91f31ba", "group": 9, "key": "172.28.5.4"}
+2018-04-13 22:42:02,628 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10000
+2018-04-13 22:42:02,629 [MainThread  ] [DEBUG]  	{"tx": "6e1d647b2cb647a3aa2012bb16e00369", "group": 0, "key": "172.28.5.2"}
+2018-04-13 22:42:02,630 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "6e1d647b2cb647a3aa2012bb16e00369", "group": 0, "key": "172.28.5.2"}
+2018-04-13 22:42:02,663 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "6e1d647b2cb647a3aa2012bb16e00369", "group": 0, "key": "172.28.5.2"}
+2018-04-13 22:42:02,673 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "6e1d647b2cb647a3aa2012bb16e00369", "group": 0, "key": "172.28.5.2"}
+2018-04-13 22:42:03,634 [MainThread  ] [DEBUG]  Sending to... 172.28.5.1 from tcp://*:10001
+2018-04-13 22:42:03,635 [MainThread  ] [DEBUG]  	{"tx": "b3a579e9b04e44d28cac75cc3f4dac4e", "group": 1, "key": "172.28.5.1"}
+2018-04-13 22:42:03,636 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "b3a579e9b04e44d28cac75cc3f4dac4e", "group": 1, "key": "172.28.5.1"}
+2018-04-13 22:42:03,649 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "b3a579e9b04e44d28cac75cc3f4dac4e", "group": 1, "key": "172.28.5.1"}
+2018-04-13 22:42:03,679 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "b3a579e9b04e44d28cac75cc3f4dac4e", "group": 1, "key": "172.28.5.1"}
+2018-04-13 22:42:04,638 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10002
+2018-04-13 22:42:04,639 [MainThread  ] [DEBUG]  	{"tx": "db14e707c8494ad392c10027d3523c19", "group": 2, "key": "172.28.5.9"}
+2018-04-13 22:42:04,653 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "db14e707c8494ad392c10027d3523c19", "group": 2, "key": "172.28.5.9"}
+2018-04-13 22:42:04,638 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "db14e707c8494ad392c10027d3523c19", "group": 2, "key": "172.28.5.9"}
+2018-04-13 22:42:04,673 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "db14e707c8494ad392c10027d3523c19", "group": 2, "key": "172.28.5.9"}
+2018-04-13 22:42:05,641 [MainThread  ] [DEBUG]  Sending to... 172.28.5.8 from tcp://*:10003
+2018-04-13 22:42:05,642 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "0c8302344a8146bc8d9ee29f52a9e79d", "group": 3, "key": "172.28.5.8"}
+2018-04-13 22:42:05,642 [MainThread  ] [DEBUG]  	{"tx": "0c8302344a8146bc8d9ee29f52a9e79d", "group": 3, "key": "172.28.5.8"}
+2018-04-13 22:42:05,673 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "0c8302344a8146bc8d9ee29f52a9e79d", "group": 3, "key": "172.28.5.8"}
+2018-04-13 22:42:05,683 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "0c8302344a8146bc8d9ee29f52a9e79d", "group": 3, "key": "172.28.5.8"}
+2018-04-13 22:42:06,644 [MainThread  ] [DEBUG]  Sending to... 172.28.5.3 from tcp://*:10004
+2018-04-13 22:42:06,645 [MainThread  ] [DEBUG]  	{"tx": "b6465933e4a54dbe8bcec9af45b69a34", "group": 4, "key": "172.28.5.3"}
+2018-04-13 22:42:06,654 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "b6465933e4a54dbe8bcec9af45b69a34", "group": 4, "key": "172.28.5.3"}
+2018-04-13 22:42:06,664 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "b6465933e4a54dbe8bcec9af45b69a34", "group": 4, "key": "172.28.5.3"}
+2018-04-13 22:42:06,664 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "b6465933e4a54dbe8bcec9af45b69a34", "group": 4, "key": "172.28.5.3"}
+2018-04-13 22:42:07,647 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10005
+2018-04-13 22:42:07,648 [MainThread  ] [DEBUG]  	{"tx": "3d6bd42fb8794f3992fdd63a9b716eb2", "group": 5, "key": "172.28.5.2"}
+2018-04-13 22:42:07,665 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "3d6bd42fb8794f3992fdd63a9b716eb2", "group": 5, "key": "172.28.5.2"}
+2018-04-13 22:42:07,673 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "3d6bd42fb8794f3992fdd63a9b716eb2", "group": 5, "key": "172.28.5.2"}
+2018-04-13 22:42:07,693 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "3d6bd42fb8794f3992fdd63a9b716eb2", "group": 5, "key": "172.28.5.2"}
+2018-04-13 22:42:08,651 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10006
+2018-04-13 22:42:08,651 [MainThread  ] [DEBUG]  	{"tx": "d5733f7606db41d8ac8355f0ec7caf3c", "group": 6, "key": "172.28.5.9"}
+2018-04-13 22:42:08,663 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "d5733f7606db41d8ac8355f0ec7caf3c", "group": 6, "key": "172.28.5.9"}
+2018-04-13 22:42:08,672 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "d5733f7606db41d8ac8355f0ec7caf3c", "group": 6, "key": "172.28.5.9"}
+2018-04-13 22:42:08,684 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "d5733f7606db41d8ac8355f0ec7caf3c", "group": 6, "key": "172.28.5.9"}
+2018-04-13 22:42:09,655 [MainThread  ] [DEBUG]  Sending to... 172.28.5.3 from tcp://*:10007
+2018-04-13 22:42:09,655 [MainThread  ] [DEBUG]  	{"tx": "885d7c4aeeb94c20adf781fbb1757f4a", "group": 7, "key": "172.28.5.3"}
+2018-04-13 22:42:09,655 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "885d7c4aeeb94c20adf781fbb1757f4a", "group": 7, "key": "172.28.5.3"}
+2018-04-13 22:42:09,656 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "885d7c4aeeb94c20adf781fbb1757f4a", "group": 7, "key": "172.28.5.3"}
+2018-04-13 22:42:09,694 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "885d7c4aeeb94c20adf781fbb1757f4a", "group": 7, "key": "172.28.5.3"}
+2018-04-13 22:42:10,658 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10008
+2018-04-13 22:42:10,659 [MainThread  ] [DEBUG]  	{"tx": "c1a8639881304f6ea08d5f2293fd5ed0", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:10,661 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "c1a8639881304f6ea08d5f2293fd5ed0", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:10,663 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "c1a8639881304f6ea08d5f2293fd5ed0", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:10,661 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "c1a8639881304f6ea08d5f2293fd5ed0", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:11,663 [MainThread  ] [DEBUG]  Sending to... 172.28.5.1 from tcp://*:10009
+2018-04-13 22:42:11,663 [MainThread  ] [DEBUG]  	{"tx": "4f42e659cfb840228cd2c286c7899c70", "group": 9, "key": "172.28.5.1"}
+2018-04-13 22:42:11,664 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "4f42e659cfb840228cd2c286c7899c70", "group": 9, "key": "172.28.5.1"}
+2018-04-13 22:42:11,673 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "4f42e659cfb840228cd2c286c7899c70", "group": 9, "key": "172.28.5.1"}
+2018-04-13 22:42:11,683 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "4f42e659cfb840228cd2c286c7899c70", "group": 9, "key": "172.28.5.1"}
+2018-04-13 22:42:12,666 [MainThread  ] [DEBUG]  Sending to... 172.28.5.1 from tcp://*:10000
+2018-04-13 22:42:12,666 [MainThread  ] [DEBUG]  	{"tx": "56e948485e2941658e337ae2c3b4e70e", "group": 0, "key": "172.28.5.1"}
+2018-04-13 22:42:12,667 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "56e948485e2941658e337ae2c3b4e70e", "group": 0, "key": "172.28.5.1"}
+2018-04-13 22:42:12,703 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "56e948485e2941658e337ae2c3b4e70e", "group": 0, "key": "172.28.5.1"}
+2018-04-13 22:42:12,703 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "56e948485e2941658e337ae2c3b4e70e", "group": 0, "key": "172.28.5.1"}
+2018-04-13 22:42:13,670 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10001
+2018-04-13 22:42:13,670 [MainThread  ] [DEBUG]  	{"tx": "9cafa4bf9d994f8b85ff2e08b314c93c", "group": 1, "key": "172.28.5.9"}
+2018-04-13 22:42:13,671 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "9cafa4bf9d994f8b85ff2e08b314c93c", "group": 1, "key": "172.28.5.9"}
+2018-04-13 22:42:13,671 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "9cafa4bf9d994f8b85ff2e08b314c93c", "group": 1, "key": "172.28.5.9"}
+2018-04-13 22:42:13,704 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "9cafa4bf9d994f8b85ff2e08b314c93c", "group": 1, "key": "172.28.5.9"}
+2018-04-13 22:42:14,674 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10002
+2018-04-13 22:42:14,675 [MainThread  ] [DEBUG]  	{"tx": "88e055f1b2a8462bbed5c3cf2e7e98cc", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:42:14,684 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "88e055f1b2a8462bbed5c3cf2e7e98cc", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:42:14,684 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "88e055f1b2a8462bbed5c3cf2e7e98cc", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:42:14,703 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "88e055f1b2a8462bbed5c3cf2e7e98cc", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:42:15,678 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10003
+2018-04-13 22:42:15,679 [MainThread  ] [DEBUG]  	{"tx": "cce024b2e5fa4f33ab0a76c6462310c9", "group": 3, "key": "172.28.5.9"}
+2018-04-13 22:42:15,684 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "cce024b2e5fa4f33ab0a76c6462310c9", "group": 3, "key": "172.28.5.9"}
+2018-04-13 22:42:15,696 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "cce024b2e5fa4f33ab0a76c6462310c9", "group": 3, "key": "172.28.5.9"}
+2018-04-13 22:42:15,694 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "cce024b2e5fa4f33ab0a76c6462310c9", "group": 3, "key": "172.28.5.9"}
+2018-04-13 22:42:16,684 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10004
+2018-04-13 22:42:16,685 [MainThread  ] [DEBUG]  	{"tx": "b855398cec0640908a0a407d98d5cd89", "group": 4, "key": "172.28.5.4"}
+2018-04-13 22:42:16,694 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "b855398cec0640908a0a407d98d5cd89", "group": 4, "key": "172.28.5.4"}
+2018-04-13 22:42:16,705 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "b855398cec0640908a0a407d98d5cd89", "group": 4, "key": "172.28.5.4"}
+2018-04-13 22:42:16,723 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "b855398cec0640908a0a407d98d5cd89", "group": 4, "key": "172.28.5.4"}
+2018-04-13 22:42:17,688 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10005
+2018-04-13 22:42:17,688 [MainThread  ] [DEBUG]  	{"tx": "92db8867435c400faef80e1f9265848d", "group": 5, "key": "172.28.5.4"}
+2018-04-13 22:42:17,690 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "92db8867435c400faef80e1f9265848d", "group": 5, "key": "172.28.5.4"}
+2018-04-13 22:42:17,713 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "92db8867435c400faef80e1f9265848d", "group": 5, "key": "172.28.5.4"}
+2018-04-13 22:42:17,723 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "92db8867435c400faef80e1f9265848d", "group": 5, "key": "172.28.5.4"}
+2018-04-13 22:42:18,692 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10006
+2018-04-13 22:42:18,693 [MainThread  ] [DEBUG]  	{"tx": "8049a83618504e8ba8053e55f3a089d2", "group": 6, "key": "172.28.5.7"}
+2018-04-13 22:42:18,693 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "8049a83618504e8ba8053e55f3a089d2", "group": 6, "key": "172.28.5.7"}
+2018-04-13 22:42:18,714 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "8049a83618504e8ba8053e55f3a089d2", "group": 6, "key": "172.28.5.7"}
+2018-04-13 22:42:18,714 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "8049a83618504e8ba8053e55f3a089d2", "group": 6, "key": "172.28.5.7"}
+2018-04-13 22:42:19,696 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10007
+2018-04-13 22:42:19,697 [MainThread  ] [DEBUG]  	{"tx": "56a797cb989346fabe0a8c57aae93b14", "group": 7, "key": "172.28.5.4"}
+2018-04-13 22:42:19,702 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "56a797cb989346fabe0a8c57aae93b14", "group": 7, "key": "172.28.5.4"}
+2018-04-13 22:42:19,715 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "56a797cb989346fabe0a8c57aae93b14", "group": 7, "key": "172.28.5.4"}
+2018-04-13 22:42:19,737 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "56a797cb989346fabe0a8c57aae93b14", "group": 7, "key": "172.28.5.4"}
+2018-04-13 22:42:20,701 [MainThread  ] [DEBUG]  Sending to... 172.28.5.1 from tcp://*:10008
+2018-04-13 22:42:20,702 [MainThread  ] [DEBUG]  	{"tx": "c7f1517ae0f049af9357fa532ff92e9e", "group": 8, "key": "172.28.5.1"}
+2018-04-13 22:42:20,708 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "c7f1517ae0f049af9357fa532ff92e9e", "group": 8, "key": "172.28.5.1"}
+2018-04-13 22:42:20,714 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "c7f1517ae0f049af9357fa532ff92e9e", "group": 8, "key": "172.28.5.1"}
+2018-04-13 22:42:20,734 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "c7f1517ae0f049af9357fa532ff92e9e", "group": 8, "key": "172.28.5.1"}
+2018-04-13 22:42:21,706 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10009
+2018-04-13 22:42:21,707 [MainThread  ] [DEBUG]  	{"tx": "9515456a79054173a8b938ec7badba9e", "group": 9, "key": "172.28.5.9"}
+2018-04-13 22:42:21,713 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "9515456a79054173a8b938ec7badba9e", "group": 9, "key": "172.28.5.9"}
+2018-04-13 22:42:21,720 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "9515456a79054173a8b938ec7badba9e", "group": 9, "key": "172.28.5.9"}
+2018-04-13 22:42:21,763 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "9515456a79054173a8b938ec7badba9e", "group": 9, "key": "172.28.5.9"}
+2018-04-13 22:42:22,711 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10000
+2018-04-13 22:42:22,712 [MainThread  ] [DEBUG]  	{"tx": "4520ab6ef73044f987be3d4d99bd6682", "group": 0, "key": "172.28.5.7"}
+2018-04-13 22:42:22,715 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "4520ab6ef73044f987be3d4d99bd6682", "group": 0, "key": "172.28.5.7"}
+2018-04-13 22:42:22,755 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "4520ab6ef73044f987be3d4d99bd6682", "group": 0, "key": "172.28.5.7"}
+2018-04-13 22:42:22,755 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "4520ab6ef73044f987be3d4d99bd6682", "group": 0, "key": "172.28.5.7"}
+2018-04-13 22:42:23,715 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10001
+2018-04-13 22:42:23,716 [MainThread  ] [DEBUG]  	{"tx": "1c6fe853169047e9a70afed72a3fe828", "group": 1, "key": "172.28.5.7"}
+2018-04-13 22:42:23,718 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "1c6fe853169047e9a70afed72a3fe828", "group": 1, "key": "172.28.5.7"}
+2018-04-13 22:42:23,718 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "1c6fe853169047e9a70afed72a3fe828", "group": 1, "key": "172.28.5.7"}
+2018-04-13 22:42:23,719 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "1c6fe853169047e9a70afed72a3fe828", "group": 1, "key": "172.28.5.7"}
+2018-04-13 22:42:24,719 [MainThread  ] [DEBUG]  Sending to... 172.28.5.5 from tcp://*:10002
+2018-04-13 22:42:24,720 [MainThread  ] [DEBUG]  	{"tx": "aa8747be261c406db0b6172489a32f90", "group": 2, "key": "172.28.5.5"}
+2018-04-13 22:42:24,734 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "aa8747be261c406db0b6172489a32f90", "group": 2, "key": "172.28.5.5"}
+2018-04-13 22:42:24,753 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "aa8747be261c406db0b6172489a32f90", "group": 2, "key": "172.28.5.5"}
+2018-04-13 22:42:24,753 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "aa8747be261c406db0b6172489a32f90", "group": 2, "key": "172.28.5.5"}
+2018-04-13 22:42:25,723 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10003
+2018-04-13 22:42:25,724 [MainThread  ] [DEBUG]  	{"tx": "ce4975c3f48c4376af11a4f8f0722d8e", "group": 3, "key": "172.28.5.7"}
+2018-04-13 22:42:25,733 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "ce4975c3f48c4376af11a4f8f0722d8e", "group": 3, "key": "172.28.5.7"}
+2018-04-13 22:42:25,744 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "ce4975c3f48c4376af11a4f8f0722d8e", "group": 3, "key": "172.28.5.7"}
+2018-04-13 22:42:25,764 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "ce4975c3f48c4376af11a4f8f0722d8e", "group": 3, "key": "172.28.5.7"}
+2018-04-13 22:42:26,727 [MainThread  ] [DEBUG]  Sending to... 172.28.5.6 from tcp://*:10004
+2018-04-13 22:42:26,727 [MainThread  ] [DEBUG]  	{"tx": "dd389e9a0f504e1dab28fe9dc59da2ff", "group": 4, "key": "172.28.5.6"}
+2018-04-13 22:42:26,753 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "dd389e9a0f504e1dab28fe9dc59da2ff", "group": 4, "key": "172.28.5.6"}
+2018-04-13 22:42:26,753 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "dd389e9a0f504e1dab28fe9dc59da2ff", "group": 4, "key": "172.28.5.6"}
+2018-04-13 22:42:26,802 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "dd389e9a0f504e1dab28fe9dc59da2ff", "group": 4, "key": "172.28.5.6"}
+2018-04-13 22:42:27,743 [MainThread  ] [DEBUG]  Sending to... 172.28.5.1 from tcp://*:10005
+2018-04-13 22:42:27,744 [MainThread  ] [DEBUG]  	{"tx": "d145ad5eac84489bb3402b579f195bea", "group": 5, "key": "172.28.5.1"}
+2018-04-13 22:42:27,744 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "d145ad5eac84489bb3402b579f195bea", "group": 5, "key": "172.28.5.1"}
+2018-04-13 22:42:27,753 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "d145ad5eac84489bb3402b579f195bea", "group": 5, "key": "172.28.5.1"}
+2018-04-13 22:42:27,845 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "d145ad5eac84489bb3402b579f195bea", "group": 5, "key": "172.28.5.1"}
+2018-04-13 22:42:40,267 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10000
+2018-04-13 22:42:40,270 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10005
+2018-04-13 22:42:40,271 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10007
+2018-04-13 22:42:40,273 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10009
+2018-04-13 22:42:40,274 [MainThread  ] [DEBUG]  Started listening as 172.28.5.5 ...
+2018-04-13 22:42:40,389 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10001
+2018-04-13 22:42:40,391 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10003
+2018-04-13 22:42:40,392 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10008
+2018-04-13 22:42:40,392 [MainThread  ] [DEBUG]  Started listening as 172.28.5.8 ...
+2018-04-13 22:42:40,416 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10003
+2018-04-13 22:42:40,417 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10005
+2018-04-13 22:42:40,418 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10007
+2018-04-13 22:42:40,419 [MainThread  ] [DEBUG]  Started listening as 172.28.5.3 ...
+2018-04-13 22:42:41,866 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10002
+2018-04-13 22:42:41,867 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10004
+2018-04-13 22:42:41,869 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10006
+2018-04-13 22:42:41,871 [MainThread  ] [DEBUG]  Started listening as 172.28.5.2 ...
+2018-04-13 22:42:41,893 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10004
+2018-04-13 22:42:41,897 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10000
+2018-04-13 22:42:41,897 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10006
+2018-04-13 22:42:41,899 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10008
+2018-04-13 22:42:41,900 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10002
+2018-04-13 22:42:41,901 [MainThread  ] [DEBUG]  Started listening as 172.28.5.4 ...
+2018-04-13 22:42:41,905 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10004
+2018-04-13 22:42:41,906 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10009
+2018-04-13 22:42:41,907 [MainThread  ] [DEBUG]  Started listening as 172.28.5.9 ...
+2018-04-13 22:42:42,393 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10000
+2018-04-13 22:42:42,400 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10002
+2018-04-13 22:42:42,413 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10007
+2018-04-13 22:42:42,425 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10009
+2018-04-13 22:42:42,427 [MainThread  ] [DEBUG]  Started listening as 172.28.5.7 ...
+2018-04-13 22:42:42,736 [MainThread  ] [DEBUG]  Sending to... 172.28.5.3 from tcp://*:10000
+2018-04-13 22:42:42,743 [MainThread  ] [DEBUG]  	{"tx": "93a2cf8d2671433f9f4770f420b6e962", "group": 0, "key": "172.28.5.3"}
+2018-04-13 22:42:42,823 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10001
+2018-04-13 22:42:42,824 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10006
+2018-04-13 22:42:42,830 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10008
+2018-04-13 22:42:42,831 [MainThread  ] [DEBUG]  Started listening as 172.28.5.6 ...
+2018-04-13 22:42:42,865 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10001
+2018-04-13 22:42:42,874 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10003
+2018-04-13 22:42:42,883 [MainThread  ] [DEBUG]  listening on tcp://172.28.5.0:10005
+2018-04-13 22:42:42,894 [MainThread  ] [DEBUG]  Started listening as 172.28.5.1 ...
+2018-04-13 22:42:43,744 [MainThread  ] [DEBUG]  Sending to... 172.28.5.5 from tcp://*:10001
+2018-04-13 22:42:43,745 [MainThread  ] [DEBUG]  	{"tx": "7a5c24c1e77e4aed8645544ee304b4e7", "group": 1, "key": "172.28.5.5"}
+2018-04-13 22:42:43,746 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "7a5c24c1e77e4aed8645544ee304b4e7", "group": 1, "key": "172.28.5.5"}
+2018-04-13 22:42:43,753 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "7a5c24c1e77e4aed8645544ee304b4e7", "group": 1, "key": "172.28.5.5"}
+2018-04-13 22:42:43,793 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "7a5c24c1e77e4aed8645544ee304b4e7", "group": 1, "key": "172.28.5.5"}
+2018-04-13 22:42:44,749 [MainThread  ] [DEBUG]  Sending to... 172.28.5.3 from tcp://*:10002
+2018-04-13 22:42:44,750 [MainThread  ] [DEBUG]  	{"tx": "95915f24db874843a519b2c97a736c76", "group": 2, "key": "172.28.5.3"}
+2018-04-13 22:42:44,752 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "95915f24db874843a519b2c97a736c76", "group": 2, "key": "172.28.5.3"}
+2018-04-13 22:42:44,752 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "95915f24db874843a519b2c97a736c76", "group": 2, "key": "172.28.5.3"}
+2018-04-13 22:42:44,782 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "95915f24db874843a519b2c97a736c76", "group": 2, "key": "172.28.5.3"}
+2018-04-13 22:42:45,753 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10003
+2018-04-13 22:42:45,754 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "96b3038372ba4df6bfa5d5f65a990cea", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:42:45,754 [MainThread  ] [DEBUG]  	{"tx": "96b3038372ba4df6bfa5d5f65a990cea", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:42:45,756 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "96b3038372ba4df6bfa5d5f65a990cea", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:42:45,794 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "96b3038372ba4df6bfa5d5f65a990cea", "group": 3, "key": "172.28.5.2"}
+2018-04-13 22:42:46,757 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10004
+2018-04-13 22:42:46,758 [MainThread  ] [DEBUG]  	{"tx": "7dcb554ac7e34e1aa1d8262fa0062be3", "group": 4, "key": "172.28.5.2"}
+2018-04-13 22:42:46,760 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "7dcb554ac7e34e1aa1d8262fa0062be3", "group": 4, "key": "172.28.5.2"}
+2018-04-13 22:42:46,761 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "7dcb554ac7e34e1aa1d8262fa0062be3", "group": 4, "key": "172.28.5.2"}
+2018-04-13 22:42:46,786 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "7dcb554ac7e34e1aa1d8262fa0062be3", "group": 4, "key": "172.28.5.2"}
+2018-04-13 22:42:47,761 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10005
+2018-04-13 22:42:47,762 [MainThread  ] [DEBUG]  	{"tx": "40f0d0e43e1842959a54e57162a07ded", "group": 5, "key": "172.28.5.9"}
+2018-04-13 22:42:47,762 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "40f0d0e43e1842959a54e57162a07ded", "group": 5, "key": "172.28.5.9"}
+2018-04-13 22:42:47,793 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "40f0d0e43e1842959a54e57162a07ded", "group": 5, "key": "172.28.5.9"}
+2018-04-13 22:42:47,804 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "40f0d0e43e1842959a54e57162a07ded", "group": 5, "key": "172.28.5.9"}
+2018-04-13 22:42:48,764 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10006
+2018-04-13 22:42:48,765 [MainThread  ] [DEBUG]  	{"tx": "16fb78a22e41497fbe3abf8e6cf36d2d", "group": 6, "key": "172.28.5.9"}
+2018-04-13 22:42:48,766 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "16fb78a22e41497fbe3abf8e6cf36d2d", "group": 6, "key": "172.28.5.9"}
+2018-04-13 22:42:48,803 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "16fb78a22e41497fbe3abf8e6cf36d2d", "group": 6, "key": "172.28.5.9"}
+2018-04-13 22:42:48,815 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "16fb78a22e41497fbe3abf8e6cf36d2d", "group": 6, "key": "172.28.5.9"}
+2018-04-13 22:42:49,768 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10007
+2018-04-13 22:42:49,769 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "d06b1e2eae8648bf99341999f44fec9e", "group": 7, "key": "172.28.5.9"}
+2018-04-13 22:42:49,769 [MainThread  ] [DEBUG]  	{"tx": "d06b1e2eae8648bf99341999f44fec9e", "group": 7, "key": "172.28.5.9"}
+2018-04-13 22:42:49,770 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "d06b1e2eae8648bf99341999f44fec9e", "group": 7, "key": "172.28.5.9"}
+2018-04-13 22:42:49,813 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "d06b1e2eae8648bf99341999f44fec9e", "group": 7, "key": "172.28.5.9"}
+2018-04-13 22:42:50,775 [MainThread  ] [DEBUG]  Sending to... 172.28.5.4 from tcp://*:10008
+2018-04-13 22:42:50,775 [MainThread  ] [DEBUG]  	{"tx": "fea0e4b65a9b4e9cad8424a8ed1c6f20", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:50,777 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "fea0e4b65a9b4e9cad8424a8ed1c6f20", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:50,805 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "fea0e4b65a9b4e9cad8424a8ed1c6f20", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:50,813 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "fea0e4b65a9b4e9cad8424a8ed1c6f20", "group": 8, "key": "172.28.5.4"}
+2018-04-13 22:42:51,778 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10009
+2018-04-13 22:42:51,779 [MainThread  ] [DEBUG]  	{"tx": "d1cc682e6c254958a93e50e3a468bb52", "group": 9, "key": "172.28.5.7"}
+2018-04-13 22:42:51,780 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "d1cc682e6c254958a93e50e3a468bb52", "group": 9, "key": "172.28.5.7"}
+2018-04-13 22:42:51,812 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "d1cc682e6c254958a93e50e3a468bb52", "group": 9, "key": "172.28.5.7"}
+2018-04-13 22:42:51,813 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "d1cc682e6c254958a93e50e3a468bb52", "group": 9, "key": "172.28.5.7"}
+2018-04-13 22:42:52,783 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10000
+2018-04-13 22:42:52,783 [MainThread  ] [DEBUG]  	{"tx": "6506559ed4354d49881207a0069e9859", "group": 0, "key": "172.28.5.7"}
+2018-04-13 22:42:52,793 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "6506559ed4354d49881207a0069e9859", "group": 0, "key": "172.28.5.7"}
+2018-04-13 22:42:52,814 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "6506559ed4354d49881207a0069e9859", "group": 0, "key": "172.28.5.7"}
+2018-04-13 22:42:52,833 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "6506559ed4354d49881207a0069e9859", "group": 0, "key": "172.28.5.7"}
+2018-04-13 22:42:53,786 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10001
+2018-04-13 22:42:53,787 [MainThread  ] [DEBUG]  	{"tx": "f398e5dac4f342d9919d56e3da749187", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:42:53,804 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "f398e5dac4f342d9919d56e3da749187", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:42:53,812 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "f398e5dac4f342d9919d56e3da749187", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:42:53,812 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "f398e5dac4f342d9919d56e3da749187", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:42:54,788 [MainThread  ] [DEBUG]  Sending to... 172.28.5.5 from tcp://*:10002
+2018-04-13 22:42:54,789 [MainThread  ] [DEBUG]  	{"tx": "0a49b9c64aac42a4bda2179c6972b897", "group": 2, "key": "172.28.5.5"}
+2018-04-13 22:42:54,803 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "0a49b9c64aac42a4bda2179c6972b897", "group": 2, "key": "172.28.5.5"}
+2018-04-13 22:42:54,815 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "0a49b9c64aac42a4bda2179c6972b897", "group": 2, "key": "172.28.5.5"}
+2018-04-13 22:42:54,826 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "0a49b9c64aac42a4bda2179c6972b897", "group": 2, "key": "172.28.5.5"}
+2018-04-13 22:42:55,792 [MainThread  ] [DEBUG]  Sending to... 172.28.5.1 from tcp://*:10003
+2018-04-13 22:42:55,793 [MainThread  ] [DEBUG]  	{"tx": "2269fe08097a4bb7ac3f1bd6450f8d3f", "group": 3, "key": "172.28.5.1"}
+2018-04-13 22:42:55,803 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "2269fe08097a4bb7ac3f1bd6450f8d3f", "group": 3, "key": "172.28.5.1"}
+2018-04-13 22:42:55,814 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "2269fe08097a4bb7ac3f1bd6450f8d3f", "group": 3, "key": "172.28.5.1"}
+2018-04-13 22:42:55,833 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "2269fe08097a4bb7ac3f1bd6450f8d3f", "group": 3, "key": "172.28.5.1"}
+2018-04-13 22:42:56,797 [MainThread  ] [DEBUG]  Sending to... 172.28.5.3 from tcp://*:10004
+2018-04-13 22:42:56,797 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "259eb1655048418592cb33016fa0f5aa", "group": 4, "key": "172.28.5.3"}
+2018-04-13 22:42:56,797 [MainThread  ] [DEBUG]  	{"tx": "259eb1655048418592cb33016fa0f5aa", "group": 4, "key": "172.28.5.3"}
+2018-04-13 22:42:56,798 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "259eb1655048418592cb33016fa0f5aa", "group": 4, "key": "172.28.5.3"}
+2018-04-13 22:42:56,810 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "259eb1655048418592cb33016fa0f5aa", "group": 4, "key": "172.28.5.3"}
+2018-04-13 22:42:57,813 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10005
+2018-04-13 22:42:57,816 [MainThread  ] [DEBUG]  	{"tx": "8a6443adc06d410e8d7ae502e575700b", "group": 5, "key": "172.28.5.7"}
+2018-04-13 22:42:57,832 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "8a6443adc06d410e8d7ae502e575700b", "group": 5, "key": "172.28.5.7"}
+2018-04-13 22:42:57,866 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "8a6443adc06d410e8d7ae502e575700b", "group": 5, "key": "172.28.5.7"}
+2018-04-13 22:42:57,936 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "8a6443adc06d410e8d7ae502e575700b", "group": 5, "key": "172.28.5.7"}
+2018-04-13 22:42:58,822 [MainThread  ] [DEBUG]  Sending to... 172.28.5.3 from tcp://*:10006
+2018-04-13 22:42:58,823 [MainThread  ] [DEBUG]  	{"tx": "95fa9f4528d643d89ab700ba857b1159", "group": 6, "key": "172.28.5.3"}
+2018-04-13 22:42:58,822 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "95fa9f4528d643d89ab700ba857b1159", "group": 6, "key": "172.28.5.3"}
+2018-04-13 22:42:58,844 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "95fa9f4528d643d89ab700ba857b1159", "group": 6, "key": "172.28.5.3"}
+2018-04-13 22:42:58,854 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "95fa9f4528d643d89ab700ba857b1159", "group": 6, "key": "172.28.5.3"}
+2018-04-13 22:42:59,824 [MainThread  ] [DEBUG]  Sending to... 172.28.5.1 from tcp://*:10007
+2018-04-13 22:42:59,825 [MainThread  ] [DEBUG]  	{"tx": "7d3a822501124756b536d0ae75f1af9b", "group": 7, "key": "172.28.5.1"}
+2018-04-13 22:42:59,827 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "7d3a822501124756b536d0ae75f1af9b", "group": 7, "key": "172.28.5.1"}
+2018-04-13 22:42:59,843 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "7d3a822501124756b536d0ae75f1af9b", "group": 7, "key": "172.28.5.1"}
+2018-04-13 22:42:59,864 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "7d3a822501124756b536d0ae75f1af9b", "group": 7, "key": "172.28.5.1"}
+2018-04-13 22:43:00,829 [MainThread  ] [DEBUG]  Sending to... 172.28.5.6 from tcp://*:10008
+2018-04-13 22:43:00,830 [MainThread  ] [DEBUG]  	{"tx": "152267b79055471d9c64778e7cd5d825", "group": 8, "key": "172.28.5.6"}
+2018-04-13 22:43:00,831 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "152267b79055471d9c64778e7cd5d825", "group": 8, "key": "172.28.5.6"}
+2018-04-13 22:43:00,852 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "152267b79055471d9c64778e7cd5d825", "group": 8, "key": "172.28.5.6"}
+2018-04-13 22:43:00,864 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "152267b79055471d9c64778e7cd5d825", "group": 8, "key": "172.28.5.6"}
+2018-04-13 22:43:01,835 [MainThread  ] [DEBUG]  Sending to... 172.28.5.5 from tcp://*:10009
+2018-04-13 22:43:01,835 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "29f2dff6335c4428b3d405bc6b9f2255", "group": 9, "key": "172.28.5.5"}
+2018-04-13 22:43:01,835 [MainThread  ] [DEBUG]  	{"tx": "29f2dff6335c4428b3d405bc6b9f2255", "group": 9, "key": "172.28.5.5"}
+2018-04-13 22:43:01,837 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "29f2dff6335c4428b3d405bc6b9f2255", "group": 9, "key": "172.28.5.5"}
+2018-04-13 22:43:01,838 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "29f2dff6335c4428b3d405bc6b9f2255", "group": 9, "key": "172.28.5.5"}
+2018-04-13 22:43:02,839 [MainThread  ] [DEBUG]  Sending to... 172.28.5.8 from tcp://*:10000
+2018-04-13 22:43:02,840 [MainThread  ] [DEBUG]  	{"tx": "f8379c2f28fa4fac9d7f967fb7bf653f", "group": 0, "key": "172.28.5.8"}
+2018-04-13 22:43:02,842 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "f8379c2f28fa4fac9d7f967fb7bf653f", "group": 0, "key": "172.28.5.8"}
+2018-04-13 22:43:02,842 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "f8379c2f28fa4fac9d7f967fb7bf653f", "group": 0, "key": "172.28.5.8"}
+2018-04-13 22:43:02,842 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "f8379c2f28fa4fac9d7f967fb7bf653f", "group": 0, "key": "172.28.5.8"}
+2018-04-13 22:43:03,844 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10001
+2018-04-13 22:43:03,845 [MainThread  ] [DEBUG]  	{"tx": "e067858386b34f2d9a1fa3575a5b14b1", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:43:03,850 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "e067858386b34f2d9a1fa3575a5b14b1", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:43:03,863 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "e067858386b34f2d9a1fa3575a5b14b1", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:43:03,882 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "e067858386b34f2d9a1fa3575a5b14b1", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:43:04,848 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10002
+2018-04-13 22:43:04,849 [MainThread  ] [DEBUG]  	{"tx": "a289955c32de4ab2991fb06762155d2c", "group": 2, "key": "172.28.5.9"}
+2018-04-13 22:43:04,848 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "a289955c32de4ab2991fb06762155d2c", "group": 2, "key": "172.28.5.9"}
+2018-04-13 22:43:04,850 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "a289955c32de4ab2991fb06762155d2c", "group": 2, "key": "172.28.5.9"}
+2018-04-13 22:43:04,884 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "a289955c32de4ab2991fb06762155d2c", "group": 2, "key": "172.28.5.9"}
+2018-04-13 22:43:05,851 [MainThread  ] [DEBUG]  Sending to... 172.28.5.8 from tcp://*:10003
+2018-04-13 22:43:05,852 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "9c596da9bb804551a23b05483cf89159", "group": 3, "key": "172.28.5.8"}
+2018-04-13 22:43:05,852 [MainThread  ] [DEBUG]  	{"tx": "9c596da9bb804551a23b05483cf89159", "group": 3, "key": "172.28.5.8"}
+2018-04-13 22:43:05,865 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "9c596da9bb804551a23b05483cf89159", "group": 3, "key": "172.28.5.8"}
+2018-04-13 22:43:05,894 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "9c596da9bb804551a23b05483cf89159", "group": 3, "key": "172.28.5.8"}
+2018-04-13 22:43:06,866 [MainThread  ] [DEBUG]  Sending to... 172.28.5.5 from tcp://*:10004
+2018-04-13 22:43:06,867 [MainThread  ] [DEBUG]  	{"tx": "290ae22743514fa3967819f642a19ea5", "group": 4, "key": "172.28.5.5"}
+2018-04-13 22:43:06,867 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "290ae22743514fa3967819f642a19ea5", "group": 4, "key": "172.28.5.5"}
+2018-04-13 22:43:06,884 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "290ae22743514fa3967819f642a19ea5", "group": 4, "key": "172.28.5.5"}
+2018-04-13 22:43:06,905 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "290ae22743514fa3967819f642a19ea5", "group": 4, "key": "172.28.5.5"}
+2018-04-13 22:43:07,871 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10005
+2018-04-13 22:43:07,871 [MainThread  ] [DEBUG]  	{"tx": "81d0a5529ba040cfb5c3048d73cc820e", "group": 5, "key": "172.28.5.2"}
+2018-04-13 22:43:07,871 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "81d0a5529ba040cfb5c3048d73cc820e", "group": 5, "key": "172.28.5.2"}
+2018-04-13 22:43:07,893 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "81d0a5529ba040cfb5c3048d73cc820e", "group": 5, "key": "172.28.5.2"}
+2018-04-13 22:43:07,893 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "81d0a5529ba040cfb5c3048d73cc820e", "group": 5, "key": "172.28.5.2"}
+2018-04-13 22:43:08,873 [MainThread  ] [DEBUG]  Sending to... 172.28.5.3 from tcp://*:10006
+2018-04-13 22:43:08,874 [MainThread  ] [DEBUG]  	{"tx": "55d1b55a4ffb49158dd66713a14af243", "group": 6, "key": "172.28.5.3"}
+2018-04-13 22:43:08,875 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "55d1b55a4ffb49158dd66713a14af243", "group": 6, "key": "172.28.5.3"}
+2018-04-13 22:43:08,894 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "55d1b55a4ffb49158dd66713a14af243", "group": 6, "key": "172.28.5.3"}
+2018-04-13 22:43:08,912 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "55d1b55a4ffb49158dd66713a14af243", "group": 6, "key": "172.28.5.3"}
+2018-04-13 22:43:09,876 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10007
+2018-04-13 22:43:09,877 [MainThread  ] [DEBUG]  	{"tx": "05f0326686fc407fa455ed4044d6acbf", "group": 7, "key": "172.28.5.9"}
+2018-04-13 22:43:09,877 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "05f0326686fc407fa455ed4044d6acbf", "group": 7, "key": "172.28.5.9"}
+2018-04-13 22:43:09,877 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "05f0326686fc407fa455ed4044d6acbf", "group": 7, "key": "172.28.5.9"}
+2018-04-13 22:43:09,878 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "05f0326686fc407fa455ed4044d6acbf", "group": 7, "key": "172.28.5.9"}
+2018-04-13 22:43:10,880 [MainThread  ] [DEBUG]  Sending to... 172.28.5.1 from tcp://*:10008
+2018-04-13 22:43:10,881 [MainThread  ] [DEBUG]  	{"tx": "2fc8113621304614a568ecc1b8ab60a3", "group": 8, "key": "172.28.5.1"}
+2018-04-13 22:43:10,881 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "2fc8113621304614a568ecc1b8ab60a3", "group": 8, "key": "172.28.5.1"}
+2018-04-13 22:43:10,883 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "2fc8113621304614a568ecc1b8ab60a3", "group": 8, "key": "172.28.5.1"}
+2018-04-13 22:43:10,884 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "2fc8113621304614a568ecc1b8ab60a3", "group": 8, "key": "172.28.5.1"}
+2018-04-13 22:43:11,883 [MainThread  ] [DEBUG]  Sending to... 172.28.5.9 from tcp://*:10009
+2018-04-13 22:43:11,883 [MainThread  ] [DEBUG]  	{"tx": "89130850e1f8493b87f22a43e1698c7d", "group": 9, "key": "172.28.5.9"}
+2018-04-13 22:43:11,884 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "89130850e1f8493b87f22a43e1698c7d", "group": 9, "key": "172.28.5.9"}
+2018-04-13 22:43:11,913 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "89130850e1f8493b87f22a43e1698c7d", "group": 9, "key": "172.28.5.9"}
+2018-04-13 22:43:11,913 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "89130850e1f8493b87f22a43e1698c7d", "group": 9, "key": "172.28.5.9"}
+2018-04-13 22:43:12,886 [MainThread  ] [DEBUG]  Sending to... 172.28.5.5 from tcp://*:10000
+2018-04-13 22:43:12,886 [MainThread  ] [DEBUG]  	{"tx": "f9858bb36cf5493d9e942c1b17b6af2d", "group": 0, "key": "172.28.5.5"}
+2018-04-13 22:43:12,888 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "f9858bb36cf5493d9e942c1b17b6af2d", "group": 0, "key": "172.28.5.5"}
+2018-04-13 22:43:12,905 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "f9858bb36cf5493d9e942c1b17b6af2d", "group": 0, "key": "172.28.5.5"}
+2018-04-13 22:43:12,923 [MainThread  ] [DEBUG]  172.28.5.5: received {"tx": "f9858bb36cf5493d9e942c1b17b6af2d", "group": 0, "key": "172.28.5.5"}
+2018-04-13 22:43:13,890 [MainThread  ] [DEBUG]  Sending to... 172.28.5.2 from tcp://*:10001
+2018-04-13 22:43:13,891 [MainThread  ] [DEBUG]  	{"tx": "ac02e2ef27754a18b09e113c2d4f189e", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:43:13,891 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "ac02e2ef27754a18b09e113c2d4f189e", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:43:13,892 [MainThread  ] [DEBUG]  172.28.5.6: received {"tx": "ac02e2ef27754a18b09e113c2d4f189e", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:43:13,924 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "ac02e2ef27754a18b09e113c2d4f189e", "group": 1, "key": "172.28.5.2"}
+2018-04-13 22:43:14,895 [MainThread  ] [DEBUG]  Sending to... 172.28.5.7 from tcp://*:10002
+2018-04-13 22:43:14,895 [MainThread  ] [DEBUG]  	{"tx": "e674e66d44c14d53bc793d49e71f4bf0", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:43:14,896 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "e674e66d44c14d53bc793d49e71f4bf0", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:43:14,902 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "e674e66d44c14d53bc793d49e71f4bf0", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:43:14,953 [MainThread  ] [DEBUG]  172.28.5.7: received {"tx": "e674e66d44c14d53bc793d49e71f4bf0", "group": 2, "key": "172.28.5.7"}
+2018-04-13 22:43:15,899 [MainThread  ] [DEBUG]  Sending to... 172.28.5.5 from tcp://*:10003
+2018-04-13 22:43:15,899 [MainThread  ] [DEBUG]  	{"tx": "23fd7d1c7da34a1e80573aaeece3a90c", "group": 3, "key": "172.28.5.5"}
+2018-04-13 22:43:15,923 [MainThread  ] [DEBUG]  172.28.5.1: received {"tx": "23fd7d1c7da34a1e80573aaeece3a90c", "group": 3, "key": "172.28.5.5"}
+2018-04-13 22:43:15,924 [MainThread  ] [DEBUG]  172.28.5.3: received {"tx": "23fd7d1c7da34a1e80573aaeece3a90c", "group": 3, "key": "172.28.5.5"}
+2018-04-13 22:43:15,933 [MainThread  ] [DEBUG]  172.28.5.8: received {"tx": "23fd7d1c7da34a1e80573aaeece3a90c", "group": 3, "key": "172.28.5.5"}
+2018-04-13 22:43:16,903 [MainThread  ] [DEBUG]  Sending to... 172.28.5.6 from tcp://*:10004
+2018-04-13 22:43:16,904 [MainThread  ] [DEBUG]  	{"tx": "1a5bbf11c6234fa3bfc08e306c6de0f1", "group": 4, "key": "172.28.5.6"}
+2018-04-13 22:43:16,904 [MainThread  ] [DEBUG]  172.28.5.9: received {"tx": "1a5bbf11c6234fa3bfc08e306c6de0f1", "group": 4, "key": "172.28.5.6"}
+2018-04-13 22:43:16,912 [MainThread  ] [DEBUG]  172.28.5.4: received {"tx": "1a5bbf11c6234fa3bfc08e306c6de0f1", "group": 4, "key": "172.28.5.6"}
+2018-04-13 22:43:16,955 [MainThread  ] [DEBUG]  172.28.5.2: received {"tx": "1a5bbf11c6234fa3bfc08e306c6de0f1", "group": 4, "key": "172.28.5.6"}

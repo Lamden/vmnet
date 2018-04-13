@@ -1,0 +1,9 @@
+FROM alpine:3.7
+COPY . /app
+WORKDIR /app
+
+RUN apk update
+RUN apk add --update python3 py-pip python3-dev build-base
+RUN git clone git@github.com:Lamden/cilantro.git
+RUN cd cilantro
+RUN pip3 install -r requirements.txt

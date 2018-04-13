@@ -2,3 +2,4 @@
 .vagrant
 venv
 playbooks/*.retry
+scripts/debug.log
