@@ -4,6 +4,7 @@ import zmq
 import time
 import uuid
 import json
+import os
 logger = get_logger()
 
 class GroupServer(GroupBase):
@@ -31,7 +32,7 @@ class GroupServer(GroupBase):
             for idx in groups:
                 sock = self.socks[idx]
                 url = self.urls[idx]
-                msg = json.dumps({'tx':tx, 'group': idx})
+                msg = json.dumps({'tx':tx, 'group': idx, 'key': key})
                 sock.send_string(msg)
                 self.send(msg, key, idx)
             return
@@ -44,7 +45,7 @@ class GroupServer(GroupBase):
             elif self.mode == 'random_group':
                 idx = random.choice(self.groups)
             new_port = self.renew_port(tx, idx)
-            msg = json.dumps({'tx':tx, 'group': idx})
+            msg = json.dumps({'tx':tx, 'group': idx, 'key': key})
 
             self.send(msg, key, idx)
 
@@ -52,25 +53,18 @@ class GroupServer(GroupBase):
         sock = self.socks[group_idx]
         url = self.urls[group_idx]
         sock.send_string(msg)
-        logging.debug('Sending to... {} from group {}'.format(url, group_idx))
-        logging.debug('\tkey: {}'.format(key))
+        logging.debug('Sending to... {} from {}'.format(key, url))
         logging.debug('\t{}'.format(msg))
 
 if __name__ == '__main__':
-    ips = load_ips([
-        '10.0.15.21',
-        '10.0.15.22',
-        '10.0.15.23',
-        '10.0.15.24'
-    ])
-    # ips = generate_ips()
-    server_ip = '10.0.15.20'# if test_ping('10.0.15.20') else 'localhost'
+    ips = load_ips(os.getenv('VMNET_WITNESS').split(','))
+    server_ip = os.getenv('VMNET_MASTER')
     gs = GroupServer(ips, server_ip=server_ip)
-    gs.regroup(2, 1)
+    gs.regroup()
     gs.bind()
 
     while True:
-        gs.publish_transaction('tx: {}'.format(uuid.uuid4().hex),
+        gs.publish_transaction('{}'.format(uuid.uuid4().hex),
                                random.choice(list(gs.nodes.keys()))
                                )
         time.sleep(1)

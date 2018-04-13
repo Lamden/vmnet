@@ -5,6 +5,7 @@ import time
 import uuid
 import json
 import random
+import os
 logger = get_logger()
 
 class GroupClient(GroupBase):
@@ -25,22 +26,14 @@ class GroupClient(GroupBase):
     def on_recv(self, msg):
         obj = json.loads(msg)
         new_port = self.renew_port(obj['tx'], obj['group'])
-        logger.debug(msg)
+        logger.debug('{}: received {}'.format(os.getenv('HOST_IP'), msg))
 
 if __name__ == '__main__':
-    ips_list = [
-        '10.0.15.21',
-        '10.0.15.22',
-        '10.0.15.23',
-        '10.0.15.24'
-    ]
-    ips = load_ips(ips_list)
-    try: key = get_ip_address('eth1')
-    except: key = random.choice(list(ips.keys()))
-    server_ip = '10.0.15.20'# if test_ping('10.0.15.20') else 'localhost'
+    ips = load_ips(os.getenv('VMNET_WITNESS').split(','))
+    key = os.getenv('HOST_IP')
+    server_ip = os.getenv('VMNET_MASTER')
     gc = GroupClient(ips, server_ip=server_ip)
-    gc.regroup(2, 1)
-    print(gc.nodes)
+    gc.regroup()
     gc.connect(key)
     logger.debug('Started listening as {} ...'.format(key))
 

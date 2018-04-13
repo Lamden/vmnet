@@ -29,7 +29,7 @@ class GroupBase:
         groups_list = list(zip(*zip_list))[:]
         return groups_list
 
-    def regroup(self, window_size=2, skip_space=1):
+    def regroup(self, window_size=6, skip_space=2):
         groups_list = self.distribute_groups(window_size, skip_space)
         ports = {}
         for idx, group in enumerate(groups_list):

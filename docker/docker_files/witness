@@ -1,0 +1,6 @@
+FROM vmnet
+COPY . /app
+WORKDIR /app
+
+EXPOSE 10000-20000
+CMD python3 group-client.py
