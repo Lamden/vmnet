@@ -1,170 +1,25 @@
 networks:
-  vmnet:
+  cilantro:
     driver: bridge
     ipam:
       config:
-      - gateway: 172.28.5.254
-        ip-range: 172.28.5.0/24
-        subnet: 172.28.0.0/16
+      - gateway: 172.29.5.254
+        ip-range: 172.29.5.0/24
+        subnet: 172.29.0.0/16
 services:
-  vmnet_master:
+  cilantro:
     build:
-      context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/master
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro
     environment:
-    - HOST_IP=172.28.5.0
-    - VMNET_WITNESS=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5,172.28.5.6,172.28.5.7,172.28.5.8,172.28.5.9
-    - VMNET_MASTER=172.28.5.0
-    image: vmnet_master
+    - HOST_IP=172.29.5.0
+    - CILANTRO=172.29.5.0
+    image: cilantro
     networks:
-      vmnet:
-        ipv4_address: 172.28.5.0
+      cilantro:
+        ipv4_address: 172.29.5.0
     volumes:
-    - source: ${LOCAL_PATH}/vmnet/scripts
-      target: /app/
-      type: bind
-  vmnet_witness_1:
-    build:
-      context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/witness
-    environment:
-    - HOST_IP=172.28.5.1
-    - VMNET_WITNESS=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5,172.28.5.6,172.28.5.7,172.28.5.8,172.28.5.9
-    - VMNET_MASTER=172.28.5.0
-    image: vmnet_witness
-    networks:
-      vmnet:
-        ipv4_address: 172.28.5.1
-    volumes:
-    - source: ${LOCAL_PATH}/vmnet/scripts
-      target: /app/
-      type: bind
-  vmnet_witness_2:
-    build:
-      context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/witness
-    environment:
-    - HOST_IP=172.28.5.2
-    - VMNET_WITNESS=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5,172.28.5.6,172.28.5.7,172.28.5.8,172.28.5.9
-    - VMNET_MASTER=172.28.5.0
-    image: vmnet_witness
-    networks:
-      vmnet:
-        ipv4_address: 172.28.5.2
-    volumes:
-    - source: ${LOCAL_PATH}/vmnet/scripts
-      target: /app/
-      type: bind
-  vmnet_witness_3:
-    build:
-      context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/witness
-    environment:
-    - HOST_IP=172.28.5.3
-    - VMNET_WITNESS=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5,172.28.5.6,172.28.5.7,172.28.5.8,172.28.5.9
-    - VMNET_MASTER=172.28.5.0
-    image: vmnet_witness
-    networks:
-      vmnet:
-        ipv4_address: 172.28.5.3
-    volumes:
-    - source: ${LOCAL_PATH}/vmnet/scripts
-      target: /app/
-      type: bind
-  vmnet_witness_4:
-    build:
-      context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/witness
-    environment:
-    - HOST_IP=172.28.5.4
-    - VMNET_WITNESS=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5,172.28.5.6,172.28.5.7,172.28.5.8,172.28.5.9
-    - VMNET_MASTER=172.28.5.0
-    image: vmnet_witness
-    networks:
-      vmnet:
-        ipv4_address: 172.28.5.4
-    volumes:
-    - source: ${LOCAL_PATH}/vmnet/scripts
-      target: /app/
-      type: bind
-  vmnet_witness_5:
-    build:
-      context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/witness
-    environment:
-    - HOST_IP=172.28.5.5
-    - VMNET_WITNESS=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5,172.28.5.6,172.28.5.7,172.28.5.8,172.28.5.9
-    - VMNET_MASTER=172.28.5.0
-    image: vmnet_witness
-    networks:
-      vmnet:
-        ipv4_address: 172.28.5.5
-    volumes:
-    - source: ${LOCAL_PATH}/vmnet/scripts
-      target: /app/
-      type: bind
-  vmnet_witness_6:
-    build:
-      context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/witness
-    environment:
-    - HOST_IP=172.28.5.6
-    - VMNET_WITNESS=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5,172.28.5.6,172.28.5.7,172.28.5.8,172.28.5.9
-    - VMNET_MASTER=172.28.5.0
-    image: vmnet_witness
-    networks:
-      vmnet:
-        ipv4_address: 172.28.5.6
-    volumes:
-    - source: ${LOCAL_PATH}/vmnet/scripts
-      target: /app/
-      type: bind
-  vmnet_witness_7:
-    build:
-      context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/witness
-    environment:
-    - HOST_IP=172.28.5.7
-    - VMNET_WITNESS=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5,172.28.5.6,172.28.5.7,172.28.5.8,172.28.5.9
-    - VMNET_MASTER=172.28.5.0
-    image: vmnet_witness
-    networks:
-      vmnet:
-        ipv4_address: 172.28.5.7
-    volumes:
-    - source: ${LOCAL_PATH}/vmnet/scripts
-      target: /app/
-      type: bind
-  vmnet_witness_8:
-    build:
-      context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/witness
-    environment:
-    - HOST_IP=172.28.5.8
-    - VMNET_WITNESS=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5,172.28.5.6,172.28.5.7,172.28.5.8,172.28.5.9
-    - VMNET_MASTER=172.28.5.0
-    image: vmnet_witness
-    networks:
-      vmnet:
-        ipv4_address: 172.28.5.8
-    volumes:
-    - source: ${LOCAL_PATH}/vmnet/scripts
-      target: /app/
-      type: bind
-  vmnet_witness_9:
-    build:
-      context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LAUNCH_PATH}/vmnet/docker_files/witness
-    environment:
-    - HOST_IP=172.28.5.9
-    - VMNET_WITNESS=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5,172.28.5.6,172.28.5.7,172.28.5.8,172.28.5.9
-    - VMNET_MASTER=172.28.5.0
-    image: vmnet_witness
-    networks:
-      vmnet:
-        ipv4_address: 172.28.5.9
-    volumes:
-    - source: ${LOCAL_PATH}/vmnet/scripts
+    - source: ${LOCAL_PATH}/cilantro
       target: /app/
       type: bind
 version: '2.3'

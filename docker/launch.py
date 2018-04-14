@@ -19,7 +19,11 @@ def interpolate(compose_file, network_file):
     nodes = {}
     for service_name in compose_config['services']:
         service = compose_config['services'][service_name]
-        network = network_config['services'][service_name]
+        network = network_config['services'].get(service_name)
+        os.system('docker build -t {} -f {} {}'.format(
+            service['image'], service['build']['dockerfile'], service['build']['context']
+        ))
+        if not network: continue
         new_compose_config['networks'] = network_config['networks']
         if network.get('range'):
             nodes[service_name] = []
@@ -43,6 +47,7 @@ def interpolate(compose_file, network_file):
     for service_name in new_compose_config['services']:
         for n in nodes:
             value = ','.join(nodes[n]) if type(nodes[n]) == list else nodes[n]
+            if not new_compose_config['services'][service_name].get('environment'): continue
             new_compose_config['services'][service_name]['environment'].append(
                 '{}={}'.format(n.upper(), value)
             )
@@ -63,8 +68,8 @@ def run():
     os.system('docker-compose up')
 
 if __name__ == '__main__':
-    compose_file = 'compose_files/vmnet.yml'
-    network_file = 'network_files/vmnet_example.yml'
+    compose_file = 'compose_files/cilantro.yml'
+    network_file = 'network_files/cilantro_example.yml'
     set_env()
     interpolate(compose_file, network_file)
     run()
