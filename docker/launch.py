@@ -1,6 +1,7 @@
 import os
 import copy
 import yaml
+import subprocess
 from os.path import dirname, abspath, splitext, basename, join
 
 def set_env(local_path=None):
@@ -9,20 +10,23 @@ def set_env(local_path=None):
     os.environ['LOCAL_PATH'] = local_path
     os.environ['LAUNCH_PATH'] = dirname(abspath(__file__))
 
+def build_if_not_exist(service):
+    if service['image'] not in subprocess.check_output(['docker', 'images']):
+        os.system('docker build -t {} -f {} {}'.format(
+            service['image'], service['build']['dockerfile'], service['build']['context']
+        ))
+
 def interpolate(compose_file, network_file):
     with open(compose_file, 'r') as f:
         compose_config = yaml.load(f)
     with open(network_file, 'r') as f:
         network_config = yaml.load(f)
     new_compose_config = copy.deepcopy(compose_config)
-    new_compose_config['version'] = '2.3'
     nodes = {}
     for service_name in compose_config['services']:
         service = compose_config['services'][service_name]
         network = network_config['services'].get(service_name)
-        os.system('docker build -t {} -f {} {}'.format(
-            service['image'], service['build']['dockerfile'], service['build']['context']
-        ))
+        build_if_not_exist(service)
         if not network: continue
         new_compose_config['networks'] = network_config['networks']
         if network.get('range'):
@@ -33,6 +37,7 @@ def interpolate(compose_file, network_file):
                 service.update(generate_network_config(network['network'], replica_ip))
                 new_compose_config['services'][replica_service_name] = copy.deepcopy(service)
                 new_compose_config['services'][replica_service_name].update({
+                    'container_name': replica_service_name,
                     'environment': ['HOST_IP={}'.format(replica_ip)]
                 })
                 nodes[service_name].append(replica_ip)
@@ -42,6 +47,7 @@ def interpolate(compose_file, network_file):
             service.update(generate_network_config(network['network'], network['ip']))
             new_compose_config['services'][service_name] = service
             new_compose_config['services'][service_name].update({
+                'container_name': service_name,
                 'environment': ['HOST_IP={}'.format(network['ip'])]
             })
     for service_name in new_compose_config['services']:
@@ -53,6 +59,7 @@ def interpolate(compose_file, network_file):
             )
     with open('docker-compose.yml', 'w') as yaml_file:
         yaml.dump(new_compose_config, yaml_file, default_flow_style=False)
+
 
 def generate_network_config(network_name, ip):
     config = {
@@ -68,8 +75,8 @@ def run():
     os.system('docker-compose up')
 
 if __name__ == '__main__':
-    compose_file = 'compose_files/cilantro.yml'
-    network_file = 'network_files/cilantro_example.yml'
+    compose_file = 'compose_files/vmnet.yml'
+    network_file = 'network_files/vmnet_example.yml'
     set_env()
     interpolate(compose_file, network_file)
     run()
