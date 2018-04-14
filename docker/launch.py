@@ -11,7 +11,7 @@ def set_env(local_path=None):
     os.environ['LAUNCH_PATH'] = dirname(abspath(__file__))
 
 def build_if_not_exist(service):
-    if service['image'] not in subprocess.check_output(['docker', 'images']):
+    if service['image'] not in subprocess.check_output(['docker', 'images']).decode():
         os.system('docker build -t {} -f {} {}'.format(
             service['image'], service['build']['dockerfile'], service['build']['context']
         ))
