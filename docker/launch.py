@@ -60,7 +60,6 @@ def interpolate(compose_file, network_file):
     with open('docker-compose.yml', 'w') as yaml_file:
         yaml.dump(new_compose_config, yaml_file, default_flow_style=False)
 
-
 def generate_network_config(network_name, ip):
     config = {
         'networks': {
@@ -75,8 +74,8 @@ def run():
     os.system('docker-compose up')
 
 if __name__ == '__main__':
-    compose_file = 'compose_files/vmnet.yml'
-    network_file = 'network_files/vmnet_example.yml'
+    compose_file = 'compose_files/cilantro.yml'
+    network_file = 'network_files/cilantro_example.yml'
     set_env()
     interpolate(compose_file, network_file)
     run()

@@ -1,8 +1,10 @@
-FROM alpine:3.7
+FROM python:3.6-alpine
 COPY . /app
 WORKDIR /app
 
 RUN apk update
-RUN apk add --update python3 py-pip python3-dev build-base git
+RUN apk add --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --update leveldb leveldb-dev
+RUN apk add --update python3 py-pip python3-dev build-base git libffi-dev openssl-dev
 RUN cd cilantro
+RUN pip3 install --upgrade setuptools wheel
 RUN pip3 install -r requirements.txt
