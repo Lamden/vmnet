@@ -4,3 +4,4 @@ venv
 playbooks/*.retry
 scripts/debug.log
 docker/docker-compose.yml
+scripts_udp/debug.log
