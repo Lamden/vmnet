@@ -74,8 +74,8 @@ def run():
     os.system('docker-compose up')
 
 if __name__ == '__main__':
-    compose_file = 'compose_files/cilantro.yml'
-    network_file = 'network_files/cilantro_example.yml'
+    compose_file = 'compose_files/vmnet.yml'
+    network_file = 'network_files/vmnet_example.yml'
     set_env()
     interpolate(compose_file, network_file)
     run()

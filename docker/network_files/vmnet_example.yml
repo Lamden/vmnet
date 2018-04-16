@@ -14,5 +14,5 @@ services:
     network: vmnet
     range:
       - 1
-      - 2
+      - 5
     ip: 172.28.5.x

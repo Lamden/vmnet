@@ -34,7 +34,7 @@ class GroupServer(GroupBase):
                                      random.choice(list(self.nodes.keys())))
 
     def listen(self):
-        # asyncio.ensure_future(self.recv())
+        asyncio.ensure_future(self.recv())
         asyncio.ensure_future(self.send_fakes())
         self.loop.run_forever()
 
