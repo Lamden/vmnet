@@ -1,5 +1,8 @@
 from group_util import *
+import asyncio
+import errno
 import zmq
+import socket
 logger = get_logger()
 
 class GroupBase:
@@ -9,6 +12,19 @@ class GroupBase:
         self.nodes = nodes
         self.groups = {}
         self.ports = {}
+        self.loop = asyncio.get_event_loop()
+
+    async def recv(self):
+        while True:
+            await asyncio.sleep(0)
+            for sock in self.socks:
+                try:
+                    msg, url = sock.recvfrom(1024)
+                    print(msg, url)
+                except socket.error as e:
+                    err = e.args[0]
+                    if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
+                        continue
 
     def renew_port(self, tx, group_idx):
         # new_port = (sum([ord(c) for c in tx]) + self.groups[group_idx]['count']) % 10000 + 10000

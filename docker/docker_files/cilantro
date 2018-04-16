@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN apk update
 RUN apk add --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --update leveldb leveldb-dev
-RUN apk add --update python3 py-pip python3-dev build-base git libffi-dev openssl-dev
+RUN apk add --update python3 py-pip python3-dev build-base git libffi-dev openssl-dev mysql mysql-client
 RUN apk add --no-cache \
 			autoconf \
 			automake \
@@ -22,6 +22,6 @@ RUN apk add --no-cache \
             zlib-dev
 RUN cd cilantro
 RUN pip3 install --upgrade setuptools wheel
-#RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 CMD python3 -m http.server
