@@ -7,6 +7,18 @@ networks:
           ip-range: 172.29.5.0/24
           gateway: 172.29.5.254
 services:
-  cilantro:
+  masternode:
     network: cilantro
     ip: 172.29.5.0
+  witness:
+    network: cilantro
+    ip: 172.29.5.x
+    range:
+      - 1
+      - 4
+  delegates:
+    network: cilantro
+    ip: 172.29.5.x
+    range:
+      - 5
+      - 9

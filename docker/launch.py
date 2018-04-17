@@ -11,7 +11,8 @@ def set_env(local_path=None):
     os.environ['LAUNCH_PATH'] = dirname(abspath(__file__))
 
 def build_if_not_exist(service):
-    if service['image'] not in subprocess.check_output(['docker', 'images']).decode():
+    images = {image.decode():True for idx, image in enumerate(subprocess.check_output(['docker', 'images']).split()[6:]) if idx % 7 == 0}
+    if not images.get(service['image']):
         os.system('docker build -t {} -f {} {}'.format(
             service['image'], service['build']['dockerfile'], service['build']['context']
         ))
@@ -74,8 +75,8 @@ def run():
     os.system('docker-compose up')
 
 if __name__ == '__main__':
-    compose_file = 'compose_files/vmnet.yml'
-    network_file = 'network_files/vmnet_example.yml'
+    compose_file = 'compose_files/cilantro.yml'
+    network_file = 'network_files/cilantro_example.yml'
     set_env()
     interpolate(compose_file, network_file)
     run()

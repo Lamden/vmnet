@@ -1,6 +1,24 @@
 version: "2.3"
 services:
-  cilantro:
+  masternode:
+    build:
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_masternode
+    image: cilantro_masternode
+    volumes:
+      - type: bind
+        source: ${LOCAL_PATH}/cilantro
+        target: /app/
+  witness:
+    build:
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro
+    image: cilantro
+    volumes:
+      - type: bind
+        source: ${LOCAL_PATH}/cilantro
+        target: /app/
+  delegates:
     build:
       context: ${LOCAL_PATH}/cilantro
       dockerfile: ${LAUNCH_PATH}/docker_files/cilantro
