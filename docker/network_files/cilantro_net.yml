@@ -8,20 +8,16 @@ networks:
           gateway: 172.29.5.254
 services:
   mgmt:
-    network: cilantro
     ip: 172.29.5.255
   masternode:
-    network: cilantro
     ip: 172.29.5.0
   witness:
-    network: cilantro
     ip: 172.29.5.x
     range:
       - 1
-      - 4
-  delegates:
-    network: cilantro
+      - 1
+  delegate:
     ip: 172.29.5.x
     range:
       - 5
-      - 9
+      - 7

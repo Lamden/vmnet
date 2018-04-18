@@ -1,10 +1,19 @@
 version: "2.3"
 services:
+  base:
+    build:
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_base
+    image: cilantro_base
+    volumes:
+      - type: bind
+        source: ${LOCAL_PATH}/cilantro
+        target: /app/
   mgmt:
     build:
       context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro
-    image: cilantro
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_base
+    image: cilantro_base
     volumes:
       - type: bind
         source: ${LOCAL_PATH}/cilantro
@@ -12,7 +21,7 @@ services:
   masternode:
     build:
       context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_masternode
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_masternode
     image: cilantro_masternode
     volumes:
       - type: bind
@@ -21,16 +30,16 @@ services:
   witness:
     build:
       context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_witness
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_witness
     image: cilantro_witness
     volumes:
       - type: bind
         source: ${LOCAL_PATH}/cilantro
         target: /app/
-  delegates:
+  delegate:
     build:
       context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_delegate
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_delegate
     image: cilantro_delegate
     volumes:
       - type: bind

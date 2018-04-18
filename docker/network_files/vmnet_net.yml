@@ -7,11 +7,11 @@ networks:
           ip-range: 172.28.5.0/24
           gateway: 172.28.5.254
 services:
+  mgmt:
+    ip: 172.29.5.255
   vmnet_master:
-    network: vmnet
     ip: 172.28.5.0
   vmnet_witness:
-    network: vmnet
     range:
       - 1
       - 5

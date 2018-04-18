@@ -10,15 +10,28 @@ def set_env(local_path=None):
     os.environ['LOCAL_PATH'] = local_path
     os.environ['LAUNCH_PATH'] = dirname(abspath(__file__))
 
-def build_if_not_exist(service):
-    lines = subprocess.check_output(['docker', 'images']).decode().split('\n')[1:]
-    images = {line.split()[0]:True for line in lines if len(line)}
 
-    if service['image'] in ['cilantro_witness','cilantro_delegate','cilantro_masternode']:
-    # if not images.get(service['image']):
-        os.system('docker build -t {} -f {} {}'.format(
-            service['image'], service['build']['dockerfile'], service['build']['context']
-        ))
+def build_image(service):
+    # if service['image'] in [
+    #     'cilantro_witness',
+    #     'cilantro_delegate',
+    #     'cilantro_masternode'
+    # ]:
+    print('Building {}...'.format(service['image']))
+    os.system('docker build -t {} -f {} {}'.format(
+        service['image'], service['build']['dockerfile'], service['build']['context']
+    ))
+
+
+def build_if_not_exist(services):
+    lines = subprocess.check_output(['docker', 'images']).decode().split('\n')[1:]
+    built_images = {line.split()[0]: True for line in lines if len(line)}
+    images = [services[i] for i in services if not built_images.get(services[i]['image'])]
+
+    # Build images
+    for service in images:
+        build_image(service)
+
 
 def interpolate(compose_file, network_file):
     with open(compose_file, 'r') as f:
@@ -27,12 +40,16 @@ def interpolate(compose_file, network_file):
         network_config = yaml.load(f)
     new_compose_config = copy.deepcopy(compose_config)
     nodes = {}
+
+    build_if_not_exist(compose_config['services'])
+
     for service_name in compose_config['services']:
         service = compose_config['services'][service_name]
         network = network_config['services'].get(service_name)
-        build_if_not_exist(service)
         if not network: continue
         new_compose_config['networks'] = network_config['networks']
+        if not network.get('network'):
+            network['network'] = network_config['networks'].keys()[0]
         if network.get('range'):
             nodes[service_name] = []
             for i in range(network['range'][0], network['range'][1]+1):
@@ -65,6 +82,7 @@ def interpolate(compose_file, network_file):
     with open('docker-compose.yml', 'w') as yaml_file:
         yaml.dump(new_compose_config, yaml_file, default_flow_style=False)
 
+
 def generate_network_config(network_name, ip):
     config = {
         'networks': {
@@ -75,12 +93,29 @@ def generate_network_config(network_name, ip):
     }
     return config
 
+
 def run():
     os.system('docker-compose up')
 
+def clean():
+    os.system('docker stop $(docker ps -aq) -f')
+    os.system('docker rm $(docker ps -aq) -f')
+
+
 if __name__ == '__main__':
-    compose_file = 'compose_files/cilantro.yml'
-    network_file = 'network_files/cilantro_example.yml'
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Run your project on a network')
+    parser.add_argument('--project', help='specify project', required=True)
+    parser.add_argument('--clean', action='store_true', help='specify project')
+    args = parser.parse_args()
+
+    project = args.project
+    compose_file = 'compose_files/{}_comp.yml'.format(project)
+    network_file = 'network_files/{}_net.yml'.format(project)
     set_env()
     interpolate(compose_file, network_file)
-    run()
+    if args.clean:
+        clean()
+    else:
+        run()

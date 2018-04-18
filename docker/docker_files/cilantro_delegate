@@ -1,7 +1,0 @@
-FROM cilantro
-
-COPY . /app
-WORKDIR /app
-
-RUN mysqld &
-CMD python3 run_delegate.py

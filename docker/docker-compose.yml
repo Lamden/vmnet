@@ -7,18 +7,27 @@ networks:
         ip-range: 172.29.5.0/24
         subnet: 172.29.0.0/16
 services:
-  delegates_5:
+  base:
     build:
       context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_delegate
-    container_name: delegates_5
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_base
+    image: cilantro_base
+    volumes:
+    - source: ${LOCAL_PATH}/cilantro
+      target: /app/
+      type: bind
+  delegate_5:
+    build:
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_delegate
+    container_name: delegate_5
     environment:
     - HOST_IP=172.29.5.5
     - SLOT_NUM=0
-    - MGMT=172.29.5.255
     - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    - WITNESS=172.29.5.1
+    - MGMT=172.29.5.255
     image: cilantro_delegate
     networks:
       cilantro:
@@ -27,18 +36,18 @@ services:
     - source: ${LOCAL_PATH}/cilantro
       target: /app/
       type: bind
-  delegates_6:
+  delegate_6:
     build:
       context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_delegate
-    container_name: delegates_6
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_delegate
+    container_name: delegate_6
     environment:
     - HOST_IP=172.29.5.6
     - SLOT_NUM=1
-    - MGMT=172.29.5.255
     - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    - WITNESS=172.29.5.1
+    - MGMT=172.29.5.255
     image: cilantro_delegate
     networks:
       cilantro:
@@ -47,18 +56,18 @@ services:
     - source: ${LOCAL_PATH}/cilantro
       target: /app/
       type: bind
-  delegates_7:
+  delegate_7:
     build:
       context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_delegate
-    container_name: delegates_7
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_delegate
+    container_name: delegate_7
     environment:
     - HOST_IP=172.29.5.7
     - SLOT_NUM=2
-    - MGMT=172.29.5.255
     - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    - WITNESS=172.29.5.1
+    - MGMT=172.29.5.255
     image: cilantro_delegate
     networks:
       cilantro:
@@ -67,57 +76,17 @@ services:
     - source: ${LOCAL_PATH}/cilantro
       target: /app/
       type: bind
-  delegates_8:
-    build:
-      context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_delegate
-    container_name: delegates_8
-    environment:
-    - HOST_IP=172.29.5.8
-    - SLOT_NUM=3
-    - MGMT=172.29.5.255
-    - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
-    image: cilantro_delegate
-    networks:
-      cilantro:
-        ipv4_address: 172.29.5.8
-    volumes:
-    - source: ${LOCAL_PATH}/cilantro
-      target: /app/
-      type: bind
-  delegates_9:
-    build:
-      context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_delegate
-    container_name: delegates_9
-    environment:
-    - HOST_IP=172.29.5.9
-    - SLOT_NUM=4
-    - MGMT=172.29.5.255
-    - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
-    image: cilantro_delegate
-    networks:
-      cilantro:
-        ipv4_address: 172.29.5.9
-    volumes:
-    - source: ${LOCAL_PATH}/cilantro
-      target: /app/
-      type: bind
   masternode:
     build:
       context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_masternode
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_masternode
     container_name: masternode
     environment:
     - HOST_IP=172.29.5.0
-    - MGMT=172.29.5.255
     - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    - WITNESS=172.29.5.1
+    - MGMT=172.29.5.255
     image: cilantro_masternode
     networks:
       cilantro:
@@ -129,15 +98,15 @@ services:
   mgmt:
     build:
       context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_base
     container_name: mgmt
     environment:
     - HOST_IP=172.29.5.255
-    - MGMT=172.29.5.255
     - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
-    image: cilantro
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    - WITNESS=172.29.5.1
+    - MGMT=172.29.5.255
+    image: cilantro_base
     networks:
       cilantro:
         ipv4_address: 172.29.5.255
@@ -148,79 +117,19 @@ services:
   witness_1:
     build:
       context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_witness
+      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_witness
     container_name: witness_1
     environment:
     - HOST_IP=172.29.5.1
     - SLOT_NUM=0
-    - MGMT=172.29.5.255
     - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    - WITNESS=172.29.5.1
+    - MGMT=172.29.5.255
     image: cilantro_witness
     networks:
       cilantro:
         ipv4_address: 172.29.5.1
-    volumes:
-    - source: ${LOCAL_PATH}/cilantro
-      target: /app/
-      type: bind
-  witness_2:
-    build:
-      context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_witness
-    container_name: witness_2
-    environment:
-    - HOST_IP=172.29.5.2
-    - SLOT_NUM=1
-    - MGMT=172.29.5.255
-    - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
-    image: cilantro_witness
-    networks:
-      cilantro:
-        ipv4_address: 172.29.5.2
-    volumes:
-    - source: ${LOCAL_PATH}/cilantro
-      target: /app/
-      type: bind
-  witness_3:
-    build:
-      context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_witness
-    container_name: witness_3
-    environment:
-    - HOST_IP=172.29.5.3
-    - SLOT_NUM=2
-    - MGMT=172.29.5.255
-    - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
-    image: cilantro_witness
-    networks:
-      cilantro:
-        ipv4_address: 172.29.5.3
-    volumes:
-    - source: ${LOCAL_PATH}/cilantro
-      target: /app/
-      type: bind
-  witness_4:
-    build:
-      context: ${LOCAL_PATH}/cilantro
-      dockerfile: ${LAUNCH_PATH}/docker_files/cilantro_witness
-    container_name: witness_4
-    environment:
-    - HOST_IP=172.29.5.4
-    - SLOT_NUM=3
-    - MGMT=172.29.5.255
-    - MASTERNODE=172.29.5.0
-    - WITNESS=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4
-    - DELEGATES=172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9
-    image: cilantro_witness
-    networks:
-      cilantro:
-        ipv4_address: 172.29.5.4
     volumes:
     - source: ${LOCAL_PATH}/cilantro
       target: /app/

@@ -3,7 +3,7 @@ services:
   vmnet_master:
     build:
       context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LOCAL_PATH}/vmnet/docker/docker_files/master
+      dockerfile: ${LOCAL_PATH}/vmnet/docker/docker_files/vmnet/vmnet_master
     image: vmnet_master
     volumes:
       - type: bind
@@ -12,7 +12,7 @@ services:
   vmnet_witness:
     build:
       context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LOCAL_PATH}/vmnet/docker/docker_files/witness
+      dockerfile: ${LOCAL_PATH}/vmnet/docker/docker_files/vmnet/vmnet_witness
     image: vmnet_witness
     volumes:
       - type: bind

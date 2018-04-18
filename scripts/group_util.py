@@ -37,7 +37,7 @@ def get_logger():
     logging.basicConfig(
         format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
         handlers=[
-            logging.FileHandler("debug.log"),
+            logging.FileHandler("../logs/debug.log"),
             logging.StreamHandler(sys.stdout)
         ],
         level=logging.DEBUG
