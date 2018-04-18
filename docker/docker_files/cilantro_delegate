@@ -4,4 +4,4 @@ COPY . /app
 WORKDIR /app
 
 RUN mysqld &
-CMD python3 run_masternode.py
+CMD python3 run_delegate.py

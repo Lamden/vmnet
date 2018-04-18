@@ -7,6 +7,9 @@ networks:
           ip-range: 172.29.5.0/24
           gateway: 172.29.5.254
 services:
+  mgmt:
+    network: cilantro
+    ip: 172.29.5.255
   masternode:
     network: cilantro
     ip: 172.29.5.0

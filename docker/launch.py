@@ -11,8 +11,11 @@ def set_env(local_path=None):
     os.environ['LAUNCH_PATH'] = dirname(abspath(__file__))
 
 def build_if_not_exist(service):
-    images = {image.decode():True for idx, image in enumerate(subprocess.check_output(['docker', 'images']).split()[6:]) if idx % 7 == 0}
-    if not images.get(service['image']):
+    lines = subprocess.check_output(['docker', 'images']).decode().split('\n')[1:]
+    images = {line.split()[0]:True for line in lines if len(line)}
+
+    if service['image'] in ['cilantro_witness','cilantro_delegate','cilantro_masternode']:
+    # if not images.get(service['image']):
         os.system('docker build -t {} -f {} {}'.format(
             service['image'], service['build']['dockerfile'], service['build']['context']
         ))
@@ -33,13 +36,14 @@ def interpolate(compose_file, network_file):
         if network.get('range'):
             nodes[service_name] = []
             for i in range(network['range'][0], network['range'][1]+1):
+                slot_num = int(i) - int(network['range'][0])
                 replica_service_name = '{}_{}'.format(service_name, str(i))
                 replica_ip = network['ip'].replace('x', str(i))
                 service.update(generate_network_config(network['network'], replica_ip))
                 new_compose_config['services'][replica_service_name] = copy.deepcopy(service)
                 new_compose_config['services'][replica_service_name].update({
                     'container_name': replica_service_name,
-                    'environment': ['HOST_IP={}'.format(replica_ip)]
+                    'environment': ['HOST_IP={}'.format(replica_ip), 'SLOT_NUM={}'.format(slot_num)]
                 })
                 nodes[service_name].append(replica_ip)
             del new_compose_config['services'][service_name]
