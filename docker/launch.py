@@ -47,6 +47,8 @@ def interpolate(compose_file, network_file):
         new_compose_config['networks'] = network_config['networks']
         if not network.get('network'):
             network['network'] = network_config['networks'].keys()[0]
+        if network.get('ports'):
+            service['ports'] = network['ports']
         if network.get('range'):
             nodes[service_name] = []
             for i in range(network['range'][0], network['range'][1]+1):

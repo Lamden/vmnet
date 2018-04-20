@@ -82,6 +82,8 @@ services:
     networks:
       cilantro:
         ipv4_address: 172.29.5.0
+    ports:
+    - 8080:8080
     volumes:
     - source: ${LOCAL_PATH}/cilantro
       target: /app/

@@ -11,6 +11,8 @@ services:
     ip: 172.29.5.255
   masternode:
     ip: 172.29.5.0
+    ports:
+      - "8080:8080"
   witness:
     ip: 172.29.5.x
     range:

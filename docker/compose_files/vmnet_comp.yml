@@ -1,19 +1,19 @@
 version: "2.3"
 services:
-  vmnet_master:
+  vmnet_pub:
     build:
       context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LOCAL_PATH}/vmnet/docker/docker_files/vmnet/vmnet_master
-    image: vmnet_master
+      dockerfile: ${LOCAL_PATH}/vmnet/docker/docker_files/vmnet/vmnet_pub
+    image: vmnet_pub
     volumes:
       - type: bind
         source: ${LOCAL_PATH}/vmnet/scripts
         target: /app/
-  vmnet_witness:
+  vmnet_sub:
     build:
       context: ${LOCAL_PATH}/vmnet/scripts
-      dockerfile: ${LOCAL_PATH}/vmnet/docker/docker_files/vmnet/vmnet_witness
-    image: vmnet_witness
+      dockerfile: ${LOCAL_PATH}/vmnet/docker/docker_files/vmnet/vmnet_sub
+    image: vmnet_sub
     volumes:
       - type: bind
         source: ${LOCAL_PATH}/vmnet/scripts
