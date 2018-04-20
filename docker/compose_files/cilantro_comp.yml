@@ -7,17 +7,15 @@ services:
     image: cilantro_base
     volumes:
       - type: bind
-        source: ${LOCAL_PATH}/cilantro
-        target: /app/
+        source: /storage/docker/mysql-datadir
+        target: /var/lib/mysql
   mgmt:
+    stdin_open: true
+    tty: true
     build:
       context: ${LOCAL_PATH}/cilantro
       dockerfile: ${LAUNCH_PATH}/docker_files/cilantro/cilantro_base
     image: cilantro_base
-    volumes:
-      - type: bind
-        source: ${LOCAL_PATH}/cilantro
-        target: /app/
   masternode:
     build:
       context: ${LOCAL_PATH}/cilantro

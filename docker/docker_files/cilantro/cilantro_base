@@ -1,28 +1,39 @@
-FROM python:3.6-alpine
+FROM arwineap/docker-ubuntu-python3.6
+
+MAINTAINER Falcon Wong version: 0.1
+
 COPY . /app
 WORKDIR /app
 
-RUN apk update
-RUN apk add --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --update leveldb leveldb-dev
-RUN apk add --update --no-cache python3 py-pip python3-dev build-base git libffi-dev openssl-dev mysql mysql-client
-RUN apk add --no-cache \
-			autoconf \
-			automake \
-			libtool \
-            gsl \
-            zlib \
-            dpkg \
-            gsl \
-            gsl-dev \
-            boost-dev \
-            gcc \
-            g++ \
-            git \
-            zlib \
-            zlib-dev
-RUN cd cilantro
-RUN pip3 install --upgrade setuptools wheel
-RUN pip3 install -r requirements.txt
-RUN rm -rf capnproto
+ENV MARIADB_MAJOR 10.0
 
-CMD python -m http.server 8000
+# Install MyRocks and put it into MariaDB
+RUN apt-get update \
+    && apt-get install -y software-properties-common \
+    && apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8 \
+    && add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://mirror.nodesdirect.com/mariadb/repo/10.2/ubuntu xenial main' \
+    && apt-get update | \
+    { \
+        echo "mariadb-server-$MARIADB_MAJOR" mysql-server/root_password password 'unused'; \
+        echo "mariadb-server-$MARIADB_MAJOR" mysql-server/root_password_again password 'unused'; \
+    } | debconf-set-selections \
+    && apt-get install -y mariadb-server mariadb-plugin-rocksdb
+
+# Install Python requirements
+RUN apt-get install -y \
+        python3 python-pip python3.6-dev \
+        build-essential \
+        git \
+        libffi-dev \
+        openssl \
+        autoconf automake \
+        libtool \
+        dpkg \
+        gsl-bin \
+        zlib1g-dev \
+        libboost-all-dev \
+        gcc g++
+
+RUN pip3 install --upgrade setuptools wheel \
+    && pip3 install -r requirements.txt \
+    && rm -rf capnproto
