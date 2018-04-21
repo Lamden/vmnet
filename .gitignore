@@ -1,7 +1,6 @@
 .idea
-.vagrant
 venv
-playbooks/*.retry
-scripts/debug.log
+*.log
 docker/docker-compose.yml
-scripts_udp/debug.log
+*__pycache__
+*.pyc

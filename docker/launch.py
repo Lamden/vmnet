@@ -4,11 +4,10 @@ import yaml
 import subprocess
 from os.path import dirname, abspath, splitext, basename, join
 
-def set_env(local_path=None):
-    if not local_path:
-        local_path = dirname(dirname(dirname(abspath(__file__))))
+def set_env(local_path, network_file, docker_dir):
     os.environ['LOCAL_PATH'] = local_path
-    os.environ['LAUNCH_PATH'] = dirname(abspath(__file__))
+    os.environ['NETWORK_FILE'] = network_file
+    os.environ['DOCKER_DIR'] = docker_dir
 
 def build_image(service):
     print('Building {}...'.format(service['image']))
@@ -46,7 +45,7 @@ def interpolate(compose_file, network_file):
         if not network: continue
         new_compose_config['networks'] = network_config['networks']
         if not network.get('network'):
-            network['network'] = network_config['networks'].keys()[0]
+            network['network'] = list(network_config['networks'].keys())[0]
         if network.get('ports'):
             service['ports'] = network['ports']
         if network.get('range'):
@@ -78,6 +77,10 @@ def interpolate(compose_file, network_file):
             new_compose_config['services'][service_name]['environment'].append(
                 '{}={}'.format(n.upper(), value)
             )
+        if os.getenv('TEST_NAME'):
+            new_compose_config['services'][service_name]['environment'].append(
+                'TEST_NAME={}'.format(os.getenv('TEST_NAME'))
+            )
     with open('docker-compose.yml', 'w') as yaml_file:
         yaml.dump(new_compose_config, yaml_file, default_flow_style=False)
 
@@ -97,16 +100,20 @@ def run():
     os.system('docker-compose up')
 
 def prune():
-    os.system('docker system prune')
+    os.system('echo y | docker system prune')
 
 def clean():
     prune()
-    os.system('docker stop $(docker ps -aq) -f')
+    os.system('docker stop $(docker ps -aq)')
     os.system('docker rm $(docker ps -aq) -f')
 
-def destroy():
+def destroy(compose_file):
     clean()
-    os.system('docker rmi $(docker images -aq) -f')
+    with open(compose_file, 'r') as f:
+        compose_config = yaml.load(f)
+        services = compose_config['services']
+        images = ' '.join([image_name for image_name in services])
+        os.system('docker rmi {} -f'.format(images))
 
 if __name__ == '__main__':
     import argparse
@@ -116,18 +123,27 @@ if __name__ == '__main__':
     parser.add_argument('--prune', action='store_true', help='removes any hanging images or containers')
     parser.add_argument('--clean', action='store_true', help='remove all containers')
     parser.add_argument('--destroy', action='store_true', help='remove all images and containers')
+
+    parser.add_argument('--local_path', help='path containing vmnet and your project', default=dirname(dirname(dirname(abspath(__file__)))))
+    parser.add_argument('--compose_file', help='.yml file which specifies the image, contexts and build of your services')
+    parser.add_argument('--network_file', help='.yml file which specified the network configuration, instances and internal ips of your services')
+    parser.add_argument('--docker_dir', help='the directory containing the docker files which your compose_file uses')
+
     args = parser.parse_args()
+
+    project = args.project
+    compose_file = args.compose_file or 'compose_files/{}_comp.yml'.format(project)
+    network_file = args.network_file or 'network_files/{}_net.yml'.format(project)
+    docker_dir = args.docker_dir or 'docker_files/{}'.format(project)
+    local_path = args.local_path
 
     if args.prune:
         prune()
     elif args.clean:
         clean()
     elif args.destroy:
-        destroy()
+        destroy(compose_file)
     else:
-        project = args.project
-        compose_file = 'compose_files/{}_comp.yml'.format(project)
-        network_file = 'network_files/{}_net.yml'.format(project)
-        set_env()
+        set_env(local_path, network_file, docker_dir)
         interpolate(compose_file, network_file)
         run()

@@ -29,9 +29,9 @@ class GroupClient(GroupBase):
         logger.debug('{}: received {}'.format(os.getenv('HOST_IP'), msg))
 
 if __name__ == '__main__':
-    ips = load_ips(os.getenv('VMNET_WITNESS').split(','))
+    ips = load_ips(os.getenv('VMNET_CLIENT').split(','))
     key = os.getenv('HOST_IP')
-    server_ip = os.getenv('VMNET_MASTER')
+    server_ip = os.getenv('VMNET_SERVER')
     gc = GroupClient(ips, server_ip=server_ip)
     gc.regroup()
     gc.connect(key)

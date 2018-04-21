@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN apk update
 RUN apk add --update python3 py-pip python3-dev build-base
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r scripts/requirements.txt
 
 EXPOSE 10000-20000
-CMD python3 group-client.py
+CMD python3 scripts/group-server.py

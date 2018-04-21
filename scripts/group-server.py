@@ -57,11 +57,12 @@ class GroupServer(GroupBase):
         logging.debug('\t{}'.format(msg))
 
 if __name__ == '__main__':
-    ips = load_ips(os.getenv('VMNET_WITNESS').split(','))
-    server_ip = os.getenv('VMNET_MASTER')
+    ips = load_ips(os.getenv('VMNET_CLIENT').split(','))
+    server_ip = os.getenv('VMNET_SERVER')
     gs = GroupServer(ips, server_ip=server_ip)
     gs.regroup()
     gs.bind()
+    time.sleep(5)
 
     while True:
         gs.publish_transaction('{}'.format(uuid.uuid4().hex),

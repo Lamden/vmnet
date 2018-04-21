@@ -24,22 +24,19 @@ def generate_ips(count=20):
     } for i in range(count)}
 
 def load_ips(ips):
-    # return {uuid.uuid4().hex: {
-    #     'ip': ip,
-    #     'groups': []
-    # } for ip in ips}
     return {ip: {
         'ip': ip,
         'groups': []
     } for ip in ips}
 
 def get_logger():
+    filename = "logs/{}.log".format(os.getenv('TEST_NAME', 'debug'))
+    filehandlers = [logging.FileHandler(filename)]
+    if not os.getenv('TEST_NAME'):
+        filehandlers.append(logging.StreamHandler(sys.stdout))
     logging.basicConfig(
         format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
-        handlers=[
-            logging.FileHandler("../logs/debug.log"),
-            logging.StreamHandler(sys.stdout)
-        ],
+        handlers=filehandlers,
         level=logging.DEBUG
     )
     return logging.getLogger()
