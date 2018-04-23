@@ -8,45 +8,151 @@ VM networks for block chain
 git clone https://github.com/Lamden/vmnet.git
 ```
 
-1. Install VirtualBox and vargrant
-```
-brew cask install virtualbox
-brew cask install vagrant
+1. Install [Docker](https://docs.docker.com/install/#desktop)
+
+## Configuration
+
+1. Make sure that the version is "2.3" to allow specifying "networks"
+
+```yaml
+version: "2.3"
+networks:
+  vmnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          ip-range: 172.28.5.0/24
+          gateway: 172.28.5.254
 ```
 
-1. Launch all the VMs
-```
-vagrant up
+1. Configure your node replication. The following config creates 5 nodes with ips `172.28.5.1` `172.28.5.2` ... `172.28.5.5`
+
+```yaml
+services:
+  api_service:
+    range:
+      - 1
+      - 5
+    ip: 172.28.5.x
+    
+    ...
+
 ```
 
-1. Go into the mgmt VM instance
-```
-vagrant ssh mgmt
+1. Configure the image, context, dockerfile and any volumes for your node
+```yaml
+services:
+  api_service:
+  
+    ...
+    
+    build:
+      context: ${LOCAL_PATH}/api_source_code
+      dockerfile: ${DOCKER_DIR}/api_service_dockerfile
+    image: vmnet_client
+    volumes:
+      - type: bind
+        source: ${LOCAL_PATH}/logs
+        target: /app/
+
 ```
 
-1. Allow nodes to talk to each other (ansible uses ssh)
-```
-vagrant@mgmt:~$ cd /vagrant/playbooks
-vagrant@mgmt:/vagrant/playbooks$ ansible-playbook add-key.yml --ask-pass
-SSH Password: vagrant
-```
-
-1. Install and configure your nodes
-```
-vagrant@mgmt:~$ cd /vagrant/playbooks
-vagrant@mgmt:/vagrant/playbooks$ ansible-playbook configure_nodes.yml
+## Run
+1. Run `launch.py`
+```bash
+cd vmnet/docker
+python launch.py --project your_project_name --compose_file your_compose_file.yml --docker_dir your_docker_dir
 ```
 
-## Usage
+## Example
+Confused? Run an example set up just for you!
+```bash
+cd vmnet/docker
+python launch.py --project vmnet
+```
 
-1. Start witnesses
-```
-vagrant@mgmt:~$ cd /vagrant/playbooks
-vagrant@mgmt:/vagrant/playbooks$ ansible-playbook start-witness.yml
+## Testing
+Need to test your network of services? You can run your unittests using the `BastTestCase` which will set-up your network, run it for a specified amount of time, log the results into a file, and stop the network on teardown. The setup and teardown will only happen once in your test. Your tests should read and parse the logfile to verify the expected results. That said, you need to control what gets written to the logfile. The logfile for the test will be automatically stored as `vmnet/logs/<test_name>.log`.
+
+1. Write a unittest
+```python
+from vmnet.tests.base import *
+from vmnet.tests.util import *
+import unittest
+
+class TestVmnetExample(BaseTestCase):
+    waittime = 20
+    testname = 'vmnet_example'
+    project = 'vmnet'
+    compose_file = get_path('vmnet/tests/configs/vmnet-compose.yml')
+    docker_dir = get_path('vmnet/docker/docker_files/vmnet')
+    def test_your_tasks(self):
+        self.assertTrue('Test it' == 'Test it')
 ```
 
-1. Start master node
+1. Set up logging. Make sure your logger makes use of the `TEST_NAME` environmental variable to use functionality
+```python
+def get_logger():
+    """
+        Returns the logger based on the TEST_NAME environmental variable
+    """
+    filename = "logs/{}.log".format(os.getenv('TEST_NAME', 'debug'))
+    filehandlers = [logging.FileHandler(filename)]
+    if not os.getenv('TEST_NAME'):
+        filehandlers.append(logging.StreamHandler(sys.stdout))
+    logging.basicConfig(
+        format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+        handlers=filehandlers,
+        level=logging.DEBUG
+    )
+    return logging.getLogger()
 ```
-vagrant@mgmt:~$ cd /vagrant/playbooks
-vagrant@mgmt:/vagrant/playbooks$ ansible-playbook start-master.yml
+
+1. Run your test. Example output:
+```console
+(venv) $ python -m unittest discover -v
+test_each_can_receive_messages (test_vmnet.TestVmnetExample) ... Running test "vmnet_example" and waiting for 20s...
+Creating vmnet_client_5 ... done
+Creating vmnet_client_1 ... done
+Creating vmnet_client_4 ... done
+Creating vmnet_server   ... done
+Creating vmnet_client_2 ... done
+Creating vmnet_client_3 ... done
+Attaching to vmnet_client_5, vmnet_client_1, vmnet_client_3, vmnet_client_4, vmnet_server, vmnet_client_2
+WARNING! This will remove:
+        - all stopped containers
+        - all networks not used by at least one container
+        - all dangling images
+        - all build cache
+Are you sure you want to continue? [y/N] Total reclaimed space: 0B
+vmnet_client_4 exited with code 137
+vmnet_server exited with code 137
+vmnet_client_1 exited with code 137
+cf88aa06cb0d
+7952279ad8bc
+5fa9c857fed8
+vmnet_client_2 exited with code 137
+vmnet_client_5 exited with code 137
+d78305d04dfe
+5b2007dd6f26
+vmnet_client_3 exited with code 137
+682de1ba134d
+7172c4b6dd87
+cf88aa06cb0d
+7952279ad8bc
+5fa9c857fed8
+d78305d04dfe
+5b2007dd6f26
+682de1ba134d
+7172c4b6dd87
+ok
+test_has_listeners (test_vmnet.TestVmnetExample) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 33.523s
+
+OK
+
 ```
+
