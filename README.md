@@ -8,7 +8,7 @@ VM networks for block chain
 git clone https://github.com/Lamden/vmnet.git
 ```
 
-1. Install [Docker](https://docs.docker.com/install/#desktop)
+2. Install [Docker](https://docs.docker.com/install/#desktop)
 
 ## Configuration
 
@@ -26,7 +26,7 @@ networks:
           gateway: 172.28.5.254
 ```
 
-1. Configure your node replication. The following config creates 5 nodes with ips `172.28.5.1` `172.28.5.2` ... `172.28.5.5`
+2. Configure your node replication. The following config creates 5 nodes with ips `172.28.5.1` `172.28.5.2` ... `172.28.5.5`
 
 ```yaml
 services:
@@ -40,7 +40,7 @@ services:
 
 ```
 
-1. Configure the image, context, dockerfile and any volumes for your node
+3. Configure the image, context, dockerfile and any volumes for your node
 ```yaml
 services:
   api_service:
@@ -61,15 +61,23 @@ services:
 ## Run
 1. Run `launch.py`
 ```bash
-cd vmnet/docker
-python launch.py --project your_project_name --compose_file your_compose_file.yml --docker_dir your_docker_dir
+$ cd vmnet/docker
+$ python launch.py --project your_project_name --compose_file your_compose_file.yml --docker_dir your_docker_dir
+```
+2. List your nodes
+```bash
+$ docker ps
+```
+3. Enter your nodes
+```bash
+$ docker exec -ti your_node_name /bin/bash
 ```
 
 ## Example
 Confused? Run an example set up just for you!
 ```bash
-cd vmnet/docker
-python launch.py --project vmnet
+$ cd vmnet/docker
+$ python launch.py --project vmnet
 ```
 
 ## Testing
@@ -91,7 +99,7 @@ class TestVmnetExample(BaseTestCase):
         self.assertTrue('Test it' == 'Test it')
 ```
 
-1. Set up logging. Make sure your logger makes use of the `TEST_NAME` environmental variable to use functionality
+2. Set up logging. Make sure your logger makes use of the `TEST_NAME` environmental variable to use functionality
 ```python
 def get_logger():
     """
@@ -109,9 +117,9 @@ def get_logger():
     return logging.getLogger()
 ```
 
-1. Run your test. Example output:
+3. Run your test. Example output:
 ```console
-(venv) $ python -m unittest discover -v
+$ python -m unittest discover -v
 test_each_can_receive_messages (test_vmnet.TestVmnetExample) ... Running test "vmnet_example" and waiting for 20s...
 Creating vmnet_client_5 ... done
 Creating vmnet_client_1 ... done
