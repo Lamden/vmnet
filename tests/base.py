@@ -1,10 +1,9 @@
 """
 BaseNetworkTestCase runs the setup and teardown only once. You can run it as
-any normal Python unittests
-
-    python -m unittest discover -v
-
-
+any normal Python unittests:
+```bash
+$ python -m unittest discover -v
+```
 """
 
 

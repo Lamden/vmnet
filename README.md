@@ -1,16 +1,13 @@
-# vmnet
-VM networks for block chain
-
-## Setup
+# Setup
 
 1. Clone vmnet
-```
-git clone https://github.com/Lamden/vmnet.git
+```bash
+$ git clone https://github.com/Lamden/vmnet.git
 ```
 
 2. Install [Docker](https://docs.docker.com/install/#desktop)
 
-## Configuration
+# Configuration
 
 1. Make sure that the version is "2.3" to allow specifying "networks"
 
@@ -35,7 +32,7 @@ services:
       - 1
       - 5
     ip: 172.28.5.x
-    
+
     ...
 
 ```
@@ -44,9 +41,9 @@ services:
 ```yaml
 services:
   api_service:
-  
+
     ...
-    
+
     build:
       context: ${LOCAL_PATH}/api_source_code
       dockerfile: ${DOCKER_DIR}/api_service_dockerfile
@@ -58,7 +55,7 @@ services:
 
 ```
 
-## Run
+# Run
 1. Run `launch.py`
 ```bash
 $ cd vmnet/docker
@@ -73,14 +70,14 @@ $ docker ps
 $ docker exec -ti your_node_name /bin/bash
 ```
 
-## Example
+# Example
 Confused? Run an example set up just for you!
 ```bash
 $ cd vmnet/docker
 $ python launch.py --project vmnet
 ```
 
-## Testing
+# Testing
 Need to test your network of services? You can run your unittests using the `BastTestCase` which will set-up your network, run it for a specified amount of time, log the results into a file, and stop the network on teardown. The setup and teardown will only happen once in your test. Your tests should read and parse the logfile to verify the expected results. That said, you need to control what gets written to the logfile. The logfile for the test will be automatically stored as `vmnet/logs/<test_name>.log`.
 
 1. Write a unittest
@@ -118,8 +115,10 @@ def get_logger():
 ```
 
 3. Run your test. Example output:
-```console
+```bash
 $ python -m unittest discover -v
+```
+```console
 test_each_can_receive_messages (test_vmnet.TestVmnetExample) ... Running test "vmnet_example" and waiting for 20s...
 Creating vmnet_client_5 ... done
 Creating vmnet_client_1 ... done
@@ -163,4 +162,3 @@ Ran 2 tests in 33.523s
 OK
 
 ```
-

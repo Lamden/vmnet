@@ -17,7 +17,7 @@ docker-compose version must be "2.3"
 
 # Example
 
-Example compose file:
+compose-file.yml
 ```yaml
 version: "2.3"
 networks:

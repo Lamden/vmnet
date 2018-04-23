@@ -1,7 +1,6 @@
 from vmnet.tests.base import *
 from vmnet.tests.util import *
 import unittest
-import os
 
 def parse_listeners(content):
     listeners = {}
