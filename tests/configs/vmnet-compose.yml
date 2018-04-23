@@ -1,6 +1,16 @@
 version: "2.3"
+networks:
+  vmnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          ip-range: 172.28.5.0/24
+          gateway: 172.28.5.254
+
 services:
   vmnet_server:
+    ip: 172.28.5.0
     build:
       context: ${LOCAL_PATH}/vmnet
       dockerfile: ${DOCKER_DIR}/vmnet_server
@@ -10,6 +20,10 @@ services:
         source: ${LOCAL_PATH}/vmnet
         target: /app/
   vmnet_client:
+    range:
+      - 1
+      - 5
+    ip: 172.28.5.x
     build:
       context: ${LOCAL_PATH}/vmnet
       dockerfile: ${DOCKER_DIR}/vmnet_client

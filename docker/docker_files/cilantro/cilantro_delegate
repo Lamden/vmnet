@@ -1,6 +1,5 @@
 FROM cilantro_base
 
-COPY . /app
 WORKDIR /app
 
 EXPOSE 10000-20000

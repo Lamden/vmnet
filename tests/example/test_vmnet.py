@@ -1,12 +1,7 @@
-import re
+from vmnet.tests.base import *
+from vmnet.tests.util import *
+import unittest
 import os
-import time
-
-def ip_address_regex():
-    return r'([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})'
-
-def port_regex():
-    return r'([0-9]{4,5})'
 
 def parse_listeners(content):
     listeners = {}
@@ -36,3 +31,23 @@ def parse_sender_receiver(content):
         for m in matches:
             receivers.append(m)
     return senders, receivers
+
+class TestVmnetExample(BaseTestCase):
+    testname = 'vmnet_example'
+    project = 'vmnet'
+    compose_file = get_path('vmnet/tests/configs/vmnet-compose.yml')
+    docker_dir = get_path('vmnet/docker/docker_files/vmnet')
+    def test_has_listeners(self):
+        listeners = parse_listeners(self.content)
+        for i in range(0,6):
+            self.assertEqual(listeners.get('1000{}'.format(i)), 3)
+            if i > 0: self.assertTrue(listeners.get('172.28.5.{}'.format(i)))
+
+    def test_each_can_receive_messages(self):
+        senders, receivers = parse_sender_receiver(self.content)
+        for receiver in receivers:
+            self.assertIn(receiver[1], senders)
+        self.assertEqual(len(receivers), 3 * len(senders))
+
+if __name__ == '__main__':
+    unittest.main()

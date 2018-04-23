@@ -9,6 +9,11 @@ networks:
           gateway: 172.28.5.254
 
 services:
+  base:
+    build:
+      context: ${LOCAL_PATH}/vmnet
+      dockerfile: ${DOCKER_DIR}/vmnet_base
+    image: vmnet_base
   vmnet_server:
     ip: 172.28.5.0
     build:

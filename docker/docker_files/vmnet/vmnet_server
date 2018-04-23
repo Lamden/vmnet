@@ -1,10 +1,6 @@
-FROM alpine:3.7
-COPY . /app
+FROM vmnet_base
+
 WORKDIR /app
 
-RUN apk update
-RUN apk add --update python3 py-pip python3-dev build-base
-RUN pip3 install -r scripts/requirements.txt
-
 EXPOSE 10000-20000
-CMD python3 scripts/group-server.py
+CMD python3 scripts/group_server.py

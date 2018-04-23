@@ -1,123 +1,128 @@
 networks:
-  vmnet:
+  cilantro:
     driver: bridge
     ipam:
       config:
-      - gateway: 172.28.5.254
-        ip-range: 172.28.5.0/24
-        subnet: 172.28.0.0/16
+      - gateway: 172.29.5.254
+        ip-range: 172.29.5.0/24
+        subnet: 172.29.0.0/16
 services:
-  vmnet_client_1:
+  delegate_5:
     build:
-      context: ${LOCAL_PATH}/vmnet
-      dockerfile: ${DOCKER_DIR}/vmnet_client
-    container_name: vmnet_client_1
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${DOCKER_DIR}/cilantro_delegate
+    container_name: delegate_5
     environment:
-    - HOST_IP=172.28.5.1
+    - HOST_IP=172.29.5.5
     - SLOT_NUM=0
-    - VMNET_SERVER=172.28.5.0
-    - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
-    image: vmnet_client
+    - MGMT=172.29.5.255
+    - MASTERNODE=172.29.5.0
+    - WITNESS=172.29.5.1
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    image: cilantro_delegate
     networks:
-      vmnet:
-        ipv4_address: 172.28.5.1
+      cilantro:
+        ipv4_address: 172.29.5.5
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: ${LOCAL_PATH}/cilantro
       target: /app/
       type: bind
-  vmnet_client_2:
+  delegate_6:
     build:
-      context: ${LOCAL_PATH}/vmnet
-      dockerfile: ${DOCKER_DIR}/vmnet_client
-    container_name: vmnet_client_2
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${DOCKER_DIR}/cilantro_delegate
+    container_name: delegate_6
     environment:
-    - HOST_IP=172.28.5.2
+    - HOST_IP=172.29.5.6
     - SLOT_NUM=1
-    - VMNET_SERVER=172.28.5.0
-    - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
-    image: vmnet_client
+    - MGMT=172.29.5.255
+    - MASTERNODE=172.29.5.0
+    - WITNESS=172.29.5.1
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    image: cilantro_delegate
     networks:
-      vmnet:
-        ipv4_address: 172.28.5.2
+      cilantro:
+        ipv4_address: 172.29.5.6
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: ${LOCAL_PATH}/cilantro
       target: /app/
       type: bind
-  vmnet_client_3:
+  delegate_7:
     build:
-      context: ${LOCAL_PATH}/vmnet
-      dockerfile: ${DOCKER_DIR}/vmnet_client
-    container_name: vmnet_client_3
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${DOCKER_DIR}/cilantro_delegate
+    container_name: delegate_7
     environment:
-    - HOST_IP=172.28.5.3
+    - HOST_IP=172.29.5.7
     - SLOT_NUM=2
-    - VMNET_SERVER=172.28.5.0
-    - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
-    image: vmnet_client
+    - MGMT=172.29.5.255
+    - MASTERNODE=172.29.5.0
+    - WITNESS=172.29.5.1
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    image: cilantro_delegate
     networks:
-      vmnet:
-        ipv4_address: 172.28.5.3
+      cilantro:
+        ipv4_address: 172.29.5.7
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: ${LOCAL_PATH}/cilantro
       target: /app/
       type: bind
-  vmnet_client_4:
+  masternode:
     build:
-      context: ${LOCAL_PATH}/vmnet
-      dockerfile: ${DOCKER_DIR}/vmnet_client
-    container_name: vmnet_client_4
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${DOCKER_DIR}/cilantro_masternode
+    container_name: masternode
     environment:
-    - HOST_IP=172.28.5.4
-    - SLOT_NUM=3
-    - VMNET_SERVER=172.28.5.0
-    - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
-    image: vmnet_client
+    - HOST_IP=172.29.5.0
+    - MGMT=172.29.5.255
+    - MASTERNODE=172.29.5.0
+    - WITNESS=172.29.5.1
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    image: cilantro_masternode
     networks:
-      vmnet:
-        ipv4_address: 172.28.5.4
+      cilantro:
+        ipv4_address: 172.29.5.0
+    ports:
+    - 8080:8080
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: ${LOCAL_PATH}/cilantro
       target: /app/
       type: bind
-  vmnet_client_5:
+  mgmt:
     build:
-      context: ${LOCAL_PATH}/vmnet
-      dockerfile: ${DOCKER_DIR}/vmnet_client
-    container_name: vmnet_client_5
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${DOCKER_DIR}/cilantro_base
+    container_name: mgmt
     environment:
-    - HOST_IP=172.28.5.5
-    - SLOT_NUM=4
-    - VMNET_SERVER=172.28.5.0
-    - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
-    image: vmnet_client
+    - HOST_IP=172.29.5.255
+    - MGMT=172.29.5.255
+    - MASTERNODE=172.29.5.0
+    - WITNESS=172.29.5.1
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    image: cilantro_base
     networks:
-      vmnet:
-        ipv4_address: 172.28.5.5
-    volumes:
-    - source: ${LOCAL_PATH}/vmnet
-      target: /app/
-      type: bind
-  vmnet_server:
+      cilantro:
+        ipv4_address: 172.29.5.255
+    stdin_open: true
+    tty: true
+  witness_1:
     build:
-      context: ${LOCAL_PATH}/vmnet
-      dockerfile: ${DOCKER_DIR}/vmnet_server
-    container_name: vmnet_server
+      context: ${LOCAL_PATH}/cilantro
+      dockerfile: ${DOCKER_DIR}/cilantro_witness
+    container_name: witness_1
     environment:
-    - HOST_IP=172.28.5.0
-    - VMNET_SERVER=172.28.5.0
-    - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
-    image: vmnet_server
+    - HOST_IP=172.29.5.1
+    - SLOT_NUM=0
+    - MGMT=172.29.5.255
+    - MASTERNODE=172.29.5.0
+    - WITNESS=172.29.5.1
+    - DELEGATE=172.29.5.5,172.29.5.6,172.29.5.7
+    image: cilantro_witness
     networks:
-      vmnet:
-        ipv4_address: 172.28.5.0
+      cilantro:
+        ipv4_address: 172.29.5.1
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: ${LOCAL_PATH}/cilantro
       target: /app/
       type: bind
 version: '2.3'

@@ -4,3 +4,6 @@ venv
 docker/docker-compose.yml
 *__pycache__
 *.pyc
+*__init__.py
+docs/_build
+docs/mkdocs.yml
