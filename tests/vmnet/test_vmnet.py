@@ -16,44 +16,38 @@ class TestVmnetExample(unittest.TestCase):
             self.project,
             params
         ))
-
-    def setup(self):
-        try: os.remove(self.logfile)
-        except: pass
-        os.environ['TEST_NAME'] = self.testname
-        self.run_script('--compose_file {} --network_file {} &'.format(
-            self.compose_file,
-            self.network_file
-        ))
-        print('Waiting for {}s...'.format(self.waittime))
-        time.sleep(self.waittime)
-        with open(self.logfile) as f:
-            self.__class__.content = f.readlines()
-
+        
     def setUp(self):
         if not self.is_setup:
             self.__class__.is_setup = True
-            self.setup()
+            try: os.remove(self.logfile)
+            except: pass
+            os.environ['TEST_NAME'] = self.testname
+            self.run_script('--compose_file {} --network_file {} &'.format(
+                self.compose_file,
+                self.network_file
+            ))
+            print('Running test "{}" and waiting for {}s...'.format(self.testname, self.waittime))
+            time.sleep(self.waittime)
+            with open(self.logfile) as f:
+                self.__class__.content = f.readlines()
 
     def test_has_listeners(self):
         listeners = parse_listeners(self.content)
         for i in range(0,6):
-            assert listeners.get('1000{}'.format(i)) == 3
-            if i > 0: assert listeners.get('172.28.5.{}'.format(i)) == True
+            self.assertEqual(listeners.get('1000{}'.format(i)), 3)
+            if i > 0: self.assertTrue(listeners.get('172.28.5.{}'.format(i)))
 
     def test_each_can_receive_messages(self):
         senders, receivers = parse_sender_receiver(self.content)
         for receiver in receivers:
-            assert receiver[1] in senders
-        assert len(receivers) == 3 * len(senders)
-
-    def teardown(self):
-        self.run_script('--clean')
+            self.assertIn(receiver[1], senders)
+        self.assertEqual(len(receivers), 3 * len(senders))
 
     def tearDown(self):
         if not self.is_torndown:
             self.__class__.is_torndown = True
-            self.teardown()
+            self.run_script('--clean')
 
 
 if __name__ == '__main__':
