@@ -99,13 +99,13 @@ class TestVmnetExample(BaseTestCase):
 2. Set up logging. Make sure your logger makes use of the `TEST_NAME` environmental variable to use functionality
 ```python
 def get_logger():
-    """
-        Returns the logger based on the TEST_NAME environmental variable
-    """
-    filename = "logs/{}.log".format(os.getenv('TEST_NAME', 'debug'))
+    import logging
+    import os
+    import sys
+    filedir = "logs/{}".format(os.getenv('TEST_NAME'))
+    filename = "{}/{}.log".format(filedir, os.getenv('HOSTNAME'))
+    os.makedirs(filedir, exist_ok=True)
     filehandlers = [logging.FileHandler(filename)]
-    if not os.getenv('TEST_NAME'):
-        filehandlers.append(logging.StreamHandler(sys.stdout))
     logging.basicConfig(
         format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
         handlers=filehandlers,
