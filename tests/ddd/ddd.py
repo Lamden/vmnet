@@ -4,40 +4,49 @@
 
 import socket, struct
 import asyncio
-from urllib import urlopen
+import requests
+import os
 
 def discover_nodes():
-    public_ip = urlopen('http://ip.42.pl/raw').read()
-    print(public_ip)
-    # check_ip_range(1084596224, 1084596479)
+    loop = asyncio.get_event_loop()
+    groups = get_subnet_future(*get_local_range())
+    results = loop.run_until_complete(asyncio.wait(groups))
+    loop.close()
+    print(results)
 
-def check_ip_range(from_ip, to_ip):
-    pass
-    # loop = asyncio.get_event_loop()
-    # future = asyncio.Future()
-    # asyncio.ensure_future(slow_operation(future))
-    # for d in range(from_ip, to_ip):
-    #     ip = decimal_to_ip(d)
-    #     asyncio.gather(*[coro("group 1.{}".format(i)) for i in range(1, 6)])
-    #     output = subprocess.Popen(['ping', '-n', '1', '-w', '500', str(all_hosts[i])], stdout=subprocess.PIPE, startupinfo=info).communicate()[0]
-    #     if "Destination host unreachable" in output.decode('utf-8'):
-    #         print(str(all_hosts[i]), "is Offline")
-    #     elif "Request timed out" in output.decode('utf-8'):
-    #         print(str(all_hosts[i]), "is Offline")
-    #     else:
-    #         print(str(all_hosts[i]), "is Online")
-    # loop.run_until_complete(future)
-    # print(future.result())
-    # loop.close()
+async def check_ip(ip):
+    subp = asyncio.subprocess
+    process = await asyncio.create_subprocess_exec(
+        'ping', '-c', '1', '-i', '0.2', ip,
+        stdout=subp.PIPE, stderr=subp.STDOUT
+    )
+    stdout, stderr = await process.communicate()
+    response = stdout.decode()
+    if response == 0:
+        pingstatus = "online"
+    else:
+        pingstatus = "offline"
+    return '{} is {}'.format(ip, pingstatus)
+
+def get_local_range():
+    try:
+        r = requests.get('http://ip.42.pl/raw')
+        public_ip = r.text.split('.')
+        public_ip[3] = '0'
+        from_ip = ip_to_decimal('.'.join(public_ip))
+        to_ip = from_ip + 255
+        return from_ip, to_ip
+    except:
+        raise Exception('Cannot get your public ip!')
+
+def get_subnet_future(from_ip, to_ip):
+    return [check_ip(decimal_to_ip(d)) for d in range(from_ip, to_ip)]
 
 def decimal_to_ip(d):
     return socket.inet_ntoa(struct.pack('!L', d))
 
 def ip_to_decimal(ip):
     return struct.unpack("!L", socket.inet_aton(ip))[0]
-
-async def check_ip(ip):
-    pass
 
 if __name__ == '__main__':
     discover_nodes()

@@ -65,12 +65,13 @@ class BaseNetworkTestCase(unittest.TestCase):
             params
         ))
 
-    def execute_python(self, node, fn, python_version='3.6'):
+    def execute_python(self, node, fn, async=True, python_version='3.6'):
         fn_str = dill.dumps(fn, 0)
-        exc_str = 'docker exec {} /usr/bin/python{} -c \"import dill; fn = dill.loads({}); fn();\"'.format(
+        exc_str = 'docker exec {} /usr/bin/python{} -c \"import dill; fn = dill.loads({}); fn();\" {}'.format(
             node,
             python_version,
-            fn_str
+            fn_str,
+            '&' if async else ''
         )
         os.system(exc_str)
         self.collect_log()
