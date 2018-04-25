@@ -13,6 +13,7 @@ services:
       dockerfile: ${DOCKER_DIR}/vmnet_client
     container_name: vmnet_client_1
     environment:
+    - HOSTNAME=vmnet_client_1
     - HOST_IP=172.28.5.1
     - SLOT_NUM=0
     - VMNET_SERVER=172.28.5.0
@@ -32,6 +33,7 @@ services:
       dockerfile: ${DOCKER_DIR}/vmnet_client
     container_name: vmnet_client_2
     environment:
+    - HOSTNAME=vmnet_client_2
     - HOST_IP=172.28.5.2
     - SLOT_NUM=1
     - VMNET_SERVER=172.28.5.0
@@ -51,6 +53,7 @@ services:
       dockerfile: ${DOCKER_DIR}/vmnet_client
     container_name: vmnet_client_3
     environment:
+    - HOSTNAME=vmnet_client_3
     - HOST_IP=172.28.5.3
     - SLOT_NUM=2
     - VMNET_SERVER=172.28.5.0
@@ -70,6 +73,7 @@ services:
       dockerfile: ${DOCKER_DIR}/vmnet_client
     container_name: vmnet_client_4
     environment:
+    - HOSTNAME=vmnet_client_4
     - HOST_IP=172.28.5.4
     - SLOT_NUM=3
     - VMNET_SERVER=172.28.5.0
@@ -89,6 +93,7 @@ services:
       dockerfile: ${DOCKER_DIR}/vmnet_client
     container_name: vmnet_client_5
     environment:
+    - HOSTNAME=vmnet_client_5
     - HOST_IP=172.28.5.5
     - SLOT_NUM=4
     - VMNET_SERVER=172.28.5.0
@@ -108,6 +113,7 @@ services:
       dockerfile: ${DOCKER_DIR}/vmnet_server
     container_name: vmnet_server
     environment:
+    - HOSTNAME=vmnet_server
     - HOST_IP=172.28.5.0
     - VMNET_SERVER=172.28.5.0
     - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5

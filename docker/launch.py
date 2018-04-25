@@ -2,7 +2,7 @@
 Run your project on a docker bridge network:
 
 ```bash
-python launch.py --project vmnet --compose_file your_config.yml --docker_dir dirname
+$ python launch.py --project vmnet --compose_file your_config.yml --docker_dir dirname
 ```
 # Arguments
 
@@ -125,7 +125,11 @@ def generate_configs(compose_file):
                 new_compose_config['services'][replica_service_name] = copy.deepcopy(service)
                 new_compose_config['services'][replica_service_name].update({
                     'container_name': replica_service_name,
-                    'environment': ['HOST_IP={}'.format(replica_ip), 'SLOT_NUM={}'.format(slot_num)]
+                    'environment': [
+                        'HOSTNAME={}'.format(replica_service_name),
+                        'HOST_IP={}'.format(replica_ip),
+                        'SLOT_NUM={}'.format(slot_num)
+                    ]
                 })
                 nodes[service_name].append(replica_ip)
             del new_compose_config['services'][service_name]
@@ -135,7 +139,10 @@ def generate_configs(compose_file):
             new_compose_config['services'][service_name] = service
             new_compose_config['services'][service_name].update({
                 'container_name': service_name,
-                'environment': ['HOST_IP={}'.format(service['ip'])]
+                'environment': [
+                    'HOSTNAME={}'.format(service_name),
+                    'HOST_IP={}'.format(service['ip'])
+                ]
             })
     for service_name in new_compose_config['services']:
         for n in nodes:
@@ -178,6 +185,7 @@ def prune():
         Clear any hanging images and containers
     """
     os.system('echo y | docker system prune')
+    os.system('docker network rm $(docker network ls | grep "bridge" | awk \'/ / { print $1 }\')')
 
 def clean():
     """
@@ -237,4 +245,5 @@ if __name__ == '__main__':
     else:
         set_env(local_path, docker_dir)
         generate_configs(compose_file)
+        clean()
         run()

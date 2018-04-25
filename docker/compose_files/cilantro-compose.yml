@@ -17,6 +17,9 @@ services:
       - type: bind
         source: /storage/docker/mysql-datadir
         target: /var/lib/mysql
+      - type: bind
+        source: ${LOCAL_PATH}/vmnet/logs
+        target: /app/logs
   mgmt:
     ip: 172.29.5.255
     stdin_open: true

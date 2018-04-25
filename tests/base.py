@@ -6,10 +6,12 @@ $ python -m unittest discover -v
 ```
 """
 
-
 from vmnet.tests.util import *
 import unittest
+import sys
 import os
+import dill
+import shutil
 
 class BaseNetworkTestCase(unittest.TestCase):
     """
@@ -17,13 +19,13 @@ class BaseNetworkTestCase(unittest.TestCase):
         wait-time and log the results into a log file. Test functions inside
         this test case should then parse the log file to verify the results.
 
-        # Arguments
+        # Attributes
 
         waittime (int): The amount of time to allow the network to complete its tasks
         testname (string): Name of the test
         project (string): Name of the project you want to test
-        compose_file (filepath): File path to the compose file
-        docker_dir (directory): Directory containing all dockerfiles used by your project
+        compose_file (string): File path to the compose file
+        docker_dir (string): Directory containing all dockerfiles used by your project
 
         # Example
 ```python
@@ -51,7 +53,6 @@ class BaseNetworkTestCase(unittest.TestCase):
     """
     waittime = 20
     _is_setup = False
-    _is_torndown = False
     def run_script(self, params):
         """
             Runs launch.py to start-up or tear-down for network of nodes in the
@@ -64,6 +65,16 @@ class BaseNetworkTestCase(unittest.TestCase):
             params
         ))
 
+    def execute_python(self, node, fn, python_version='3.6'):
+        fn_str = dill.dumps(fn, 0)
+        exc_str = 'docker exec {} /usr/bin/python{} -c \"import dill; fn = dill.loads({}); fn();\"'.format(
+            node,
+            python_version,
+            fn_str
+        )
+        os.system(exc_str)
+        self.collect_log()
+
     def setUp(self):
         """
             Brings the network up, sets the log file and wait for the server to
@@ -71,23 +82,22 @@ class BaseNetworkTestCase(unittest.TestCase):
         """
         if not self._is_setup:
             self.__class__._is_setup = True
-            self.logfile = get_path('vmnet/logs/{}.log'.format(self.testname))
-            try: os.remove(self.logfile)
+            self.testdir = '{}/{}'.format(self.logdir, self.testname)
+            try: shutil.rmtree(self.testdir)
             except: pass
             os.environ['TEST_NAME'] = self.testname
+            self.run_script('--clean')
             self.run_script('--compose_file {} --docker_dir {} &'.format(
                 self.compose_file,
                 self.docker_dir
             ))
             print('Running test "{}" and waiting for {}s...'.format(self.testname, self.waittime))
             time.sleep(self.waittime)
-            with open(self.logfile) as f:
-                self.__class__.content = f.readlines()
+            sys.stdout.flush()
 
-    def tearDown(self):
-        """
-            Stop and remove Docker containers when the log file has been updated.
-        """
-        if not self._is_torndown:
-            self.__class__._is_torndown = True
-            self.run_script('--clean')
+    def collect_log(self):
+        for root, dirs, files in os.walk(self.testdir):
+            self.__class__.content = {}
+            for file in files:
+                with open(os.path.join(root, file)) as f:
+                    self.__class__.content[os.path.splitext(file)[0]] = f.readlines()
