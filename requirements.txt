@@ -1,0 +1,4 @@
+dill==0.2.7.1
+kademlia==1.0
+requests==2.18.4
+pyzmq==17.0.0

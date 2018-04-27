@@ -33,3 +33,12 @@ def port_regex():
         (pattern): ports pattern
     """
     return r'([0-9]{4,5})'
+
+def decimal_regex():
+    """
+        Returns the regex pattern for decimal numbers
+
+        # Returns
+        (pattern): decimal number pattern
+    """
+    return r'(\d*\.?\d*)'

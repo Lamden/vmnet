@@ -20,11 +20,8 @@ def send_pub():
 
 
 class TestCilantroConsensus(BaseNetworkTestCase):
-    testname = 'cilantro_pub_sub'
-    project = 'cilantro'
-    compose_file = get_path('vmnet/tests/configs/cilantro-pub-sub.yml')
-    docker_dir = get_path('vmnet/docker/docker_files/cilantro')
-    logdir = get_path('cilantro/logs')
+    testname = 'pub_sub'
+    compose_file = 'cilantro-nodes.yml'
     waittime = 15
     def test_pub_sub(self):
         self.execute_python('node_1', sample, async=True)

@@ -2,7 +2,9 @@ from vmnet.tests.base import *
 from vmnet.tests.util import *
 import unittest
 
-def parse_listeners(content):
+def parse_listeners():
+    with open('logs/srv_cli.log') as f:
+        content = f.readlines()
     listeners = {}
     p_ports = re.compile(r'listening on tcp\:\/\/'+ip_address_regex()+r'\:'+port_regex())
     p_client = re.compile(r'Started listening as '+ip_address_regex())
@@ -17,7 +19,9 @@ def parse_listeners(content):
             listeners[m] = True
     return listeners
 
-def parse_sender_receiver(content):
+def parse_sender_receiver():
+    with open('logs/srv_cli.log') as f:
+        content = f.readlines()
     senders = []
     receivers = []
     p_sender = re.compile(r'Sending to\.\.\.\ '+ip_address_regex())
@@ -32,24 +36,19 @@ def parse_sender_receiver(content):
     return senders, receivers
 
 class TestVmnetExample(BaseNetworkTestCase):
-    testname = 'vmnet_example'
-    project = 'vmnet'
-    compose_file = get_path('vmnet/tests/configs/vmnet-compose.yml')
-    docker_dir = get_path('vmnet/docker/docker_files/vmnet')
-    # def test_has_listeners(self):
-    #     listeners = parse_listeners(self.content)
-    #     for i in range(0,6):
-    #         self.assertEqual(listeners.get('1000{}'.format(i)), 3)
-    #         if i > 0: self.assertTrue(listeners.get('172.28.5.{}'.format(i)))
-    #
-    # def test_each_can_receive_messages(self):
-    #     senders, receivers = parse_sender_receiver(self.content)
-    #     for receiver in receivers:
-    #         self.assertIn(receiver[1], senders)
-    #     self.assertEqual(len(receivers), 3 * len(senders))
+    testname = 'srv_cli'
+    compose_file = 'vmnet-svr-cli.yml'
+    def test_has_listeners(self):
+        listeners = parse_listeners()
+        for i in range(0,6):
+            self.assertEqual(listeners.get('1000{}'.format(i)), 3)
+            if i > 0: self.assertTrue(listeners.get('172.28.5.{}'.format(i)))
 
-    def test_execute_code(self):
-        self.execute_python('vmnet_server', print_hello)
+    def test_each_can_receive_messages(self):
+        senders, receivers = parse_sender_receiver()
+        for receiver in receivers:
+            self.assertIn(receiver[1], senders)
+        self.assertEqual(len(receivers), 3 * len(senders))
 
 if __name__ == '__main__':
     unittest.main()

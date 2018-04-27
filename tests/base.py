@@ -5,7 +5,7 @@ any normal Python unittests:
 $ python -m unittest discover -v
 ```
 """
-
+import vmnet
 from vmnet.tests.util import *
 import unittest
 import sys
@@ -33,10 +33,8 @@ class BaseNetworkTestCase(unittest.TestCase):
         from vmnet.tests.util import get_path
 
         class TestVmnetExample(BaseTestCase):
-            testname = 'vmnet_example'
-            project = 'vmnet'
-            compose_file = get_path('vmnet/tests/configs/vmnet-compose.yml')
-            docker_dir = get_path('vmnet/docker/docker_files/vmnet')
+            testname = 'example'
+            compose_file = vmnet-svr-cli.yml'
 
             def test_has_listeners(self):
                 listeners = parse_listeners(self.content)
@@ -53,19 +51,22 @@ class BaseNetworkTestCase(unittest.TestCase):
     """
     waittime = 20
     _is_setup = False
+    _is_torndown = False
+    vmnet_path = vmnet.__path__._path[0]
     def run_script(self, params):
         """
             Runs launch.py to start-up or tear-down for network of nodes in the
             specifed Docker network.
         """
-        launch_path = get_path('vmnet/docker/launch.py')
-        os.system('python {} --project {} {}'.format(
+        launch_path = '{}/launch.py'.format(self.vmnet_path)
+        os.system('python {} --compose_file {} --docker_dir {} {}'.format(
             launch_path,
-            self.project,
+            'compose_files/{}'.format(self.compose_file),
+            'docker_dir',
             params
         ))
 
-    def execute_python(self, node, fn, async=True, python_version='3.6'):
+    def execute_python(self, node, fn, async=False, python_version='3.6'):
         fn_str = dill.dumps(fn, 0)
         exc_str = 'docker exec {} /usr/bin/python{} -c \"import dill; fn = dill.loads({}); fn();\" {}'.format(
             node,
@@ -74,7 +75,6 @@ class BaseNetworkTestCase(unittest.TestCase):
             '&' if async else ''
         )
         os.system(exc_str)
-        self.collect_log()
 
     def setUp(self):
         """
@@ -83,22 +83,18 @@ class BaseNetworkTestCase(unittest.TestCase):
         """
         if not self._is_setup:
             self.__class__._is_setup = True
-            self.testdir = '{}/{}'.format(self.logdir, self.testname)
-            try: shutil.rmtree(self.testdir)
-            except: pass
+            self.logdir = 'logs'
             os.environ['TEST_NAME'] = self.testname
             self.run_script('--clean')
-            self.run_script('--compose_file {} --docker_dir {} &'.format(
-                self.compose_file,
-                self.docker_dir
-            ))
+            self.run_script('&')
             print('Running test "{}" and waiting for {}s...'.format(self.testname, self.waittime))
             time.sleep(self.waittime)
             sys.stdout.flush()
 
-    def collect_log(self):
-        for root, dirs, files in os.walk(self.testdir):
-            self.__class__.content = {}
-            for file in files:
-                with open(os.path.join(root, file)) as f:
-                    self.__class__.content[os.path.splitext(file)[0]] = f.readlines()
+    def listen_for(self, pattern, then):
+        pass
+
+    def tearDown(self):
+        if not self._is_torndown:
+            self.__class__._is_torndown = True
+            self.run_script('--clean')

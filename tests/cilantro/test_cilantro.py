@@ -9,11 +9,8 @@ def send_four_tx():
     send_tx(DAVIS,STU,4)
 
 class TestCilantroConsensus(BaseNetworkTestCase):
-    testname = 'cilantro_consensus'
-    project = 'cilantro'
-    compose_file = get_path('vmnet/tests/configs/cilantro-compose.yml')
-    docker_dir = get_path('vmnet/docker/docker_files/cilantro')
-    logdir = get_path('cilantro/logs')
+    testname = 'consensus'
+    compose_file = 'cilantro-m-w-d.yml'
     waittime = 15
     def test_in_consensus(self):
         self.execute_python('mgmt', send_four_tx)

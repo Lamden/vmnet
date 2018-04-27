@@ -184,16 +184,16 @@ def prune():
     """
         Clear any hanging images and containers
     """
-    os.system('echo y | docker system prune')
-    os.system('docker network rm $(docker network ls | grep "bridge" | awk \'/ / { print $1 }\')')
+    os.system('echo y | docker system prune 1>/dev/null')
+    os.system('docker network rm $(docker network ls | grep "bridge" | awk \'/ / { print $1 }\') 2>/dev/null')
 
 def clean():
     """
         Remove all containers
     """
     prune()
-    os.system('docker stop $(docker ps -aq)')
-    os.system('docker rm $(docker ps -aq) -f')
+    os.system('docker stop $(docker ps -aq) 2>/dev/null')
+    os.system('docker rm $(docker ps -aq) -f 2>/dev/null')
 
 def destroy(compose_file):
     """
@@ -204,34 +204,33 @@ def destroy(compose_file):
         compose_config = yaml.load(f)
         services = compose_config['services']
         images = ' '.join([services[s]['image'] for s in services])
-        os.system('docker rmi {} -f'.format(images))
+        os.system('docker rmi {} -f 2>/dev/null'.format(images))
 
 def destroy_all():
     """
         Remove all images and containers on docker
     """
     clean()
-    os.system('docker rmi $(docker images -a -q) -f')
+    os.system('docker rmi $(docker images -a -q) -f 2>/dev/null')
 
 if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Run your project on a docker bridge network')
-    parser.add_argument('--project', help='specify project', required=True)
+
+    parser.add_argument('--compose_file', help='.yml file which specifies the image, contexts and build of your services', required=True)
+    parser.add_argument('--docker_dir', help='the directory containing the docker files which your compose_file uses', required=True)
     parser.add_argument('--prune', action='store_true', help='removes any hanging images or containers')
     parser.add_argument('--clean', action='store_true', help='remove all containers')
     parser.add_argument('--destroy', action='store_true', help='remove all images and containers listed in the config')
     parser.add_argument('--destroy_all', action='store_true', help='remove all images and containers')
 
-    parser.add_argument('--local_path', help='path containing vmnet and your project', default=dirname(dirname(dirname(abspath(__file__)))))
-    parser.add_argument('--compose_file', help='.yml file which specifies the image, contexts and build of your services')
-    parser.add_argument('--docker_dir', help='the directory containing the docker files which your compose_file uses')
+    parser.add_argument('--local_path', help='path containing vmnet and your project', default=dirname(dirname(abspath(__file__))))
 
     args = parser.parse_args()
 
-    project = args.project
-    compose_file = args.compose_file or 'compose_files/{}-compose.yml'.format(project)
-    docker_dir = args.docker_dir or 'docker_files/{}'.format(project)
+    compose_file = args.compose_file
+    docker_dir = args.docker_dir
     local_path = args.local_path
 
     if args.prune:

@@ -7,3 +7,5 @@ docker/docker-compose.yml
 *__init__.py
 docs/_build
 docs/mkdocs.yml
+*.DS_Store
+vmnet/data

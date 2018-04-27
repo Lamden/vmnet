@@ -9,7 +9,7 @@ networks:
 services:
   vmnet_client_1:
     build:
-      context: ${LOCAL_PATH}/vmnet
+      context: .
       dockerfile: ${DOCKER_DIR}/vmnet_client
     container_name: vmnet_client_1
     environment:
@@ -18,18 +18,18 @@ services:
     - SLOT_NUM=0
     - VMNET_SERVER=172.28.5.0
     - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
+    - TEST_NAME=srv_cli
     image: vmnet_client
     networks:
       vmnet:
         ipv4_address: 172.28.5.1
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: .
       target: /app/
       type: bind
   vmnet_client_2:
     build:
-      context: ${LOCAL_PATH}/vmnet
+      context: .
       dockerfile: ${DOCKER_DIR}/vmnet_client
     container_name: vmnet_client_2
     environment:
@@ -38,18 +38,18 @@ services:
     - SLOT_NUM=1
     - VMNET_SERVER=172.28.5.0
     - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
+    - TEST_NAME=srv_cli
     image: vmnet_client
     networks:
       vmnet:
         ipv4_address: 172.28.5.2
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: .
       target: /app/
       type: bind
   vmnet_client_3:
     build:
-      context: ${LOCAL_PATH}/vmnet
+      context: .
       dockerfile: ${DOCKER_DIR}/vmnet_client
     container_name: vmnet_client_3
     environment:
@@ -58,18 +58,18 @@ services:
     - SLOT_NUM=2
     - VMNET_SERVER=172.28.5.0
     - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
+    - TEST_NAME=srv_cli
     image: vmnet_client
     networks:
       vmnet:
         ipv4_address: 172.28.5.3
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: .
       target: /app/
       type: bind
   vmnet_client_4:
     build:
-      context: ${LOCAL_PATH}/vmnet
+      context: .
       dockerfile: ${DOCKER_DIR}/vmnet_client
     container_name: vmnet_client_4
     environment:
@@ -78,18 +78,18 @@ services:
     - SLOT_NUM=3
     - VMNET_SERVER=172.28.5.0
     - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
+    - TEST_NAME=srv_cli
     image: vmnet_client
     networks:
       vmnet:
         ipv4_address: 172.28.5.4
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: .
       target: /app/
       type: bind
   vmnet_client_5:
     build:
-      context: ${LOCAL_PATH}/vmnet
+      context: .
       dockerfile: ${DOCKER_DIR}/vmnet_client
     container_name: vmnet_client_5
     environment:
@@ -98,18 +98,18 @@ services:
     - SLOT_NUM=4
     - VMNET_SERVER=172.28.5.0
     - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
+    - TEST_NAME=srv_cli
     image: vmnet_client
     networks:
       vmnet:
         ipv4_address: 172.28.5.5
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: .
       target: /app/
       type: bind
   vmnet_server:
     build:
-      context: ${LOCAL_PATH}/vmnet
+      context: .
       dockerfile: ${DOCKER_DIR}/vmnet_server
     container_name: vmnet_server
     environment:
@@ -117,13 +117,13 @@ services:
     - HOST_IP=172.28.5.0
     - VMNET_SERVER=172.28.5.0
     - VMNET_CLIENT=172.28.5.1,172.28.5.2,172.28.5.3,172.28.5.4,172.28.5.5
-    - TEST_NAME=vmnet_example
+    - TEST_NAME=srv_cli
     image: vmnet_server
     networks:
       vmnet:
         ipv4_address: 172.28.5.0
     volumes:
-    - source: ${LOCAL_PATH}/vmnet
+    - source: .
       target: /app/
       type: bind
 version: '2.3'

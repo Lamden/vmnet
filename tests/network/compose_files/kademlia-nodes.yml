@@ -1,0 +1,30 @@
+version: "2.3"
+networks:
+  vmnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
+          ip-range: 172.29.5.0/24
+          gateway: 172.29.5.253
+services:
+  base:
+    build:
+      context: ${LOCAL_PATH}/vmnet
+      dockerfile: ${DOCKER_DIR}/kademlia_base
+    image: kademlia_base
+  node:
+    ip: 172.29.5.x
+    stdin_open: true
+    tty: true
+    range:
+      - 1
+      - 12
+    build:
+      context: ${LOCAL_PATH}/vmnet
+      dockerfile: ${DOCKER_DIR}/kademlia_base
+    image: kademlia_base
+    volumes:
+      - type: bind
+        source: ${LOCAL_PATH}/vmnet
+        target: /app/

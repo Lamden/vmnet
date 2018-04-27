@@ -29,18 +29,6 @@ def load_ips(ips):
         'groups': []
     } for ip in ips}
 
-def get_logger():
-    filename = "logs/{}.log".format(os.getenv('TEST_NAME', 'debug'))
-    filehandlers = [logging.FileHandler(filename)]
-    if not os.getenv('TEST_NAME'):
-        filehandlers.append(logging.StreamHandler(sys.stdout))
-    logging.basicConfig(
-        format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
-        handlers=filehandlers,
-        level=logging.DEBUG
-    )
-    return logging.getLogger()
-
 def get_ip_address(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     return socket.inet_ntoa(fcntl.ioctl(
@@ -51,3 +39,17 @@ def get_ip_address(ifname):
 
 def test_ping(hostname):
     return True if os.system("ping -c 1 -W 0.1 " + hostname) is 0 else False
+
+def get_logger(name='tests'):
+    filedir = 'logs'
+    filename = "{}/{}.log".format(filedir, os.getenv('TEST_NAME', name))
+    os.makedirs(filedir, exist_ok=True)
+    filehandlers = [logging.FileHandler(filename)]
+    if not os.getenv('TEST_NAME'):
+        filehandlers.append(logging.StreamHandler(sys.stdout))
+    logging.basicConfig(
+        format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+        handlers=filehandlers,
+        level=logging.DEBUG
+    )
+    return logging.getLogger(name)
