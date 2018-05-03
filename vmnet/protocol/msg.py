@@ -1,4 +1,5 @@
 import os
+import base64
 
 def compose_msg(data=''):
     salt = os.getenv('SALT','cilantro')
@@ -11,4 +12,4 @@ def decode_msg(msg):
     salt = os.getenv('SALT','cilantro')
     if msg[:len(salt)] == salt:
         data = msg[len(salt)+1:].split(':')
-        return data
+        return data[0], data[1:]

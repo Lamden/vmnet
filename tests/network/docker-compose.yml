@@ -17,7 +17,7 @@ services:
     - HOST_IP=172.29.5.1
     - SLOT_NUM=0
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -38,7 +38,7 @@ services:
     - HOST_IP=172.29.5.10
     - SLOT_NUM=9
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -59,7 +59,7 @@ services:
     - HOST_IP=172.29.5.11
     - SLOT_NUM=10
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -80,7 +80,7 @@ services:
     - HOST_IP=172.29.5.12
     - SLOT_NUM=11
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -101,7 +101,7 @@ services:
     - HOST_IP=172.29.5.2
     - SLOT_NUM=1
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -122,7 +122,7 @@ services:
     - HOST_IP=172.29.5.3
     - SLOT_NUM=2
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -143,7 +143,7 @@ services:
     - HOST_IP=172.29.5.4
     - SLOT_NUM=3
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -164,7 +164,7 @@ services:
     - HOST_IP=172.29.5.5
     - SLOT_NUM=4
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -185,7 +185,7 @@ services:
     - HOST_IP=172.29.5.6
     - SLOT_NUM=5
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -206,7 +206,7 @@ services:
     - HOST_IP=172.29.5.7
     - SLOT_NUM=6
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -227,7 +227,7 @@ services:
     - HOST_IP=172.29.5.8
     - SLOT_NUM=7
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:
@@ -248,7 +248,7 @@ services:
     - HOST_IP=172.29.5.9
     - SLOT_NUM=8
     - NODE=172.29.5.1,172.29.5.2,172.29.5.3,172.29.5.4,172.29.5.5,172.29.5.6,172.29.5.7,172.29.5.8,172.29.5.9,172.29.5.10,172.29.5.11,172.29.5.12
-    - TEST_NAME=test_ddd
+    - TEST_NAME=test_dht
     image: kademlia_base
     networks:
       vmnet:

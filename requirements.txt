@@ -1,4 +1,6 @@
+asyncio==3.4.3
 dill==0.2.7.1
-kademlia==1.0
+#kademlia==1.0
 requests==2.18.4
+rpcudp==3.0.0
 pyzmq==17.0.0

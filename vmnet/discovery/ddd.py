@@ -3,8 +3,8 @@
 """
 
 from vmnet.logger import get_logger
-from vmnet.ip import *
-from vmnet.protocol import *
+from vmnet.discovery.ip_util import *
+from vmnet.protocol.msg import *
 import os
 import json
 import uuid
@@ -14,6 +14,8 @@ import resource
 SOCKET_LIMIT = 2500
 log = get_logger('ddd')
 resource.setrlimit(resource.RLIMIT_NOFILE, (SOCKET_LIMIT, SOCKET_LIMIT))
+port = os.getenv('DDD_PORT', 31337)
+ctx = zmq.Context()
 
 def discover(mode):
     ips = {}
@@ -31,18 +33,15 @@ def discover(mode):
             for ip in get_region_range(public_ip):
                 ips[ip] = [decimal_to_ip(d) for d in range(*get_local_range(ip))]
     log.debug('Scanning {}...'.format(mode))
-    results = {}
+    results = []
     for host in ips:
-        results[host] = scan_all(ips[host])
+        results += scan_all(ips[host])
     log.debug('Done.')
-    log.debug(results)
     return results
 
-def scan_all(ips, poll_time=50):
-    port = os.getenv('DDD_PORT', 31337)
+def betray_all(ips):
+    if len(ips) == 0: return
     sockets = []
-    results = []
-    ctx = zmq.Context()
     poller = zmq.Poller()
     for ip in ips:
         url = "tcp://{}:{}".format(ip, port)
@@ -53,7 +52,23 @@ def scan_all(ips, poll_time=50):
             'socket': sock,
             'ip':ip
         })
-        sock.send(compose_msg(), zmq.NOBLOCK)
+        sock.send(compose_msg('betray'), zmq.NOBLOCK)
+    log.debug('Betrayed network for {} nodes-network'.format(len(ips)))
+
+def scan_all(ips, poll_time=50):
+    sockets = []
+    results = []
+    poller = zmq.Poller()
+    for ip in ips:
+        url = "tcp://{}:{}".format(ip, port)
+        sock = ctx.socket(zmq.REQ)
+        sock.linger = 0
+        sock.connect(url)
+        sockets.append({
+            'socket': sock,
+            'ip':ip
+        })
+        sock.send(compose_msg('discover'), zmq.NOBLOCK)
         poller.register(sock, zmq.POLLIN)
 
     evts = dict(poller.poll(poll_time))
@@ -63,8 +78,7 @@ def scan_all(ips, poll_time=50):
         if sock in evts:
             try:
                 msg = sock.recv_multipart(zmq.NOBLOCK)
-                log.debug("Received msg: {}".format(decode_msg(msg)))
-                log.debug("Great, {} is online".format(ip))
+                log.debug("{} is online".format(ip))
                 results.append(ip)
             except zmq.Again:
                 break

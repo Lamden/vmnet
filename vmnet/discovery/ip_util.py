@@ -2,10 +2,12 @@ import socket, struct
 import requests
 import csv
 import os
+import vmnet
 
-WORLD_IP_FILE = 'data/IP2LOCATION-LITE-DB5.csv'
-NEIGHBOR_IP_FILE = 'data/neighborhood.txt'
-POPULAR_IP_FILE = 'data/popular.txt'
+path = vmnet.__path__._path[0]
+WORLD_IP_FILE = '{}/data/IP2LOCATION-LITE-DB5.csv'.format(path)
+NEIGHBOR_IP_FILE = '{}/data/neighborhood.txt'.format(path)
+POPULAR_IP_FILE = '{}/data/popular.txt'.format(path)
 
 def get_public_ip():
     try:

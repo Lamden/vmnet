@@ -21,7 +21,7 @@ class BaseNetworkTestCase(unittest.TestCase):
 
         # Attributes
 
-        waittime (int): The amount of time to allow the network to complete its tasks
+        setuptime (int): The amount of time to allow the network to complete its tasks
         testname (string): Name of the test
         project (string): Name of the project you want to test
         compose_file (string): File path to the compose file
@@ -49,7 +49,7 @@ class BaseNetworkTestCase(unittest.TestCase):
                 self.assertEqual(len(receivers), 3 * len(senders))
 ```
     """
-    waittime = 20
+    setuptime = 20
     _is_setup = False
     _is_torndown = False
     vmnet_path = vmnet.__path__._path[0]
@@ -87,8 +87,8 @@ class BaseNetworkTestCase(unittest.TestCase):
             os.environ['TEST_NAME'] = self.testname
             self.run_script('--clean')
             self.run_script('&')
-            print('Running test "{}" and waiting for {}s...'.format(self.testname, self.waittime))
-            time.sleep(self.waittime)
+            print('Running test "{}" and waiting for {}s...'.format(self.testname, self.setuptime))
+            time.sleep(self.setuptime)
             sys.stdout.flush()
 
     def listen_for(self, pattern, then):
