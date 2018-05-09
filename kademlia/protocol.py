@@ -14,11 +14,12 @@ log = logging.getLogger(__name__)
 
 
 class KademliaProtocol(RPCProtocol):
-    def __init__(self, sourceNode, storage, ksize):
+    def __init__(self, sourceNode, storage, ksize, server):
         RPCProtocol.__init__(self, waitTimeout=3)
         self.router = RoutingTable(self, ksize, sourceNode)
         self.storage = storage
         self.sourceNode = sourceNode
+        self.server = server
 
     def getRefreshIDs(self):
         """
@@ -102,6 +103,7 @@ class KademliaProtocol(RPCProtocol):
         if not self.router.isNewNode(node):
             return
 
+        self.server.connect_to_neighbor(node)
         log.info("never seen %s before, adding to router", node)
         for key, value in self.storage.items():
             keynode = Node(digest(key))

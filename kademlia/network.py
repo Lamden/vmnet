@@ -53,13 +53,13 @@ class Server(object):
         self.heartbeat_port = os.getenv('HEARTBEAT_PORT', 31233)
         self.stethoscope_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.stethoscope_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.stethoscope_sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.stethoscope_sock.setblocking(0)
         self.stethoscope_sock.bind(('0.0.0.0', self.heartbeat_port))
         self.stethoscope_sock.listen(64)
         asyncio.ensure_future(self.stethoscope())
 
     async def stethoscope(self):
-        self.stethoscope_sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.epoll = select.epoll()
         self.epoll.register(self.stethoscope_sock.fileno(), select.EPOLLIN | select.EPOLLONESHOT)
         self.connections = {}
@@ -69,29 +69,30 @@ class Server(object):
                 for fileno, event in events:
                     if fileno == self.stethoscope_sock.fileno():
                         conn, addr = self.stethoscope_sock.accept()
-                        conn.setblocking(0)
-                        self.epoll.register(conn.fileno(), select.EPOLLIN)
-                        self.connections[conn.fileno()] = (conn, addr)
                         log.info("Client (%s, %s) connected" % addr)
                     elif event & select.EPOLLIN:
-                        conn, addr = self.connections[fileno]
-                        data = conn.recv(16)
+                        conn, addr, node = self.connections[fileno]
                         self.epoll.unregister(fileno)
                         conn.close()
                         del self.connections[fileno]
+                        # remove from routing tables
+                        self.protocol.router.removeContact(node)
                         log.info("Client (%s, %s) disconnected" % addr)
-                await asyncio.sleep(0.1)
+
+                await asyncio.sleep(1)
         finally:
             self.epoll.unregister(self.stethoscope_sock.fileno())
             self.epoll.close()
             self.stethoscope_sock.close()
 
-    def connect_to_neighbor(self, ip):
-        if os.getenv('HOST_IP') == ip: return
-        server_address = (ip, self.heartbeat_port)
-        self.heartbeat_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.heartbeat_sock.connect(server_address)
-        log.critical('{} found out about {}!'.format(os.getenv('HOST_IP'), server_address))
+    def connect_to_neighbor(self, node):
+        if os.getenv('HOST_IP') == node.ip: return
+        addr = (node.ip, self.heartbeat_port)
+        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connections[conn.fileno()] = (conn, addr, node)
+        conn.connect(addr)
+        self.epoll.register(conn.fileno(), select.EPOLLIN | select.EPOLLONESHOT)
+        log.info("Client (%s, %s) connected" % addr)
 
     def stop(self):
         if self.transport is not None:
@@ -104,7 +105,7 @@ class Server(object):
             self.save_state_loop.cancel()
 
     def _create_protocol(self):
-        return self.protocol_class(self.node, self.storage, self.ksize)
+        return self.protocol_class(self.node, self.storage, self.ksize, self)
 
     def listen(self, port, interface='0.0.0.0'):
         """

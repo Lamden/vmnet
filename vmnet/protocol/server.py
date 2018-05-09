@@ -74,7 +74,8 @@ class Server:
         return res
 
     def discover_and_join(self):
-        new_network = discover(self.discovery_mode)
+        new_network = os.getenv('NODE').split(',')
+        # new_network = discover(self.discovery_mode)
         log.debug('Newly joined network: {}'.format(new_network))
         if self.betray_ratio * len(self.network) < len(new_network):
             betray_all(self.network)
@@ -144,4 +145,4 @@ class Server:
         pass
 
 if __name__ == '__main__':
-    server = Server(cmd_cli=True)
+    server = Server(block=True, cmd_cli=True)
