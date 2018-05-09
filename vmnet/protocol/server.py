@@ -6,7 +6,6 @@ from queue import Queue
 import os, sys, uuid, time, threading, uuid, asyncio, random, zmq.asyncio, warnings, zmq
 from zmq.utils.monitor import recv_monitor_message
 
-
 log = get_logger('server')
 loop = asyncio.get_event_loop()
 asyncio.set_event_loop(loop)
@@ -104,14 +103,6 @@ class Server:
                 log.debug("Received - {}: {}".format(msg_type, data))
             self.select_action(msg_type, data)
 
-    async def heartbeat(self):
-        while True:
-            self.sock.send(compose_msg('beat'))
-            asyncio.sleep(0.05)
-
-    def echo(self):
-        self.sock.send(compose_msg('echo', os.getenv('HOST_IP', '127.0.0.1')))
-
     def select_action(self, msg_type, data=[]):
         if msg_type == 'discover':
             self.discover_network(*data)
@@ -128,21 +119,6 @@ class Server:
     def discover_network(self, *args):
         # TODO Rate limit this call
         self.sock.send(compose_msg('ack'))
-
-    def challenge_response(self, *args):
-        """
-            Prove that this ip owns the verifying key
-        """
-        pass
-
-    def switch_port(self):
-        """
-            Switch the kademlia port so people can't just follow ips
-        """
-        self.sock.send(compose_msg('ack_switch'))
-
-    def role(self, *args):
-        pass
 
 if __name__ == '__main__':
     server = Server(block=True, cmd_cli=True)
