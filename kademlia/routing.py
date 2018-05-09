@@ -31,11 +31,6 @@ class KBucket(object):
         return (one, two)
 
     def removeNode(self, node):
-        print('\n\n\n')
-        print('replacement node:::')
-        print(self.replacementNodes)
-        print(node.id, self.nodes)
-        print('\n\n\n')
         if node.id not in self.nodes:
             return
 
@@ -149,13 +144,7 @@ class RoutingTable(object):
 
     def removeContact(self, node):
         index = self.getBucketFor(node)
-        print('\n\n\n')
-        print('removing contact:::')
-        print(node.id, index, self.buckets[index].getNodes())
         self.buckets[index].removeNode(node)
-        print('then...')
-        print(node.id, index, self.buckets[index].getNodes())
-        print('\n\n\n')
 
     def isNewNode(self, node):
         index = self.getBucketFor(node)
@@ -188,14 +177,10 @@ class RoutingTable(object):
     def findNeighbors(self, node, k=None, exclude=None):
         k = k or self.ksize
         nodes = []
-        print('\n\n\n')
-        print('neighbors:::')
         for neighbor in TableTraverser(self, node):
-            print(neighbor)
             notexcluded = exclude is None or not neighbor.sameHomeAs(exclude)
             if neighbor.id != node.id and notexcluded:
                 heapq.heappush(nodes, (node.distanceTo(neighbor), neighbor))
             if len(nodes) == k:
                 break
-        print('\n\n\n')
         return list(map(operator.itemgetter(1), heapq.nsmallest(k, nodes)))

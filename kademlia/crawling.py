@@ -32,10 +32,6 @@ class SpiderCrawl(object):
         self.lastIDsCrawled = []
         log.info("creating spider with peers: %s", peers)
         self.nearest.push(peers)
-        print('\n\n\n')
-        print('nearest - node heap:::')
-        print(self.nearest.heap)
-        print('\n\n\n')
 
     async def _find(self, rpcmethod):
         """
@@ -139,26 +135,13 @@ class NodeSpiderCrawl(SpiderCrawl):
         Handle the result of an iteration in _find.
         """
         toremove = []
-        nodes_count = {}
-        print('\n\n\n')
         for peerid, response in responses.items():
             response = RPCFindResponse(response)
-            print('reponse list:::')
-            print(response.happened(), response.getNodeList())
             if not response.happened():
                 toremove.append(peerid)
             else:
-                # for node in response.getNodeList():
-                #     if not nodes_count.get(node.id):
-                #         nodes_count[node.id] = 0
-                #     nodes_count[node.id] += 1
                 self.nearest.push(response.getNodeList())
-        print('toremove / peerIDs:::')
-        # max_count = max(nodes_count.values())
-        # toremove += [node_id for node_id in nodes_count if nodes_count[node_id] < max_count]
-        print(toremove)
         self.nearest.remove(toremove)
-        print('\n\n\n')
         if self.nearest.allBeenContacted():
             return list(self.nearest)
         return await self.find()

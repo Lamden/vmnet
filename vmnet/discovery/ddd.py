@@ -24,12 +24,9 @@ def discover(mode):
         ips[host] = [decimal_to_ip(d) for d in range(*get_local_range(host))]
     else:
         public_ip = get_public_ip()
-        # public_ip = '105.160.59.0' # Migori, Kenya
         if mode == 'local':
             ips['localhost'] = [decimal_to_ip(d) for d in range(*get_local_range(public_ip))]
         elif mode == 'neighborhood':
-            host_ip = os.getenv('HOST_IP', '127.0.0.1')
-            ips[host_ip] = [decimal_to_ip(d) for d in range(*get_local_range(host_ip))]
             for ip in get_region_range(public_ip):
                 ips[ip] = [decimal_to_ip(d) for d in range(*get_local_range(ip))]
     log.debug('Scanning {}...'.format(mode))

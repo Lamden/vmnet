@@ -59,14 +59,10 @@ class NodeHeap(object):
         if len(peerIDs) == 0:
             return
         nheap = []
-        print('\n\n\n')
-        print('remove from heap:::')
         for distance, node in self.heap:
-            print(node.id, peerIDs)
             if node.id not in peerIDs:
                 heapq.heappush(nheap, (distance, node))
         self.heap = nheap
-        print('\n\n\n')
 
     def getNodeById(self, node_id):
         for _, node in self.heap:

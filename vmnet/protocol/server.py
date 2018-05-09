@@ -3,8 +3,8 @@ from vmnet.protocol.msg import *
 from vmnet.discovery.ddd import *
 from kademlia.network import Server as DHT
 from queue import Queue
-import os, sys, uuid, time, threading, uuid, asyncio, random, zmq.asyncio, warnings
-
+import os, sys, uuid, time, threading, uuid, asyncio, random, zmq.asyncio, warnings, zmq
+from zmq.utils.monitor import recv_monitor_message
 
 
 log = get_logger('server')
@@ -75,7 +75,7 @@ class Server:
 
     def discover_and_join(self):
         new_network = discover(self.discovery_mode)
-        log.debug(new_network)
+        log.debug('Newly joined network: {}'.format(new_network))
         if self.betray_ratio * len(self.network) < len(new_network):
             betray_all(self.network)
             self.network = new_network
@@ -103,6 +103,14 @@ class Server:
                 log.debug("Received - {}: {}".format(msg_type, data))
             self.select_action(msg_type, data)
 
+    async def heartbeat(self):
+        while True:
+            self.sock.send(compose_msg('beat'))
+            asyncio.sleep(0.05)
+
+    def echo(self):
+        self.sock.send(compose_msg('echo', os.getenv('HOST_IP', '127.0.0.1')))
+
     def select_action(self, msg_type, data=[]):
         if msg_type == 'discover':
             self.discover_network(*data)
@@ -110,6 +118,10 @@ class Server:
             self.challenge_response(*data)
         elif msg_type == 'role':
             self.role(*data)
+        elif msg_type == 'beat':
+            self.echo()
+        elif msg_type == 'echo':
+            self.refresh_connection(*data)
         pass
 
     def discover_network(self, *args):

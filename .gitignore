@@ -1,7 +1,8 @@
 .idea
 venv
 *.log
-docker/docker-compose.yml
+*docker-compose.yml
+tests/*/docker-compose.yml
 *__pycache__
 *.pyc
 *__init__.py
