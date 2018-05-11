@@ -39,7 +39,7 @@ class TestDHT(BaseNetworkTestCase):
         time.sleep(1)
         for node in ['node_{}'.format(n) for n in range(1,4)]:
             self.execute_python(node, run_getter_node, async=True)
-        time.sleep(10)
+        time.sleep(5)
         os.system('docker kill node_2')
         time.sleep(360)
 

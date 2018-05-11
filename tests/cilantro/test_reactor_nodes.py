@@ -5,8 +5,8 @@ def run_pub():
     from cilantro.nodes.utilitynodes import PubNode
     import time, asyncio
     p = PubNode()
-    time.sleep(1)
-    future = asyncio.ensure_future(p.debug_forever_pub())
+    # time.sleep(1)
+    # future = asyncio.ensure_future(p.debug_forever_pub())
     p.loop.run_forever()
 
 def run_sub():
@@ -22,7 +22,7 @@ class TestReactorNodes(BaseNetworkTestCase):
         self.execute_python('node_1', run_pub, async=True)
         for i in range(2,9):
             self.execute_python('node_{}'.format(i), run_sub, async=True)
-        time.sleep(30)
+        time.sleep(360)
 
 if __name__ == '__main__':
     unittest.main()

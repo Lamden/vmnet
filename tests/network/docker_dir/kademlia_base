@@ -8,3 +8,4 @@ RUN apk update \
     && apk del py-pip python3-dev
 
 EXPOSE 5689
+EXPOSE 31337
