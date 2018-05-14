@@ -82,7 +82,7 @@ def run_rep():
 class TestMonitor(BaseNetworkTestCase):
     testname = 'test_monitor'
     compose_file = 'kademlia-nodes.yml'
-    waittime = 15
+    setuptime = 15
     def test_disconnect(self):
         log.debug('disconnect test started')
         self.execute_python('node_1', run_req, async=True)

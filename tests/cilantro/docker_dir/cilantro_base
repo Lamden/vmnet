@@ -25,7 +25,7 @@ RUN apt-get update \
 # Install Python requirements
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        python3 openssl \
+        openssl python3-distutils \
         python-pip python3.6-dev build-essential \
             gcc g++ git autoconf automake \
             libffi-dev libtool dpkg \
@@ -35,7 +35,7 @@ RUN apt-get update \
     && rm -rf capnproto \
     && apt-get remove -y --allow-remove-essential \
         python-pip python3.6-dev build-essential \
-        gcc g++ git \
+        gcc g++ git python3-distutils \
         libffi-dev libtool \
         gsl-bin zlib1g-dev libboost-all-dev \
         autoconf automake \

@@ -94,8 +94,11 @@ def build_if_not_exist(services):
     ordered_images = { 'base':[], 'build':[] }
     for image in images:
         ordered_images['base' if 'base' in image['image'] else 'build'].append(image)
+    built = {}
     for service in ordered_images['base'] + ordered_images['build']:
-        build_image(service)
+        if not built.get(service['image']):
+            build_image(service)
+            built[service['image']] = True
 
 def generate_configs(compose_file):
     """

@@ -3,24 +3,24 @@ import unittest
 import time
 
 def run_lookup_node():
-    from kademlia.server import Server
+    from kademlia.dht import DHT
     from kademlia.logger import get_logger
     import time, os, asyncio
     log = get_logger(__name__)
     loop = asyncio.get_event_loop()
     asyncio.set_event_loop(loop)
-    node = Server(node_id='vk_{}'.format(os.getenv('HOST_IP')), mode='test', block=False, cmd_cli=False)
+    node = DHT(node_id='vk_{}'.format(os.getenv('HOST_IP')), mode='test', block=False, cmd_cli=False)
     time.sleep(5)
     vk = 'vk_172.29.5.3'
     node = loop.run_until_complete(node.dht.lookup_ip(vk))
     loop.run_forever()
 
 def run_node():
-    from kademlia.server import Server
+    from kademlia.dht import DHT
     import time, os, asyncio
     loop = asyncio.get_event_loop()
     asyncio.set_event_loop(loop)
-    node = Server(node_id='vk_{}'.format(os.getenv('HOST_IP')), mode='test', block=False, cmd_cli=False)
+    node = DHT(node_id='vk_{}'.format(os.getenv('HOST_IP')), mode='test', block=False, cmd_cli=False)
     loop.run_forever()
 
 class TestDDDHB(BaseNetworkTestCase):

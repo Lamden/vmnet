@@ -18,7 +18,7 @@ def run_listeners():
 class TestDDD(BaseNetworkTestCase):
     testname = 'test_ddd'
     compose_file = 'kademlia-nodes.yml'
-    waittime = 15
+    setuptime = 15
     def test_setup_server_clients(self):
         for node in ['node_{}'.format(n) for n in range(1,5)]:
             self.execute_python(node, run_listeners, async=True)

@@ -11,7 +11,7 @@ def send_four_tx():
 class TestCilantroConsensus(BaseNetworkTestCase):
     testname = 'consensus'
     compose_file = 'cilantro-m-w-d.yml'
-    waittime = 15
+    setuptime = 15
     def test_in_consensus(self):
         self.execute_python('mgmt', send_four_tx)
         for node in ['delegate_5', 'delegate_6', 'delegate_7']:

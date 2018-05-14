@@ -20,7 +20,7 @@ def run_delegate():
 class TestMWDNodes(BaseNetworkTestCase):
     testname = 'mwd_nodes'
     compose_file = 'cilantro-nodes.yml'
-    waittime = 10
+    setuptime = 10
     def test_mwd(self):
         # self.execute_python('node_1', run_pub, async=True)
         # for i in range(2,9):
