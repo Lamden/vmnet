@@ -74,7 +74,7 @@ $ docker exec -ti your_node_name /bin/bash
 Confused? Run an example set up just for you!
 ```bash
 $ cd vmnet/docker
-$ python launch.py --project vmnet
+$ python launch.py --compose_file tests/vmnet/compose_files/vmnet-svr-cli.yml --docker_dir tests/vmnet/docker_dir
 ```
 
 # Testing
@@ -87,34 +87,13 @@ from vmnet.tests.util import *
 import unittest
 
 class TestVmnetExample(BaseTestCase):
-    waittime = 20
+    setuptime = 15
     testname = 'vmnet_example'
-    project = 'vmnet'
-    compose_file = get_path('vmnet/tests/configs/vmnet-compose.yml')
-    docker_dir = get_path('vmnet/docker/docker_files/vmnet')
     def test_your_tasks(self):
         self.assertTrue('Test it' == 'Test it')
 ```
 
-2. Set up logging. Make sure your logger makes use of the `TEST_NAME` environmental variable to use functionality
-```python
-def get_logger():
-    import logging
-    import os
-    import sys
-    filedir = "logs/{}".format(os.getenv('TEST_NAME'))
-    filename = "{}/{}.log".format(filedir, os.getenv('HOSTNAME'))
-    os.makedirs(filedir, exist_ok=True)
-    filehandlers = [logging.FileHandler(filename)]
-    logging.basicConfig(
-        format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
-        handlers=filehandlers,
-        level=logging.DEBUG
-    )
-    return logging.getLogger()
-```
-
-3. Run your test. Example output:
+2. Run your test. Example output:
 ```bash
 $ python -m unittest discover -v
 ```
@@ -126,13 +105,6 @@ Creating vmnet_client_4 ... done
 Creating vmnet_server   ... done
 Creating vmnet_client_2 ... done
 Creating vmnet_client_3 ... done
-Attaching to vmnet_client_5, vmnet_client_1, vmnet_client_3, vmnet_client_4, vmnet_server, vmnet_client_2
-WARNING! This will remove:
-        - all stopped containers
-        - all networks not used by at least one container
-        - all dangling images
-        - all build cache
-Are you sure you want to continue? [y/N] Total reclaimed space: 0B
 vmnet_client_4 exited with code 137
 vmnet_server exited with code 137
 vmnet_client_1 exited with code 137
