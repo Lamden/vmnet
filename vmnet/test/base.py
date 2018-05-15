@@ -6,7 +6,7 @@ $ python -m unittest discover -v
 ```
 """
 import vmnet
-from vmnet.util import *
+from vmnet.test.util import *
 import unittest
 import sys
 import os
@@ -59,12 +59,13 @@ class BaseNetworkTestCase(unittest.TestCase):
             specifed Docker network.
         """
         launch_path = '{}/launch.py'.format(self.vmnet_path)
-        os.system('python {} --compose_file {} --docker_dir {} {}'.format(
+        exc_str = 'python {} --compose_file {} --docker_dir {} {}'.format(
             launch_path,
             'compose_files/{}'.format(self.compose_file),
             'docker_dir',
             params
-        ))
+        )
+        os.system(exc_str)
 
     def execute_python(self, node, fn, async=False, python_version='3.6'):
         fn_str = dill.dumps(fn, 0)

@@ -65,10 +65,10 @@ import os
 import copy
 import yaml
 import subprocess
-from logger import get_logger
-from os.path import dirname, abspath, splitext, basename, join
 
-log = get_logger('vmnet')
+from os.path import dirname, abspath, splitext, basename, join
+# from vmnet.test.logger import get_logger
+# log = get_logger('vmnet')
 
 def set_env(local_path, docker_dir):
     """
@@ -81,11 +81,11 @@ def build_image(service):
     """
         Builds the image specified in the service
     """
-    log.info('Building {}...'.format(service['image']))
+    print('Building {}...'.format(service['image']))
     os.system('docker build -t {} -f {} {}'.format(
         service['image'], service['build']['dockerfile'], service['build']['context']
     ))
-    log.info('Done.')
+    print('Done.')
 
 def build_if_not_exist(services):
     """
@@ -192,7 +192,7 @@ def prune():
         Clear any hanging images and containers
     """
     os.system('echo y | docker system prune 1>/dev/null')
-    os.system('docker network rm $(docker network ls | grep "bridge" | awk \'/ / { log.info $1 }\') 2>/dev/null')
+    os.system('docker network rm $(docker network ls | grep "bridge" | awk \'/ / { print $1 }\') 2>/dev/null')
 
 def clean():
     """
@@ -250,7 +250,7 @@ if __name__ == '__main__':
     parser.add_argument('--destroy_all', action='store_true', help='remove all images and containers')
     parser.add_argument('--build_only', action='store_true', help='builds the image and does not run the container')
 
-    parser.add_argument('--local_path', help='path containing vmnet and your project', default=dirname(dirname(abspath(__file__))))
+    parser.add_argument('--local_path', help='path containing vmnet and your project', default=dirname(dirname(dirname(abspath(__file__)))))
 
     args = parser.parse_args()
 

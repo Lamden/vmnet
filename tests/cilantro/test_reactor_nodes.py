@@ -1,4 +1,4 @@
-from vmnet.tests.base import *
+from vmnet.test.base import *
 import unittest, time, random
 
 def run_pub():
@@ -17,6 +17,7 @@ def run_sub():
 class TestReactorNodes(BaseNetworkTestCase):
     testname = 'reactor_nodes'
     setuptime = 10
+    compose_file = 'cilantro-nodes.yml'
     def test_basic_pub_sub(self):
         self.execute_python('node_1', run_pub, async=True)
         for i in range(2,9):
