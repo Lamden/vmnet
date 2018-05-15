@@ -12,6 +12,7 @@ import sys
 import os
 import dill
 import shutil
+from os.path import dirname, abspath
 
 class BaseNetworkTestCase(unittest.TestCase):
     """
@@ -52,7 +53,7 @@ class BaseNetworkTestCase(unittest.TestCase):
     setuptime = 20
     _is_setup = False
     _is_torndown = False
-    vmnet_path = vmnet.__path__[0]
+    vmnet_path = dirname(dirname(abspath(__file__)))
     def run_script(self, params):
         """
             Runs launch.py to start-up or tear-down for network of nodes in the
