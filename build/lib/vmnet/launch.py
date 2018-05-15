@@ -82,6 +82,7 @@ def build_image(service):
     os.system('docker build -t {} -f {} {}'.format(
         service['image'], service['build']['dockerfile'], service['build']['context']
     ))
+    print('Done.')
 
 def build_if_not_exist(services):
     """
@@ -216,6 +217,23 @@ def destroy_all():
     clean()
     os.system('docker rmi $(docker images -a -q) -f 2>/dev/null')
 
+def launch(compose_file, docker_dir, local_path, docker_prune=False, docker_clean=False, docker_destroy=False, docker_destroy_all=False, docker_build_only=False):
+    if docker_prune:
+        prune()
+    elif docker_clean:
+        clean()
+    elif docker_destroy:
+        destroy(compose_file)
+    elif docker_destroy_all:
+        destroy_all()
+    else:
+        set_env(local_path, docker_dir)
+        generate_configs(compose_file)
+        clean()
+        if not docker_build_only:
+            run()
+
+
 if __name__ == '__main__':
     import argparse
 
@@ -227,25 +245,15 @@ if __name__ == '__main__':
     parser.add_argument('--clean', action='store_true', help='remove all containers')
     parser.add_argument('--destroy', action='store_true', help='remove all images and containers listed in the config')
     parser.add_argument('--destroy_all', action='store_true', help='remove all images and containers')
+    parser.add_argument('--build_only', action='store_true', help='builds the image and does not run the container')
 
     parser.add_argument('--local_path', help='path containing vmnet and your project', default=dirname(dirname(abspath(__file__))))
 
     args = parser.parse_args()
 
-    compose_file = args.compose_file
-    docker_dir = args.docker_dir
-    local_path = args.local_path
-
-    if args.prune:
-        prune()
-    elif args.clean:
-        clean()
-    elif args.destroy:
-        destroy(compose_file)
-    elif args.destroy_all:
-        destroy_all()
-    else:
-        set_env(local_path, docker_dir)
-        generate_configs(compose_file)
-        clean()
-        run()
+    launch(
+        args.compose_file, args.docker_dir, args.local_path,
+        docker_prune=args.prune, docker_clean=args.clean,
+        docker_destroy=args.destroy, docker_destroy_all=args.destroy_all,
+        docker_build_only=args.build_only
+    )

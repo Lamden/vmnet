@@ -7,7 +7,6 @@ def run_node():
 
 class TestCilantroConsensus(BaseNetworkTestCase):
     testname = 'pub_sub'
-    compose_file = 'cilantro-nodes.yml'
     setuptime = 15
     def test_pub_sub(self):
         for i in range(5):

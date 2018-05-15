@@ -1,0 +1,43 @@
+version: "2.3"
+networks:
+  vmnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          ip-range: 172.28.5.0/24
+          gateway: 172.28.5.254
+
+services:
+  vmnet_base:
+    build:
+      context: ./scripts
+      dockerfile: ${DOCKER_DIR}/vmnet_base
+    image: vmnet_base
+  vmnet_server:
+    ip: 172.28.5.0
+    build:
+      context: ./scripts
+      dockerfile: ${DOCKER_DIR}/vmnet_base
+    image: vmnet_base
+    stdin_open: true
+    tty: true
+    volumes:
+      - type: bind
+        source: ./scripts
+        target: /app/
+  vmnet_client:
+    range:
+      - 1
+      - 5
+    ip: 172.28.5.x
+    build:
+      context: .
+      dockerfile: ${DOCKER_DIR}/vmnet_base
+    image: vmnet_base
+    stdin_open: true
+    tty: true
+    volumes:
+      - type: bind
+        source: ./scripts
+        target: /app/

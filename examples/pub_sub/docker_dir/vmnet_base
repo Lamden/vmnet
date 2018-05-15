@@ -1,0 +1,10 @@
+FROM alpine:3.7
+COPY . /app
+WORKDIR /app
+
+EXPOSE 10000-20000
+
+RUN apk update \
+    && apk add --update --no-cache python3 py-pip python3-dev build-base \
+    && pip3 install -r requirements.txt \
+    && apk del py-pip python3-dev

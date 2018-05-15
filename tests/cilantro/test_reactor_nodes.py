@@ -16,7 +16,6 @@ def run_sub():
 
 class TestReactorNodes(BaseNetworkTestCase):
     testname = 'reactor_nodes'
-    compose_file = 'cilantro-nodes.yml'
     setuptime = 10
     def test_basic_pub_sub(self):
         self.execute_python('node_1', run_pub, async=True)
