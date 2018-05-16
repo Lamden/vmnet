@@ -55,16 +55,18 @@ class BaseNetworkTestCase(unittest.TestCase):
     _is_torndown = False
     logdir = '../../logs'
     vmnet_path = dirname(vmnet.__file__) if hasattr(vmnet, '__file__') else vmnet.__path__._path[0]
+    local_path = dirname(dirname(dirname(os.getcwd())))
     def run_script(self, params):
         """
             Runs launch.py to start-up or tear-down for network of nodes in the
             specifed Docker network.
         """
         launch_path = '{}/launch.py'.format(self.vmnet_path)
-        exc_str = 'python {} --compose_file {} --docker_dir {} {}'.format(
+        exc_str = 'python {} --compose_file {} --docker_dir {} --local_path {} {}'.format(
             launch_path,
             'compose_files/{}'.format(self.compose_file),
             'docker_dir',
+            self.local_path,
             params
         )
         os.system(exc_str)
