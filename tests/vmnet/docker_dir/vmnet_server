@@ -1,6 +1,0 @@
-FROM vmnet_base
-
-WORKDIR /app
-
-EXPOSE 10000-20000
-CMD python3 scripts/group_server.py

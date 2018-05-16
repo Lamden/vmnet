@@ -41,7 +41,7 @@ def test_ping(hostname):
     return True if os.system("ping -c 1 -W 0.1 " + hostname) is 0 else False
 
 def get_logger(name=''):
-    filedir = "logs"
+    filedir = "logs/{}".format(os.getenv('TEST_NAME', 'test'))
     filename = "{}/{}.log".format(filedir, name)
     os.makedirs(filedir, exist_ok=True)
     filehandlers = [

@@ -5,9 +5,9 @@ any normal Python unittests:
 $ python -m unittest discover -v
 ```
 """
-import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json
+import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml
 from multiprocessing import Process
-from os.path import dirname, abspath, join, splitext
+from os.path import dirname, abspath, join, splitext, expandvars
 from vmnet.test.util import *
 from websocket_server import WebsocketServer
 
@@ -53,8 +53,8 @@ class BaseNetworkTestCase(unittest.TestCase):
     setuptime = 20
     _is_setup = False
     _is_torndown = False
-    logdir = 'logs'
-    vmnet_path = dirname(dirname(abspath(__file__)))
+    logdir = '../../logs'
+    vmnet_path = dirname(vmnet.__file__)
     def run_script(self, params):
         """
             Runs launch.py to start-up or tear-down for network of nodes in the
@@ -125,6 +125,7 @@ class BaseNetworkTestCase(unittest.TestCase):
         if not self._is_setup:
             self.__class__._is_setup = True
             os.environ['TEST_NAME'] = self.testname
+            self.logdir = abspath('{}/{}'.format(self.logdir, self.testname))
             os.makedirs(self.logdir, exist_ok=True)
             shutil.rmtree(self.logdir)
             self.run_script('--clean')
@@ -135,7 +136,7 @@ class BaseNetworkTestCase(unittest.TestCase):
             print('Running test "{}" and waiting for {}s...'.format(self.testname, self.setuptime))
             time.sleep(self.setuptime)
             if not os.getenv('CONSOLE_RUNNING'):
-                os.environ['CONSOLE_RUNNING'] = abspath(self.logdir)
+                os.environ['CONSOLE_RUNNING'] = self.logdir
                 try:
                     self.server = WebsocketServer(WS_PORT, host='0.0.0.0')
                     self.__class__.websocket = Process(target=self.run_websocket, args=(self.server,))
