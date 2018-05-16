@@ -7,3 +7,7 @@ vmnet.egg-info/SOURCES.txt
 vmnet.egg-info/dependency_links.txt
 vmnet.egg-info/requires.txt
 vmnet.egg-info/top_level.txt
+vmnet/test/__init__.py
+vmnet/test/base.py
+vmnet/test/logger.py
+vmnet/test/util.py
