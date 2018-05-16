@@ -142,7 +142,7 @@ class BaseNetworkTestCase(unittest.TestCase):
                     self.__class__.websocket.start()
                 except:
                     print('Test Console already running!')
-                webbrowser.get('chrome').open('http://localhost:{}'.format(WEBUI_PORT), new=2, autoraise=True)
+                webbrowser.open('http://localhost:{}'.format(WEBUI_PORT), new=2, autoraise=True)
             sys.stdout.flush()
 
     def tearDown(self):

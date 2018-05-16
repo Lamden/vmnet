@@ -1,0 +1,31 @@
+.icon img {
+    pointer-events: none;
+}
+.icon.xsmall img {
+    width: 15px;
+    height: 15px;
+}
+.icon.small img {
+    width: 25px;
+    height: 25px;
+}
+.icon.medium img {
+    width: 35px;
+    height: 35px;
+}
+.icon.large img {
+    width: 50px;
+    height: 50px;
+}
+.icon.xlarge img {
+    width: 100px;
+    height: 100px;
+}
+.icon.clickable {
+    cursor: pointer;
+    opacity: 0.95;
+}
+.icon.clickable:hover {
+    cursor: pointer;
+    opacity: 1;
+}
