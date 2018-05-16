@@ -1,10 +1,7 @@
 README.md
 setup.py
 vmnet/__init__.py
-vmnet/base.py
 vmnet/launch.py
-vmnet/logger.py
-vmnet/util.py
 vmnet.egg-info/PKG-INFO
 vmnet.egg-info/SOURCES.txt
 vmnet.egg-info/dependency_links.txt

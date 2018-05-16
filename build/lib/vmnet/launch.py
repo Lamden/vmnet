@@ -65,7 +65,10 @@ import os
 import copy
 import yaml
 import subprocess
+
 from os.path import dirname, abspath, splitext, basename, join
+# from vmnet.test.logger import get_logger
+# log = get_logger('vmnet')
 
 def set_env(local_path, docker_dir):
     """
@@ -247,7 +250,7 @@ if __name__ == '__main__':
     parser.add_argument('--destroy_all', action='store_true', help='remove all images and containers')
     parser.add_argument('--build_only', action='store_true', help='builds the image and does not run the container')
 
-    parser.add_argument('--local_path', help='path containing vmnet and your project', default=dirname(dirname(abspath(__file__))))
+    parser.add_argument('--local_path', help='path containing vmnet and your project', default=dirname(dirname(dirname(abspath(__file__)))))
 
     args = parser.parse_args()
 
