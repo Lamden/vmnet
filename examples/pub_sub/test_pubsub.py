@@ -1,6 +1,6 @@
-from vmnet.base import *
-from vmnet.util import *
-import unittest
+from vmnet.test.base import *
+from vmnet.test.util import *
+import unittest, time
 
 def run_server():
     from group_util import get_logger, load_ips
@@ -13,7 +13,7 @@ def run_server():
     gs = GroupServer(ips, server_ip=server_ip)
     gs.regroup()
     gs.bind()
-    time.sleep(5)
+    time.sleep(3)
 
     while True:
         gs.publish_transaction(
@@ -49,10 +49,12 @@ class TestVmnetExample(BaseNetworkTestCase):
     testname = 'srv_cli'
     compose_file = 'vmnet-svr-cli.yml'
     setuptime = 10
+    logdir = 'scripts/logs'
     def test_run_service(self):
         self.execute_python('vmnet_server', run_server, async=True)
         for i in range(1, 6):
             self.execute_python('vmnet_client_{}'.format(i), run_client, async=True)
+        time.sleep(10)
 
 if __name__ == '__main__':
     unittest.main()

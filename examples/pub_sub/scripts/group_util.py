@@ -49,7 +49,7 @@ def get_logger(name=''):
         logging.StreamHandler()
     ]
     logging.basicConfig(
-        format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+        format="%(asctime)s [%(levelname)-5.5s] %(message)s",
         handlers=filehandlers,
         level=logging.DEBUG
     )

@@ -5,14 +5,14 @@ any normal Python unittests:
 $ python -m unittest discover -v
 ```
 """
-import vmnet
+import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json
+from multiprocessing import Process
+from os.path import dirname, abspath, join, splitext
 from vmnet.test.util import *
-import unittest
-import sys
-import os
-import dill
-import shutil
-from os.path import dirname, abspath
+from websocket_server import WebsocketServer
+
+WEBUI_PORT = 8080
+WS_PORT = 8000
 
 class BaseNetworkTestCase(unittest.TestCase):
     """
@@ -53,6 +53,7 @@ class BaseNetworkTestCase(unittest.TestCase):
     setuptime = 20
     _is_setup = False
     _is_torndown = False
+    logdir = 'logs'
     vmnet_path = dirname(dirname(abspath(__file__)))
     def run_script(self, params):
         """
@@ -67,6 +68,44 @@ class BaseNetworkTestCase(unittest.TestCase):
             params
         )
         os.system(exc_str)
+
+    def run_webui(self):
+        from sanic import Sanic
+        from sanic.response import file
+
+        STATIC_ROOT = join(dirname(dirname(__file__)), 'console/nota')
+
+        app = Sanic(__name__)
+        app.static('/', STATIC_ROOT)
+        app.static('/favicon.ico', os.path.join('{}/asserts/img/icons/favicon.ico'.format(STATIC_ROOT)))
+
+        @app.route('/')
+        async def index(request):
+            return await file('{}/index.html'.format(STATIC_ROOT))
+
+        app.run(host="0.0.0.0", port=WEBUI_PORT, debug=False)
+
+    def run_websocket(self, server):
+        def new_client(client, svr):
+            opened_files = {}
+            while True:
+                for root, dirs, files in os.walk(os.getenv('CONSOLE_RUNNING')):
+                    for f in files:
+                        if not opened_files.get(f):
+                            opened_files[f] = open(join(root, f))
+                        log_lines = opened_files[f].readline().strip()
+                        if log_lines != '':
+                            node = splitext(f)[0].split('_')
+                            node_num = node[-1] if node[-1].isdigit() else None
+                            node_type = node[:-1] if node[-1].isdigit() else node
+                            svr.send_message_to_all(json.dumps({
+                                'node_type': '_'.join(node_type),
+                                'node_num': node_num,
+                                'log_lines': log_lines
+                            }))
+                time.sleep(0.01)
+        server.set_fn_new_client(new_client)
+        server.run_forever()
 
     def execute_python(self, node, fn, async=False, python_version='3.6'):
         fn_str = dill.dumps(fn, 0)
@@ -85,19 +124,30 @@ class BaseNetworkTestCase(unittest.TestCase):
         """
         if not self._is_setup:
             self.__class__._is_setup = True
-            self.logdir = 'logs'
             os.environ['TEST_NAME'] = self.testname
+            os.makedirs(self.logdir, exist_ok=True)
+            shutil.rmtree(self.logdir)
             self.run_script('--clean')
             self.run_script('--build_only')
             self.run_script('&')
+            self.__class__.webui = Process(target=self.run_webui)
+            self.__class__.webui.start()
             print('Running test "{}" and waiting for {}s...'.format(self.testname, self.setuptime))
             time.sleep(self.setuptime)
+            if not os.getenv('CONSOLE_RUNNING'):
+                os.environ['CONSOLE_RUNNING'] = abspath(self.logdir)
+                try:
+                    self.server = WebsocketServer(WS_PORT, host='0.0.0.0')
+                    self.__class__.websocket = Process(target=self.run_websocket, args=(self.server,))
+                    self.__class__.websocket.start()
+                except:
+                    print('Test Console already running!')
+                webbrowser.get('chrome').open('http://localhost:{}'.format(WEBUI_PORT), new=2, autoraise=True)
             sys.stdout.flush()
-
-    def listen_for(self, pattern, then):
-        pass
 
     def tearDown(self):
         if not self._is_torndown:
             self.__class__._is_torndown = True
             self.run_script('--clean')
+            self.__class__.webui.terminate()
+            self.__class__.websocket.terminate()
