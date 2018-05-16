@@ -10,5 +10,6 @@ sanic==0.7.0
 ujson==1.35
 urllib3==1.22
 uvloop==0.9.1
+vmnet==0.0.1
 websocket-server==0.4
 websockets==4.0.1
