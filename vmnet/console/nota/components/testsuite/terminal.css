@@ -1,5 +1,5 @@
 .terminal-wrapper {
-    width: 30%;
+    width: 32%;
     float: left;
     margin: 5px 0 0 5px;
     font-size: 0.75em;
@@ -13,7 +13,8 @@
 .terminal {
     height: 30vh;
     background-color: rgba(0, 15, 0, 0.9);
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     color: #AAA;
 }
 .terminal div {
