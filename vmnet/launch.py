@@ -220,7 +220,7 @@ def destroy_all():
     clean()
     os.system('docker rmi $(docker images -a -q) -f 2>/dev/null')
 
-def launch(local_path, compose_file=None, docker_dir=None, test_dir=None, docker_prune=False, docker_clean=False, docker_destroy=False, docker_destroy_all=False, docker_build_only=False):
+def launch(local_path=None, compose_file=None, docker_dir=None, test_dir=None, docker_prune=False, docker_clean=False, docker_destroy=False, docker_destroy_all=False, docker_build_only=False):
     if test_dir:
         compose_file = join(test_dir, 'compose_files', compose_file)
         docker_dir = join(test_dir, 'docker_dir')
@@ -258,7 +258,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     launch(
-        args.compose_file, args.docker_dir, args.local_path,
+        compose_file=args.compose_file, docker_dir=args.docker_dir, local_path=args.local_path,
         docker_prune=args.prune, docker_clean=args.clean,
         docker_destroy=args.destroy, docker_destroy_all=args.destroy_all,
         docker_build_only=args.build_only
