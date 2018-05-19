@@ -26,7 +26,7 @@ networks:
     ipam:
       config:
         - subnet: 172.28.0.0/16
-          ip-range: 172.28.5.0/24
+          iprange: 172.28.5.0/24
           gateway: 172.28.5.254
 
 services:
@@ -220,7 +220,10 @@ def destroy_all():
     clean()
     os.system('docker rmi $(docker images -a -q) -f 2>/dev/null')
 
-def launch(compose_file, docker_dir, local_path, docker_prune=False, docker_clean=False, docker_destroy=False, docker_destroy_all=False, docker_build_only=False):
+def launch(local_path, compose_file=None, docker_dir=None, test_dir=None, docker_prune=False, docker_clean=False, docker_destroy=False, docker_destroy_all=False, docker_build_only=False):
+    if test_dir:
+        compose_file = join(test_dir, 'compose_files', compose_file)
+        docker_dir = join(test_dir, 'docker_dir')
     if docker_prune:
         prune()
     elif docker_clean:
