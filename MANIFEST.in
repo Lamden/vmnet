@@ -1,1 +1,1 @@
-include vmnet/console/*
+recursive-include vmnet/console *

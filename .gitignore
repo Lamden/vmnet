@@ -10,3 +10,4 @@ docs/_build
 docs/mkdocs.yml
 *.DS_Store
 vmnet/data
+build
