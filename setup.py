@@ -12,6 +12,7 @@ setup(
     url='https://github.com/Lamden/vmnet',
     author='Lamden',
     email='team@lamden.io',
+    include_package_data=True,
     classifiers=[
         'Programming Language :: Python :: 3.6',
     ],
