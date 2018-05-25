@@ -1,4 +1,4 @@
-<img src="https://preview.ibb.co/gBHAko/vmnet.jpg" />
+<img src="https://preview.ibb.co/i3Q6Ao/vmnet.png" />
 
 # Setup
 
