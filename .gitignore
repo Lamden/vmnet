@@ -10,6 +10,6 @@ docs/_build
 docs/mkdocs.yml
 *.DS_Store
 vmnet/data
-build/*
-dist/*
+build
+dist
 *.egg-info
