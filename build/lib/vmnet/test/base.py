@@ -11,8 +11,8 @@ from os.path import dirname, abspath, join, splitext, expandvars
 from vmnet.test.util import *
 from websocket_server import WebsocketServer
 
-WEBUI_PORT = 8080
-WS_PORT = 8000
+WEBUI_PORT = 4320
+WS_PORT = 4321
 
 class BaseNetworkTestCase(unittest.TestCase):
     """
@@ -56,7 +56,7 @@ class BaseNetworkTestCase(unittest.TestCase):
     logdir = '../../logs'
     vmnet_path = dirname(vmnet.__file__) if hasattr(vmnet, '__file__') else vmnet.__path__._path[0]
     local_path = dirname(dirname(dirname(os.getcwd())))
-    def run_script(self, params):
+    def run_launch(self, params):
         """
             Runs launch.py to start-up or tear-down for network of nodes in the
             specifed Docker network.
@@ -119,6 +119,11 @@ class BaseNetworkTestCase(unittest.TestCase):
         )
         os.system(exc_str)
 
+    def get_group(self, group_name):
+        with open('docker-compose.yml', 'r') as f:
+            compose_config = yaml.load(f)
+            return [service for service in compose_config['services'] if service.startswith(group_name)]
+
     def setUp(self):
         """
             Brings the network up, sets the log file and wait for the server to
@@ -130,9 +135,9 @@ class BaseNetworkTestCase(unittest.TestCase):
             self.logdir = abspath('{}/{}'.format(self.logdir, self.testname))
             os.makedirs(self.logdir, exist_ok=True)
             shutil.rmtree(self.logdir)
-            self.run_script('--clean')
-            self.run_script('--build_only')
-            self.run_script('&')
+            self.run_launch('--clean')
+            self.run_launch('--build_only')
+            self.run_launch('&')
             self.__class__.webui = Process(target=self.run_webui)
             self.__class__.webui.start()
             print('Running test "{}" and waiting for {}s...'.format(self.testname, self.setuptime))
@@ -151,6 +156,6 @@ class BaseNetworkTestCase(unittest.TestCase):
     def tearDown(self):
         if not self._is_torndown:
             self.__class__._is_torndown = True
-            self.run_script('--clean')
+            self.run_launch('--clean')
             self.__class__.webui.terminate()
             self.__class__.websocket.terminate()

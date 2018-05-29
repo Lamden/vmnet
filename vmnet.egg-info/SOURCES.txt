@@ -8,7 +8,9 @@ vmnet.egg-info/SOURCES.txt
 vmnet.egg-info/dependency_links.txt
 vmnet.egg-info/requires.txt
 vmnet.egg-info/top_level.txt
+vmnet/console/.DS_Store
 vmnet/console/nota/.DS_Store
+vmnet/console/nota/favicon.ico
 vmnet/console/nota/index.css
 vmnet/console/nota/index.html
 vmnet/console/nota/index.js

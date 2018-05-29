@@ -11,3 +11,5 @@ docs/mkdocs.yml
 *.DS_Store
 vmnet/data
 build
+dist
+*.egg-info
