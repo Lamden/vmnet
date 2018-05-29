@@ -1,5 +1,6 @@
 var app = {};
 const debug = true;
+const WS_PORT = 4321;
 
 $(document).ready(function(){
     if (debug) $.ajaxSetup({ cache: false });

@@ -52,8 +52,8 @@ class TestVmnetExample(BaseNetworkTestCase):
     logdir = 'scripts/logs'
     def test_run_service(self):
         self.execute_python('vmnet_server', run_server, async=True)
-        for i in range(1, 6):
-            self.execute_python('vmnet_client_{}'.format(i), run_client, async=True)
+        for node_name in self.get_group('vmnet_client'):
+            self.execute_python(node_name, run_client, async=True)
         time.sleep(10)
 
 if __name__ == '__main__':

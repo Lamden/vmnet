@@ -19,7 +19,7 @@ const Console = (function(){
         `
     }
     Console.prototype.set_events = function () { var self = this;
-        this.ws = new WebSocket(`ws://localhost:8000`),
+        this.ws = new WebSocket(`ws://localhost:${WS_PORT}`),
         this.ws.onmessage = function (event) {
             var data = JSON.parse(event.data);
             var node = data.node_num ? `${data.node_type}_${data.node_num}` : data.node_type;
@@ -35,7 +35,7 @@ const Console = (function(){
             });
         };
         this.ws.onclose = function (event) {
-            $(`.terminal-wrapper`).trigger('add_lines', [`<br><span class="msg">The test is complete!</span><br>`]);
+            $(`.terminal-wrapper`).trigger('add_lines', [`<br><span class="msg">The test is complete!</span>`]);
         }
     }
     return Console;

@@ -239,7 +239,6 @@ def launch(local_path=None, compose_file=None, docker_dir=None, test_dir=None, d
         if not docker_build_only:
             run()
 
-
 if __name__ == '__main__':
     import argparse
 
