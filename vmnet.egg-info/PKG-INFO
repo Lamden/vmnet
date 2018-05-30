@@ -1,11 +1,12 @@
 Metadata-Version: 1.1
 Name: vmnet
-Version: 0.1.3
+Version: 0.1.4
 Summary: A test-suite for distributed networks
 Home-page: https://github.com/Lamden/vmnet
 Author: Lamden
 Author-email: UNKNOWN
 License: UNKNOWN
+Description-Content-Type: UNKNOWN
 Description: UNKNOWN
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3.6

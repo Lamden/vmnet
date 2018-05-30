@@ -119,10 +119,21 @@ class BaseNetworkTestCase(unittest.TestCase):
         )
         os.system(exc_str)
 
-    def get_group(self, group_name):
+    def set_node_map(self):
+        self.groups = {}
+        self.nodemap = {}
         with open('docker-compose.yml', 'r') as f:
             compose_config = yaml.load(f)
-            return [service for service in compose_config['services'] if service.startswith(group_name)]
+            for service in compose_config['services']:
+                s = service.split('_')
+                if s[-1].isdigit():
+                    servicename = '_'.join(s[:-1])
+                    if not self.groups.get(servicename):
+                        self.groups[servicename] = []
+                    self.groups[servicename].append(service)
+                    for envvar in compose_config['services'][service]['environment']:
+                        if envvar.startswith('HOST_IP'):
+                            self.nodemap[service] = envvar.split('=')[-1]
 
     def setUp(self):
         """
@@ -131,6 +142,7 @@ class BaseNetworkTestCase(unittest.TestCase):
         """
         if not self._is_setup:
             self.__class__._is_setup = True
+            self.set_node_map()
             os.environ['TEST_NAME'] = self.testname
             self.logdir = abspath('{}/{}'.format(self.logdir, self.testname))
             os.makedirs(self.logdir, exist_ok=True)
