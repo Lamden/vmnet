@@ -3,7 +3,8 @@ from vmnet.test.util import *
 import unittest, time
 
 def run_server():
-    from group_util import get_logger, load_ips
+    from test_logger import get_logger
+    from group_util import load_ips
     import os, time, uuid, random
     log = get_logger(os.getenv('HOSTNAME'))
     from group_server import GroupServer
@@ -23,7 +24,8 @@ def run_server():
         time.sleep(1)
 
 def run_client():
-    from group_util import get_logger, load_ips
+    from test_logger import get_logger
+    from group_util import load_ips
     import os, zmq
     log = get_logger(os.getenv('HOSTNAME'))
     from group_client import GroupClient
@@ -34,7 +36,13 @@ def run_client():
     gc = GroupClient(ips, server_ip=server_ip)
     gc.regroup()
     gc.connect(key)
-    log.debug('Started listening as {} ...'.format(key))
+    log.debug('Started listening as <{}> ...'.format(key))
+
+    log.debug("this is a debugging message")
+    log.info("this is an informational message")
+    log.warning("this is a warning message")
+    log.error("this is an error message")
+    log.critical("this is a critical message")
 
     while True:
         for sock in gc.socks:

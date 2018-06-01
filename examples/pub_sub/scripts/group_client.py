@@ -1,12 +1,13 @@
 from group_util import *
 from group_base import GroupBase
+from test_logger import get_logger
 import zmq
 import time
 import uuid
 import json
 import random
 import os
-log = get_logger()
+log = get_logger(__file__)
 
 class GroupClient(GroupBase):
     def connect(self, key):

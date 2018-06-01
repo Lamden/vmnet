@@ -1,11 +1,12 @@
 from group_util import *
 from group_base import GroupBase
+from test_logger import get_logger
 import zmq
 import time
 import uuid
 import json
 import os
-log = get_logger()
+log = get_logger(__file__)
 
 class GroupServer(GroupBase):
     def __init__(self, ips, server_ip, mode='rolling_group', *args, **kwargs):

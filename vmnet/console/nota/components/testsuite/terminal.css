@@ -23,6 +23,6 @@
 .terminal div:hover {
     background-color: rgba(255,255,255,0.1);
 }
-.level, .msg {
-    color: rgba(50, 180, 50, 1);
+.level {
+    color: rgba(100,100,100,1);
 }

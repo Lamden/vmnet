@@ -13,3 +13,4 @@ vmnet/data
 build
 dist
 *.egg-info
+*.log_color

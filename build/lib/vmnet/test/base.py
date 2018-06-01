@@ -142,7 +142,6 @@ class BaseNetworkTestCase(unittest.TestCase):
         """
         if not self._is_setup:
             self.__class__._is_setup = True
-            self.set_node_map()
             os.environ['TEST_NAME'] = self.testname
             self.logdir = abspath('{}/{}'.format(self.logdir, self.testname))
             os.makedirs(self.logdir, exist_ok=True)
@@ -154,6 +153,7 @@ class BaseNetworkTestCase(unittest.TestCase):
             self.__class__.webui.start()
             print('Running test "{}" and waiting for {}s...'.format(self.testname, self.setuptime))
             time.sleep(self.setuptime)
+            self.set_node_map()
             if not os.getenv('CONSOLE_RUNNING'):
                 os.environ['CONSOLE_RUNNING'] = self.logdir
                 try:

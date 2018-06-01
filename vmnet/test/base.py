@@ -9,6 +9,7 @@ import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json
 from multiprocessing import Process
 from os.path import dirname, abspath, join, splitext, expandvars
 from vmnet.test.util import *
+from coloredlogs.converter import convert
 from websocket_server import WebsocketServer
 
 WEBUI_PORT = 4320
@@ -93,18 +94,19 @@ class BaseNetworkTestCase(unittest.TestCase):
             while True:
                 for root, dirs, files in os.walk(os.getenv('CONSOLE_RUNNING')):
                     for f in files:
-                        if not opened_files.get(f):
-                            opened_files[f] = open(join(root, f))
-                        log_lines = opened_files[f].readline().strip()
-                        if log_lines != '':
-                            node = splitext(f)[0].split('_')
-                            node_num = node[-1] if node[-1].isdigit() else None
-                            node_type = node[:-1] if node[-1].isdigit() else node
-                            svr.send_message_to_all(json.dumps({
-                                'node_type': '_'.join(node_type),
-                                'node_num': node_num,
-                                'log_lines': log_lines
-                            }))
+                        if f.endswith('_color'):
+                            if not opened_files.get(f):
+                                opened_files[f] = open(join(root, f))
+                            log_lines = opened_files[f].readline().strip()
+                            if log_lines != '':
+                                node = splitext(f)[0].split('_')
+                                node_num = node[-1] if node[-1].isdigit() else None
+                                node_type = node[:-1] if node[-1].isdigit() else node
+                                svr.send_message_to_all(json.dumps({
+                                    'node_type': '_'.join(node_type),
+                                    'node_num': node_num,
+                                    'log_lines': convert(log_lines)
+                                }))
                 time.sleep(0.01)
         server.set_fn_new_client(new_client)
         server.run_forever()
@@ -142,7 +144,6 @@ class BaseNetworkTestCase(unittest.TestCase):
         """
         if not self._is_setup:
             self.__class__._is_setup = True
-            self.set_node_map()
             os.environ['TEST_NAME'] = self.testname
             self.logdir = abspath('{}/{}'.format(self.logdir, self.testname))
             os.makedirs(self.logdir, exist_ok=True)
@@ -154,6 +155,7 @@ class BaseNetworkTestCase(unittest.TestCase):
             self.__class__.webui.start()
             print('Running test "{}" and waiting for {}s...'.format(self.testname, self.setuptime))
             time.sleep(self.setuptime)
+            self.set_node_map()
             if not os.getenv('CONSOLE_RUNNING'):
                 os.environ['CONSOLE_RUNNING'] = self.logdir
                 try:
