@@ -2,8 +2,6 @@ import logging
 import os
 import coloredlogs
 
-# coloredlogs.install(level="DEBUG")
-
 def get_logger(name=''):
     filedir = "logs/{}".format(os.getenv('TEST_NAME', 'test'))
     filename = "{}/{}.log".format(filedir, os.getenv('HOSTNAME', name))
@@ -28,4 +26,6 @@ def get_logger(name=''):
         handlers=filehandlers,
         level=logging.DEBUG
     )
-    return logging.getLogger(name)
+    logger = logging.getLogger(name)
+    # coloredlogs.install(level="DEBUG", logger=logger)
+    return logger

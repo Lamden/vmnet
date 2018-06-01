@@ -2,7 +2,7 @@ import logging
 import os
 import coloredlogs
 
-# coloredlogs.install(level="DEBUG")
+coloredlogs.install(level="DEBUG")
 
 def get_logger(name=''):
     filedir = "logs/{}".format(os.getenv('TEST_NAME', 'test'))
