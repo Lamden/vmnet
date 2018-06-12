@@ -24,6 +24,11 @@ const Terminal = (function(){
             var terminal = $(this.ele).find('.terminal');
             this.auto_scroll_to_bottom = terminal.scrollTop() > terminal[0].scrollHeight-terminal.height()-50;
         }.bind(this));
+        $(this.ele).find('.tab-title').on('click', function(){
+            $(this).parent().toggleClass('full-screen');
+        });
     }
+
     return Terminal;
+
 })();
