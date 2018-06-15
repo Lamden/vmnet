@@ -13,6 +13,7 @@ const Terminal = (function(){
     }
     Terminal.prototype.set_events = function () {
         $(this.ele).on('add_lines', function(e, data){
+            console.log(data);
             var terminal = $(this.ele).find('.terminal');
             terminal.append(`<div>${data}</div>`);
             if (this.auto_scroll_to_bottom) {

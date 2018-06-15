@@ -15,7 +15,7 @@ def run_node():
 class TestVmnetExample(BaseNetworkTestCase):
     testname = 'node'
     compose_file = 'vmnet-node.yml'
-    setuptime = 10
+    setuptime = 3
     logdir = 'scripts/logs'
     def test_run_service(self):
         self.execute_python('vmnet_node', run_node)
