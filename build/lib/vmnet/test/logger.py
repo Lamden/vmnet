@@ -2,26 +2,53 @@ import logging
 import os
 import coloredlogs
 
+format = '%(asctime)s.%(msecs)03d %(name)s[%(process)d][%(processName)s] %(levelname)-2s %(message)s'
+
+coloredlogs.DEFAULT_LEVEL_STYLES = {
+    'critical':{ 'color':'white', 'bold':True, 'background': 'red' },
+    'debug':{ 'color':'green' },
+    'error':{ 'color':'red' },
+    'info':{ 'color':'white' },
+    'notice':{ 'color':'magenta' },
+    'spam':{ 'color':'green', 'faint':True },
+    'success':{ 'color':'green', 'bold':True },
+    'verbose':{ 'color':'blue' },
+    'warning':{ 'color':'yellow' }
+}
+coloredlogs.DEFAULT_FIELD_STYLES = {
+    'asctime': {'color': 'green'},
+    'hostname': {'color': 'magenta'},
+    'levelname': {'color': 'black', 'bright': True},
+    'name': {'color': 'blue'},
+    'programname': {'color': 'cyan'}
+}
+
+class LoggerWriter:
+    def __init__(self, level):
+        self.level = level
+    def write(self, message):
+        if message != '\n':
+            self.level(message)
+    def flush(self):
+        return
+
+class ColoredFileHandler(logging.FileHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setFormatter(
+            coloredlogs.ColoredFormatter(format)
+        )
+
+class ColoredStreamHandler(logging.StreamHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setFormatter(
+            coloredlogs.ColoredFormatter(format)
+        )
+
 def get_logger(name=''):
     filedir = "logs/{}".format(os.getenv('TEST_NAME', 'test'))
     filename = "{}/{}.log".format(filedir, os.getenv('HOSTNAME', name))
-    # format = "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"
-    format = '%(asctime)s.%(msecs)03d %(name)s[%(process)d][%(processName)s] %(levelname)-2s %(message)s'
-
-    class ColoredFileHandler(logging.FileHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.setFormatter(
-                coloredlogs.ColoredFormatter(format)
-            )
-
-    class ColoredStreamHandler(logging.StreamHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.setFormatter(
-                coloredlogs.ColoredFormatter(format)
-            )
-
     os.makedirs(filedir, exist_ok=True)
 
     filehandlers = [
@@ -34,5 +61,7 @@ def get_logger(name=''):
         handlers=filehandlers,
         level=logging.DEBUG
     )
-
-    return logging.getLogger(name)
+    log = logging.getLogger(name)
+    sys.stdout = LoggerWriter(log.debug)
+    sys.stderr = LoggerWriter(log.warning)
+    return log
