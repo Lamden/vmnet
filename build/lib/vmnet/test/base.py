@@ -57,6 +57,7 @@ class BaseNetworkTestCase(unittest.TestCase):
     logdir = '../../logs'
     vmnet_path = dirname(vmnet.__file__) if hasattr(vmnet, '__file__') else vmnet.__path__._path[0]
     local_path = dirname(dirname(dirname(os.getcwd())))
+    
     def run_launch(self, params):
         """
             Runs launch.py to start-up or tear-down for network of nodes in the
@@ -86,7 +87,7 @@ class BaseNetworkTestCase(unittest.TestCase):
         async def index(request):
             return await file('{}/index.html'.format(STATIC_ROOT))
 
-        app.run(host="0.0.0.0", port=WEBUI_PORT, debug=False)
+        app.run(host="0.0.0.0", port=WEBUI_PORT, debug=False, access_log=False)
 
     def run_websocket(self, server):
         def new_client(client, svr):

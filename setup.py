@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = '0.1.10'
+__version__ = '0.1.12'
 
 setup(
     name='vmnet',

@@ -1,6 +1,6 @@
 from group_util import *
 from group_base import GroupBase
-from test_logger import get_logger
+from vmnet.test.logger import get_logger
 import zmq
 import time
 import uuid

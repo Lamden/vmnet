@@ -14,7 +14,6 @@ const Terminal = (function(){
     Terminal.prototype.set_events = function () {
         $(this.ele).on('add_lines', function(e, data){
             var terminal = $(this.ele).find('.terminal');
-            data = data.replace(/(DEBUG|INFO|CRITI|ERROR|WARNI)/, '<span class="level">$1</span>');
             terminal.append(`<div>${data}</div>`);
             if (this.auto_scroll_to_bottom) {
                 terminal.scrollTop(terminal[0].scrollHeight);
