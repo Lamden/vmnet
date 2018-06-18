@@ -5,17 +5,52 @@ any normal Python unittests:
 $ python -m unittest discover -v
 ```
 """
-import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml
+import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml, signal
 from multiprocessing import Process
 from os.path import dirname, abspath, join, splitext, expandvars
 from vmnet.test.util import *
+from vmnet.test.logger import *
 from coloredlogs.converter import convert
 from websocket_server import WebsocketServer
+from sanic import Sanic
+from sanic.response import file
 
 WEBUI_PORT = 4320
 WS_PORT = 4321
+log = get_logger(__name__)
 
-class BaseNetworkTestCase(unittest.TestCase):
+def keyboard_kill_handler(func):
+    def func_wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyboardInterrupt:
+            log.critical('Received KeyboardInterrupt, your program may not be torn down gracefully')
+    return func_wrapper
+
+class BaseNetworkMeta(type):
+    TEST_PREFIX = 'test_'
+    def __new__(cls, clsname, bases, clsdict):
+        clsobj = super().__new__(cls, clsname, bases, clsdict)
+
+        for func_name in vars(clsobj):
+            if not callable(getattr(clsobj, func_name)):
+                continue
+
+            if func_name.startswith(cls.TEST_PREFIX):
+                func = getattr(clsobj, func_name)
+                setattr(clsobj, func_name, keyboard_kill_handler(func))
+
+        return clsobj
+
+    @staticmethod
+    def get_nodes():
+        with open('docker-compose.yml', 'r') as f:
+            compose_config = yaml.load(f)
+            return list(compose_config['services'].keys())
+
+
+
+class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     """
         The base testcase allows servers to run for a specified amount of
         wait-time and log the results into a log file. Test functions inside
@@ -57,7 +92,7 @@ class BaseNetworkTestCase(unittest.TestCase):
     logdir = '../../logs'
     vmnet_path = dirname(vmnet.__file__) if hasattr(vmnet, '__file__') else vmnet.__path__._path[0]
     local_path = dirname(dirname(dirname(os.getcwd())))
-    
+
     def run_launch(self, params):
         """
             Runs launch.py to start-up or tear-down for network of nodes in the
@@ -74,8 +109,6 @@ class BaseNetworkTestCase(unittest.TestCase):
         os.system(exc_str)
 
     def run_webui(self):
-        from sanic import Sanic
-        from sanic.response import file
 
         STATIC_ROOT = join(dirname(dirname(__file__)), 'console/nota')
 
@@ -98,7 +131,7 @@ class BaseNetworkTestCase(unittest.TestCase):
                         if f.endswith('_color'):
                             if not opened_files.get(f):
                                 opened_files[f] = open(join(root, f))
-                            log_lines = opened_files[f].readline().strip()
+                            log_lines = ''.join(opened_files[f].readlines())
                             if log_lines != '':
                                 node = splitext(f)[0].split('_')
                                 node_num = node[-1] if node[-1].isdigit() else None
@@ -154,7 +187,7 @@ class BaseNetworkTestCase(unittest.TestCase):
             self.run_launch('&')
             self.__class__.webui = Process(target=self.run_webui)
             self.__class__.webui.start()
-            print('Running test "{}" and waiting for {}s...'.format(self.testname, self.setuptime))
+            log.info('Running test "{}" and waiting for {}s...'.format(self.testname, self.setuptime))
             time.sleep(self.setuptime)
             self.set_node_map()
             if not os.getenv('CONSOLE_RUNNING'):
@@ -164,13 +197,18 @@ class BaseNetworkTestCase(unittest.TestCase):
                     self.__class__.websocket = Process(target=self.run_websocket, args=(self.server,))
                     self.__class__.websocket.start()
                 except:
-                    print('Test Console already running!')
+                    log.warning('Test Console already running!')
                 webbrowser.open('http://localhost:{}'.format(WEBUI_PORT), new=2, autoraise=True)
             sys.stdout.flush()
 
     def tearDown(self):
         if not self._is_torndown:
             self.__class__._is_torndown = True
+            for node in BaseNetworkMeta.get_nodes():
+                os.system('docker exec -d {} pkill -f python'.format(
+                    node
+                ))
             self.run_launch('--clean')
+            self.server.server_close()
             self.__class__.webui.terminate()
             self.__class__.websocket.terminate()

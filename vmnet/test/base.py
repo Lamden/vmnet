@@ -5,7 +5,7 @@ any normal Python unittests:
 $ python -m unittest discover -v
 ```
 """
-import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml
+import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml, signal
 from multiprocessing import Process
 from os.path import dirname, abspath, join, splitext, expandvars
 from vmnet.test.util import *
@@ -19,7 +19,38 @@ WEBUI_PORT = 4320
 WS_PORT = 4321
 log = get_logger(__name__)
 
-class BaseNetworkTestCase(unittest.TestCase):
+def keyboard_kill_handler(func):
+    def func_wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyboardInterrupt:
+            log.critical('Received KeyboardInterrupt, your program may not be torn down gracefully')
+    return func_wrapper
+
+class BaseNetworkMeta(type):
+    TEST_PREFIX = 'test_'
+    def __new__(cls, clsname, bases, clsdict):
+        clsobj = super().__new__(cls, clsname, bases, clsdict)
+
+        for func_name in vars(clsobj):
+            if not callable(getattr(clsobj, func_name)):
+                continue
+
+            if func_name.startswith(cls.TEST_PREFIX):
+                func = getattr(clsobj, func_name)
+                setattr(clsobj, func_name, keyboard_kill_handler(func))
+
+        return clsobj
+
+    @staticmethod
+    def get_nodes():
+        with open('docker-compose.yml', 'r') as f:
+            compose_config = yaml.load(f)
+            return list(compose_config['services'].keys())
+
+
+
+class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     """
         The base testcase allows servers to run for a specified amount of
         wait-time and log the results into a log file. Test functions inside
@@ -173,6 +204,10 @@ class BaseNetworkTestCase(unittest.TestCase):
     def tearDown(self):
         if not self._is_torndown:
             self.__class__._is_torndown = True
+            for node in BaseNetworkMeta.get_nodes():
+                os.system('docker exec -d {} pkill -f python'.format(
+                    node
+                ))
             self.run_launch('--clean')
             self.server.server_close()
             self.__class__.webui.terminate()

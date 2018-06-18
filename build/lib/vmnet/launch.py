@@ -67,8 +67,8 @@ import yaml
 import subprocess
 
 from os.path import dirname, abspath, splitext, basename, join
-# from vmnet.test.logger import get_logger
-# log = get_logger('vmnet')
+from vmnet.test.logger import get_logger
+log = get_logger('vmnet')
 
 def set_env(local_path, docker_dir):
     """
@@ -81,11 +81,11 @@ def build_image(service):
     """
         Builds the image specified in the service
     """
-    print('Building {}...'.format(service['image']))
+    log.info('Building {}...'.format(service['image']))
     os.system('docker build -t {} -f {} {}'.format(
         service['image'], service['build']['dockerfile'], service['build']['context']
     ))
-    print('Done.')
+    log.info('Done.')
 
 def build_if_not_exist(services):
     """
