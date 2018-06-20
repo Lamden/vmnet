@@ -35,7 +35,7 @@ const Console = (function(){
             });
         };
         this.ws.onclose = function (event) {
-            $(`.terminal-wrapper`).trigger('add_lines', [`<br><span class="msg">The test is complete!</span>`]);
+            $(`.terminal-wrapper`).trigger('add_lines', [[`<br><span class="msg">The test is complete!</span><div><br></div>`]]);
         }
     }
     return Console;

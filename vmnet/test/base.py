@@ -131,15 +131,17 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
                         if f.endswith('_color'):
                             if not opened_files.get(f):
                                 opened_files[f] = open(join(root, f))
-                            log_lines = ''.join(opened_files[f].readlines())
-                            if log_lines != '':
+                            log_lines = opened_files[f].readlines()
+                            for idx, line in enumerate(log_lines):
+                                log_lines[idx] = convert(line.strip())
+                            if len(log_lines) != 0:
                                 node = splitext(f)[0].split('_')
                                 node_num = node[-1] if node[-1].isdigit() else None
                                 node_type = node[:-1] if node[-1].isdigit() else node
                                 svr.send_message_to_all(json.dumps({
                                     'node_type': '_'.join(node_type),
                                     'node_num': node_num,
-                                    'log_lines': convert(log_lines)
+                                    'log_lines': log_lines
                                 }))
                 time.sleep(0.01)
         server.set_fn_new_client(new_client)
@@ -205,7 +207,8 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         if not self._is_torndown:
             self.__class__._is_torndown = True
             for node in BaseNetworkMeta.get_nodes():
-                os.system('docker exec -d {} pkill -f python'.format(
+                log.info("Killing node {}".format(node))
+                os.system('docker exec -d {} pkill -f python &'.format(
                     node
                 ))
             self.run_launch('--clean')

@@ -15,8 +15,11 @@ services:
       dockerfile: ${DOCKER_DIR}/vmnet_base.dev
     image: vmnet_base.dev
   vmnet_node:
-    ip: 172.28.5.0
+    ip: 172.28.5.x
     image: vmnet_base.dev
+    range:
+      - 1
+      - 5
     stdin_open: true
     tty: true
     volumes:
