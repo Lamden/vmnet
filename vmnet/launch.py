@@ -1,72 +1,9 @@
-"""
-Run your project on a docker bridge network:
-
-```bash
-$ python launch.py --project vmnet --compose_file your_config.yml --docker_dir dirname
-```
-# Arguments
-
-docker_dir: contains Dockerfiles used in your compose_file
-compose_file: a custom parsed compose file which will bring up a Docker network
-
-# Note
-
-```text
-docker-compose version must be "2.3"
-```
-
-# Example
-
-compose-file.yml
-```yaml
-version: "2.3"
-networks:
-  vmnet:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.28.0.0/16
-          iprange: 172.28.5.0/24
-          gateway: 172.28.5.254
-
-services:
-  base:
-    build:
-      context: ${LOCAL_PATH}/vmnet
-      dockerfile: ${DOCKER_DIR}/vmnet_base
-    image: vmnet_base
-  vmnet_server:
-    ip: 172.28.5.0
-    build:
-      context: ${LOCAL_PATH}/vmnet
-      dockerfile: ${DOCKER_DIR}/vmnet_server
-    image: vmnet_server
-    volumes:
-      - type: bind
-        source: ${LOCAL_PATH}/vmnet
-        target: /app/
-  vmnet_client:
-    range:
-      - 1
-      - 5
-    ip: 172.28.5.x
-    build:
-      context: ${LOCAL_PATH}/vmnet
-      dockerfile: ${DOCKER_DIR}/vmnet_client
-    image: vmnet_client
-    volumes:
-      - type: bind
-        source: ${LOCAL_PATH}/vmnet
-        target: /app/
-```
-"""
-
 import os
 import copy
 import yaml
 import subprocess
 
-from os.path import dirname, abspath, splitext, basename, join
+from os.path import dirname, abspath, splitext, basename, join, expandvars
 from vmnet.test.logger import get_logger
 log = get_logger('vmnet')
 
@@ -83,7 +20,8 @@ def build_image(service):
     """
     log.info('Building {}...'.format(service['image']))
     os.system('docker build -t {} -f {} {}'.format(
-        service['image'], service['build']['dockerfile'], service['build']['context']
+        service['image'], service['build']['dockerfile'],
+        service['build']['context']
     ))
     log.info('Done.')
 
@@ -109,11 +47,13 @@ def generate_configs(compose_file):
         Generates correct docker-compose.yml for the "docker-compose up" command
         from the custom compose yaml file
     """
+
     with open(compose_file, 'r') as f:
         compose_config = yaml.load(f)
     new_compose_config = copy.deepcopy(compose_config)
 
     nodes = {}
+
     build_if_not_exist(compose_config['services'])
 
     for service_name in compose_config['services']:
@@ -121,6 +61,8 @@ def generate_configs(compose_file):
             del new_compose_config['services'][service_name]
             continue
         service = compose_config['services'][service_name]
+        for volume in service.get('volumes', []):
+            volume['source'] = expandvars(volume['source'])
         network = service['network'] if service.get('network') else list(compose_config['networks'].keys())[0]
         if service.get('range'):
             nodes[service_name] = []
@@ -164,7 +106,7 @@ def generate_configs(compose_file):
             new_compose_config['services'][service_name]['environment'].append(
                 'TEST_NAME={}'.format(os.getenv('TEST_NAME'))
             )
-    with open('docker-compose.yml', 'w') as yaml_file:
+    with open('{}/docker-compose.yml'.format(dirname(__file__)), 'w') as yaml_file:
         yaml.dump(new_compose_config, yaml_file, default_flow_style=False)
 
 def generate_ip_config(network_name, ip):
@@ -185,7 +127,10 @@ def run():
     """
         Builds and runs the project
     """
+    cwd = os.getcwd()
+    os.chdir(dirname(__file__))
     os.system('docker-compose up')
+    os.chdir(cwd)
 
 def prune():
     """

@@ -7,7 +7,7 @@ $ python -m unittest discover -v
 """
 import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml, signal
 from multiprocessing import Process
-from os.path import dirname, abspath, join, splitext, expandvars
+from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
 from vmnet.test.util import *
 from vmnet.test.logger import *
 from coloredlogs.converter import convert
@@ -21,10 +21,8 @@ DEFAULT_SETUP_TIME = 20
 
 WEBUI_PORT = 4320
 WS_PORT = 4321
-BASE_LOG_DIR = '../../logs'
 
 log = get_logger(__name__)
-
 
 def keyboard_kill_handler(func):
     def func_wrapper(*args, **kwargs):
@@ -126,8 +124,6 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     setuptime = DEFAULT_SETUP_TIME
     testname = 'vmnet_test'
 
-    compose_file = 'cilantro_nodes.yml'
-
     @classmethod
     def _run_launch(cls, params):
         """
@@ -137,19 +133,24 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         assert cls.compose_file is not None, "compose_file file must be set by subclass"
         assert cls.testname is not None, "testname file must be set by subclass"
 
+        test_path = dirname(realpath(sys.argv[0]))
         vmnet_path = dirname(vmnet.__file__) if hasattr(vmnet, '__file__') else vmnet.__path__._path[0]
-        local_path = cls.local_path if hasattr(cls, 'local_path') else dirname(dirname(dirname(os.getcwd())))
-        compose_path = 'compose_files/{}'.format(cls.compose_file)
+        local_path = abspath(os.getenv('LOCAL_PATH', '.'))
+        compose_path = '{}/compose_files/{}'.format(test_path, cls.compose_file)
+        docker_dir_path = '{}/docker_dir'.format(test_path)
         launch_path = '{}/launch.py'.format(vmnet_path)
+        if not hasattr(cls, 'docker_dir'): cls.docker_dir = docker_dir_path
+        cls.launch_path = launch_path
 
         exc_str = 'python {} --compose_file {} --docker_dir {} --local_path {} {}'.format(
             launch_path,
-            cls.compose_file if not os.path.exists(compose_path) else compose_path,
-            cls.docker_dir if hasattr(cls, 'docker_dir') else 'docker_dir`',
-            local_path,
+            cls.compose_file if exists(cls.compose_file) else compose_path,
+            cls.docker_dir if exists(cls.docker_dir) else docker_dir_path,
+            cls.local_path if hasattr(cls, 'local_path') else local_path,
             params
         )
         os.system(exc_str)
+
 
     @classmethod
     def _run_webui(cls):
@@ -167,27 +168,25 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
     @classmethod
     def _run_websocket(cls, server):
-        log.critical("Console running: {}".format(os.getenv('CONSOLE_RUNNING')))
         def new_client(client, svr):
             opened_files = {}
             while True:
-                for root, dirs, files in os.walk(os.getenv('CONSOLE_RUNNING')):
+                for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
                     for f in files:
-                        if f.endswith('_color'):
+                        if f.endswith('_color') and os.getenv('TEST_NAME') in root:
                             if not opened_files.get(f):
                                 opened_files[f] = open(join(root, f))
-                            log_lines = ''.join(opened_files[f].readlines())
-                            if log_lines != '':
+                            log_lines = [convert(l) for l in opened_files[f].readlines()]
+                            if log_lines != []:
                                 node = splitext(f)[0].split('_')
                                 node_num = node[-1] if node[-1].isdigit() else None
                                 node_type = node[:-1] if node[-1].isdigit() else node
                                 svr.send_message_to_all(json.dumps({
                                     'node_type': '_'.join(node_type),
                                     'node_num': node_num,
-                                    'log_lines': convert(log_lines)
+                                    'log_lines': log_lines
                                 }))
                 time.sleep(0.01)
-
         server.set_fn_new_client(new_client)
         server.run_forever()
 
@@ -195,7 +194,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     def _set_node_map(cls):
         groups, nodemap, nodes = {}, {}, []
 
-        docker_compose_path = 'docker-compose.yml'
+        docker_compose_path = '{}/docker-compose.yml'.format(dirname(cls.launch_path))
 
         assert os.path.exists(docker_compose_path), "Expected to find docker-compose.yml file in current directory {}"\
                                                     .format(os.getcwd())
@@ -232,6 +231,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     def start_docker(cls):
         assert cls.compose_file, "compose_file class var must be set by subclass"
         assert cls.testname, "testname class var must be set by subclass"
+        assert os.getenv('LOCAL_PATH'), "You must set the env variable LOCAL_PATH which contains the project you are testing."
 
         if cls._docker_started:
             return
@@ -240,16 +240,18 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
         os.environ['TEST_NAME'] = cls.testname
 
-        logdir = cls.logdir if hasattr(cls, 'logdir') else abspath('{}/{}'.format(BASE_LOG_DIR, cls.testname))
-        os.makedirs(logdir, exist_ok=True)
-        shutil.rmtree(logdir)
+        for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
+            if os.getenv('TEST_NAME') in root:
+                shutil.rmtree(root)
 
         cls._run_launch('--clean')
         cls._run_launch('--build_only')
         cls._run_launch('&')
 
-        # Configure node map properties including the 'groups', 'nodemap', and 'nodes' attributes
         cls._set_node_map()
+
+        # Configure node map properties including the 'groups', 'nodemap', and 'nodes' attributes
+
 
         cls.webui = Process(target=cls._run_webui)
         cls.webui.start()
@@ -258,7 +260,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         time.sleep(cls.setuptime)
 
         if not os.getenv('CONSOLE_RUNNING'):
-            os.environ['CONSOLE_RUNNING'] = logdir
+            os.environ['CONSOLE_RUNNING'] = '.'
 
             try:
                 cls.server = WebsocketServer(WS_PORT, host='0.0.0.0')
@@ -273,10 +275,9 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
     @classmethod
     def reset_containers(cls):
-        log.critical("Resetting docker containers (sending 'pkill -f python')...")
-
+        log.debug("Resetting docker containers (sending 'pkill -f python')...")
         for node in cls.nodes:
-            log.critical("resetting node {}".format(node))
+            log.debug("resetting node {}".format(node))
             os.system('docker exec -d {} pkill -f python &'.format(
                 node
             ))
@@ -285,7 +286,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     def stop_docker(cls):
         assert cls._docker_started, "stop_docker called but cls._docker_started is not True!"
 
-        log.critical("Terminating docker containers")
+        log.debug("Terminating docker containers")
 
         cls._run_launch('--clean')
 
