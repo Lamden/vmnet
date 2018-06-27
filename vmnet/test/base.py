@@ -234,7 +234,6 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         assert cls.testname, "testname class var must be set by subclass"
 
         if cls._docker_started:
-            # log.debug("Docker already started")  # todo remove dat shieettt
             return
 
         cls._docker_started = True
@@ -289,8 +288,8 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         log.critical("Terminating docker containers")
 
         cls._run_launch('--clean')
-        cls.server.server_close()
 
+        cls.server.server_close()
         cls.webui.terminate()
         cls.websocket.terminate()
 
