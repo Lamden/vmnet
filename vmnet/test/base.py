@@ -46,14 +46,23 @@ def vmnet_test(func):
     Decorator to allow tests to use VMNET. Designed to be used in combination with Cilantro's MPTest framework.
     """
     @wraps(func)
-    def _test_func(self, *args, **kwargs):
+    def _test_func(*args, **kwargs):
+        self = args[0]
         assert isinstance(self, BaseNetworkTestCase), \
             "@vmnet_test can only be used to decorate BaseNetworkTestCase subclass methods (got self={}, but expected " \
             "a BaseNetworkTestCase subclass instance)".format(self)
 
-        self.__class__.start_docker()
+        klass = self.__class__
 
-        return func(self, *args, **kwargs)
+        log.info("Starting docker...")
+        klass.start_docker()
+        log.info("Stopping docker...")
+
+        klass.vmnet_test_active = True
+        res = func(*args, **kwargs)
+        klass.vmnet_test_active = False
+
+        return res
 
     return _test_func
 
@@ -72,32 +81,7 @@ class BaseNetworkMeta(type):
                 func = getattr(clsobj, func_name)
                 setattr(clsobj, func_name, keyboard_kill_handler(func))
 
-        # BaseNetworkMeta._set_node_map(clsobj)
-
         return clsobj
-
-    # @staticmethod
-    # def _set_node_map(clsobj):
-    #     groups, nodemap, nodes = {}, {}, []
-    #
-    #     with open('docker-compose.yml', 'r') as f:
-    #         compose_config = yaml.load(f)
-    #
-    #         nodes = list(compose_config['services'].keys())
-    #
-    #         for service in compose_config['services']:
-    #             s = service.split('_')
-    #             if s[-1].isdigit():
-    #                 servicename = '_'.join(s[:-1])
-    #                 if not groups.get(servicename):
-    #                     groups[servicename] = []
-    #                 groups[servicename].append(service)
-    #                 for envvar in compose_config['services'][service]['environment']:
-    #                     if envvar.startswith('HOST_IP'):
-    #                         nodemap[service] = envvar.split('=')[-1]
-    #
-    #     assert nodes, "Nodes list should not be empty!"
-    #     clsobj.groups, clsobj.nodemap, clsobj.nodes = groups, nodemap, nodes
 
 
 class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
@@ -137,11 +121,12 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 ```
     """
     _docker_started = False
+    vmnet_test_active = False
 
-    # Variable to be set by subclass
     setuptime = DEFAULT_SETUP_TIME
-    compose_file = 'cilantro_nodes.yml'
     testname = 'vmnet_test'
+
+    compose_file = 'cilantro_nodes.yml'
 
     @classmethod
     def _run_launch(cls, params):
@@ -153,13 +138,14 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         assert cls.testname is not None, "testname file must be set by subclass"
 
         vmnet_path = dirname(vmnet.__file__) if hasattr(vmnet, '__file__') else vmnet.__path__._path[0]
-        local_path = dirname(dirname(dirname(os.getcwd())))
-
+        local_path = cls.local_path if hasattr(cls, 'local_path') else dirname(dirname(dirname(os.getcwd())))
+        compose_path = 'compose_files/{}'.format(cls.compose_file)
         launch_path = '{}/launch.py'.format(vmnet_path)
+
         exc_str = 'python {} --compose_file {} --docker_dir {} --local_path {} {}'.format(
             launch_path,
-            'compose_files/{}'.format(cls.compose_file),
-            'docker_dir',
+            cls.compose_file if not os.path.exists(compose_path) else compose_path,
+            cls.docker_dir if hasattr(cls, 'docker_dir') else 'docker_dir`',
             local_path,
             params
         )
@@ -181,6 +167,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
     @classmethod
     def _run_websocket(cls, server):
+        log.critical("Console running: {}".format(os.getenv('CONSOLE_RUNNING')))
         def new_client(client, svr):
             opened_files = {}
             while True:
@@ -208,11 +195,14 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     def _set_node_map(cls):
         groups, nodemap, nodes = {}, {}, []
 
-        with open('docker-compose.yml', 'r') as f:
+        docker_compose_path = 'docker-compose.yml'
+
+        assert os.path.exists(docker_compose_path), "Expected to find docker-compose.yml file in current directory {}"\
+                                                    .format(os.getcwd())
+
+        with open(docker_compose_path, 'r') as f:
             compose_config = yaml.load(f)
-
             nodes = list(compose_config['services'].keys())
-
             for service in compose_config['services']:
                 s = service.split('_')
                 if s[-1].isdigit():
@@ -244,23 +234,23 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         assert cls.testname, "testname class var must be set by subclass"
 
         if cls._docker_started:
-            log.debug("Docker already started")  # todo remove dat shieettt
+            # log.debug("Docker already started")  # todo remove dat shieettt
             return
 
         cls._docker_started = True
 
-        # Configure node map properties including the 'groups', 'nodemap', and 'nodes' attributes
-        cls._set_node_map()
-
         os.environ['TEST_NAME'] = cls.testname
 
-        logdir = abspath('{}/{}'.format(BASE_LOG_DIR, cls.testname))
+        logdir = cls.logdir if hasattr(cls, 'logdir') else abspath('{}/{}'.format(BASE_LOG_DIR, cls.testname))
         os.makedirs(logdir, exist_ok=True)
         shutil.rmtree(logdir)
 
         cls._run_launch('--clean')
         cls._run_launch('--build_only')
         cls._run_launch('&')
+
+        # Configure node map properties including the 'groups', 'nodemap', and 'nodes' attributes
+        cls._set_node_map()
 
         cls.webui = Process(target=cls._run_webui)
         cls.webui.start()
