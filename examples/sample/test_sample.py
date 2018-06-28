@@ -14,12 +14,12 @@ def run_node():
 
     def sig_handler(signum, frame):
         signame = signal.Signals(signum).name
-        print('Received... {}'.format(signame))
+        log.debug('Received... {}'.format(signame))
         if signame == 'SIGTERM':
-            print('Program is now shutting down...')
+            log.info('Program is now shutting down...')
             loop.call_soon_threadsafe(loop.stop)
             loop.call_soon_threadsafe(loop.close)
-            print('Torn down successfully')
+            log.info('Torn down successfully')
             sys.exit(0)
 
     for i in [x for x in dir(signal) if x.startswith("SIG")]:
@@ -34,10 +34,11 @@ def run_node():
     loop.run_forever()
 
 class TestVmnetExample(BaseNetworkTestCase):
-    testname = 'node'
+    testname = 'log_test'
     compose_file = 'vmnet-node.yml'
     setuptime = 5
-    logdir = 'scripts/logs'
+
+    @vmnet_test
     def test_run_service(self):
         for node in self.groups.get('vmnet_node'):
             self.execute_python(node, run_node, async=True)
