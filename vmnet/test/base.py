@@ -53,7 +53,6 @@ def vmnet_test(*args, **kwargs):
 
             log.info("Starting docker...")
             klass.start_docker(run_webui=run_webui)
-            log.info("Stopping docker...")
 
             klass.vmnet_test_active = True
             res = func(*args, **kwargs)
@@ -252,7 +251,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         cls._set_node_map()
 
         if run_webui:
-            log.debug("Launching web UI")
+            log.info("Launching web UI")
 
             cls.webui = Process(target=cls._run_webui)
             cls.webui.start()
@@ -277,7 +276,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         cls._docker_started = False
 
         if cls._webui_started:
-            log.debug("Stopping web UI")
+            log.info("Stopping web UI")
             cls.server.server_close()
             cls.webui.terminate()
             cls.websocket.terminate()
@@ -287,7 +286,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
     @classmethod
     def _reset_containers(cls):
-        log.debug("Resetting docker containers (sending 'pkill -f python')")
+        log.info("Resetting docker containers (sending 'pkill -f python')")
         for node in cls.nodes:
             log.debug("resetting node {}".format(node))
             os.system('docker exec -d {} pkill -f python &'.format(
