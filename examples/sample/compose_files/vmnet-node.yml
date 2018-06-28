@@ -11,7 +11,7 @@ networks:
 services:
   vmnet_base:
     build:
-      context: ./scripts
+      context: ${LOCAL_PATH}/vmnet/examples/sample/scripts
       dockerfile: ${DOCKER_DIR}/vmnet_base.dev
     image: vmnet_base.dev
   vmnet_node:
@@ -24,5 +24,5 @@ services:
     tty: true
     volumes:
       - type: bind
-        source: ./scripts
+        source: ${LOCAL_PATH}/vmnet/examples/sample/scripts
         target: /app/

@@ -7,16 +7,21 @@ $ python -m unittest discover -v
 """
 import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml, signal
 from multiprocessing import Process
-from os.path import dirname, abspath, join, splitext, expandvars
+from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
 from vmnet.test.util import *
 from vmnet.test.logger import *
 from coloredlogs.converter import convert
 from websocket_server import WebsocketServer
 from sanic import Sanic
 from sanic.response import file
+from functools import wraps
+
+
+DEFAULT_SETUP_TIME = 20
 
 WEBUI_PORT = 4320
 WS_PORT = 4321
+
 log = get_logger(__name__)
 
 def keyboard_kill_handler(func):
@@ -24,11 +29,45 @@ def keyboard_kill_handler(func):
         try:
             return func(*args, **kwargs)
         except KeyboardInterrupt:
-            log.critical('Received KeyboardInterrupt, your program may not be torn down gracefully')
+            pass
+            # log.critical('Sending kill sigs to test...')
+            # for node in BaseNetworkMeta.get_nodes():
+            #     log.critical("killing node {}".format(node))
+            #     os.system('docker exec {} pkill -f python'.format(
+            #         node
+            #     ))
     return func_wrapper
+
+
+def vmnet_test(func):
+    """
+    Decorator to allow tests to use VMNET. Designed to be used in combination with Cilantro's MPTest framework.
+    """
+    @wraps(func)
+    def _test_func(*args, **kwargs):
+        self = args[0]
+        assert isinstance(self, BaseNetworkTestCase), \
+            "@vmnet_test can only be used to decorate BaseNetworkTestCase subclass methods (got self={}, but expected " \
+            "a BaseNetworkTestCase subclass instance)".format(self)
+
+        klass = self.__class__
+
+        log.info("Starting docker...")
+        klass.start_docker()
+        log.info("Stopping docker...")
+
+        klass.vmnet_test_active = True
+        res = func(*args, **kwargs)
+        klass.vmnet_test_active = False
+
+        return res
+
+    return _test_func
+
 
 class BaseNetworkMeta(type):
     TEST_PREFIX = 'test_'
+
     def __new__(cls, clsname, bases, clsdict):
         clsobj = super().__new__(cls, clsname, bases, clsdict)
 
@@ -41,13 +80,6 @@ class BaseNetworkMeta(type):
                 setattr(clsobj, func_name, keyboard_kill_handler(func))
 
         return clsobj
-
-    @staticmethod
-    def get_nodes():
-        with open('docker-compose.yml', 'r') as f:
-            compose_config = yaml.load(f)
-            return list(compose_config['services'].keys())
-
 
 
 class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
@@ -86,30 +118,42 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
                 self.assertEqual(len(receivers), 3 * len(senders))
 ```
     """
-    setuptime = 20
-    _is_setup = False
-    _is_torndown = False
-    logdir = '../../logs'
-    vmnet_path = dirname(vmnet.__file__) if hasattr(vmnet, '__file__') else vmnet.__path__._path[0]
-    local_path = dirname(dirname(dirname(os.getcwd())))
+    _docker_started = False
+    vmnet_test_active = False
 
-    def run_launch(self, params):
+    setuptime = DEFAULT_SETUP_TIME
+    testname = 'vmnet_test'
+
+    @classmethod
+    def _run_launch(cls, params):
         """
-            Runs launch.py to start-up or tear-down for network of nodes in the
-            specifed Docker network.
+        Runs launch.py to start-up or tear-down for network of nodes in the
+        specifed Docker network.
         """
-        launch_path = '{}/launch.py'.format(self.vmnet_path)
+        assert cls.compose_file is not None, "compose_file file must be set by subclass"
+        assert cls.testname is not None, "testname file must be set by subclass"
+
+        test_path = dirname(realpath(sys.argv[0]))
+        vmnet_path = dirname(vmnet.__file__) if hasattr(vmnet, '__file__') else vmnet.__path__._path[0]
+        local_path = abspath(os.getenv('LOCAL_PATH', '.'))
+        compose_path = '{}/compose_files/{}'.format(test_path, cls.compose_file)
+        docker_dir_path = '{}/docker_dir'.format(test_path)
+        launch_path = '{}/launch.py'.format(vmnet_path)
+        if not hasattr(cls, 'docker_dir'): cls.docker_dir = docker_dir_path
+        cls.launch_path = launch_path
+
         exc_str = 'python {} --compose_file {} --docker_dir {} --local_path {} {}'.format(
             launch_path,
-            'compose_files/{}'.format(self.compose_file),
-            'docker_dir',
-            self.local_path,
+            cls.compose_file if exists(cls.compose_file) else compose_path,
+            cls.docker_dir if exists(cls.docker_dir) else docker_dir_path,
+            cls.local_path if hasattr(cls, 'local_path') else local_path,
             params
         )
         os.system(exc_str)
 
-    def run_webui(self):
 
+    @classmethod
+    def _run_webui(cls):
         STATIC_ROOT = join(dirname(dirname(__file__)), 'console/nota')
 
         app = Sanic(__name__)
@@ -122,19 +166,18 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
         app.run(host="0.0.0.0", port=WEBUI_PORT, debug=False, access_log=False)
 
-    def run_websocket(self, server):
+    @classmethod
+    def _run_websocket(cls, server):
         def new_client(client, svr):
             opened_files = {}
             while True:
-                for root, dirs, files in os.walk(os.getenv('CONSOLE_RUNNING')):
+                for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
                     for f in files:
-                        if f.endswith('_color'):
+                        if f.endswith('_color') and os.getenv('TEST_NAME') in root:
                             if not opened_files.get(f):
                                 opened_files[f] = open(join(root, f))
-                            log_lines = opened_files[f].readlines()
-                            for idx, line in enumerate(log_lines):
-                                log_lines[idx] = convert(line.strip())
-                            if len(log_lines) != 0:
+                            log_lines = [convert(l) for l in opened_files[f].readlines()]
+                            if log_lines != []:
                                 node = splitext(f)[0].split('_')
                                 node_num = node[-1] if node[-1].isdigit() else None
                                 node_type = node[:-1] if node[-1].isdigit() else node
@@ -147,7 +190,34 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         server.set_fn_new_client(new_client)
         server.run_forever()
 
-    def execute_python(self, node, fn, async=False, python_version='3.6'):
+    @classmethod
+    def _set_node_map(cls):
+        groups, nodemap, nodes = {}, {}, []
+
+        docker_compose_path = '{}/docker-compose.yml'.format(dirname(cls.launch_path))
+
+        assert os.path.exists(docker_compose_path), "Expected to find docker-compose.yml file in current directory {}"\
+                                                    .format(os.getcwd())
+
+        with open(docker_compose_path, 'r') as f:
+            compose_config = yaml.load(f)
+            nodes = list(compose_config['services'].keys())
+            for service in compose_config['services']:
+                s = service.split('_')
+                if s[-1].isdigit():
+                    servicename = '_'.join(s[:-1])
+                    if not groups.get(servicename):
+                        groups[servicename] = []
+                    groups[servicename].append(service)
+                    for envvar in compose_config['services'][service]['environment']:
+                        if envvar.startswith('HOST_IP'):
+                            nodemap[service] = envvar.split('=')[-1]
+
+        assert nodes, "Nodes list should not be empty!"
+        cls.groups, cls.nodemap, cls.nodes = groups, nodemap, nodes
+
+    @classmethod
+    def execute_python(cls, node, fn, async=False, python_version='3.6'):
         fn_str = dill.dumps(fn, 0)
         exc_str = 'docker exec {} /usr/bin/python{} -c \"import dill; fn = dill.loads({}); fn();\" {}'.format(
             node,
@@ -157,61 +227,79 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         )
         os.system(exc_str)
 
-    def set_node_map(self):
-        self.groups = {}
-        self.nodemap = {}
-        with open('docker-compose.yml', 'r') as f:
-            compose_config = yaml.load(f)
-            for service in compose_config['services']:
-                s = service.split('_')
-                if s[-1].isdigit():
-                    servicename = '_'.join(s[:-1])
-                    if not self.groups.get(servicename):
-                        self.groups[servicename] = []
-                    self.groups[servicename].append(service)
-                    for envvar in compose_config['services'][service]['environment']:
-                        if envvar.startswith('HOST_IP'):
-                            self.nodemap[service] = envvar.split('=')[-1]
+    @classmethod
+    def start_docker(cls):
+        assert cls.compose_file, "compose_file class var must be set by subclass"
+        assert cls.testname, "testname class var must be set by subclass"
+        assert os.getenv('LOCAL_PATH'), "You must set the env variable LOCAL_PATH which contains the project you are testing."
 
-    def setUp(self):
-        """
-            Brings the network up, sets the log file and wait for the server to
-            complete its tasks before letting actual unittests to run.
-        """
-        if not self._is_setup:
-            self.__class__._is_setup = True
-            os.environ['TEST_NAME'] = self.testname
-            self.logdir = abspath('{}/{}'.format(self.logdir, self.testname))
-            os.makedirs(self.logdir, exist_ok=True)
-            shutil.rmtree(self.logdir)
-            self.run_launch('--clean')
-            self.run_launch('--build_only')
-            self.run_launch('&')
-            self.__class__.webui = Process(target=self.run_webui)
-            self.__class__.webui.start()
-            log.info('Running test "{}" and waiting for {}s...'.format(self.testname, self.setuptime))
-            time.sleep(self.setuptime)
-            self.set_node_map()
-            if not os.getenv('CONSOLE_RUNNING'):
-                os.environ['CONSOLE_RUNNING'] = self.logdir
-                try:
-                    self.server = WebsocketServer(WS_PORT, host='0.0.0.0')
-                    self.__class__.websocket = Process(target=self.run_websocket, args=(self.server,))
-                    self.__class__.websocket.start()
-                except:
-                    log.warning('Test Console already running!')
-                webbrowser.open('http://localhost:{}'.format(WEBUI_PORT), new=2, autoraise=True)
-            sys.stdout.flush()
+        if cls._docker_started:
+            return
 
-    def tearDown(self):
-        if not self._is_torndown:
-            self.__class__._is_torndown = True
-            for node in BaseNetworkMeta.get_nodes():
-                log.info("Killing node {}".format(node))
-                os.system('docker exec -d {} pkill -f python &'.format(
-                    node
-                ))
-            self.run_launch('--clean')
-            self.server.server_close()
-            self.__class__.webui.terminate()
-            self.__class__.websocket.terminate()
+        cls._docker_started = True
+
+        os.environ['TEST_NAME'] = cls.testname
+
+        for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
+            if os.getenv('TEST_NAME') in root:
+                shutil.rmtree(root)
+
+        cls._run_launch('--clean')
+        cls._run_launch('--build_only')
+        cls._run_launch('&')
+
+        cls._set_node_map()
+
+        # Configure node map properties including the 'groups', 'nodemap', and 'nodes' attributes
+
+
+        cls.webui = Process(target=cls._run_webui)
+        cls.webui.start()
+
+        log.info('Running test "{}" and waiting for {}s...'.format(cls.testname, cls.setuptime))
+        time.sleep(cls.setuptime)
+
+        if not os.getenv('CONSOLE_RUNNING'):
+            os.environ['CONSOLE_RUNNING'] = '.'
+
+            try:
+                cls.server = WebsocketServer(WS_PORT, host='0.0.0.0')
+                cls.websocket = Process(target=cls._run_websocket, args=(cls.server,))
+                cls.websocket.start()
+            except:
+                log.warning('Test Console already running!')
+
+            webbrowser.open('http://localhost:{}'.format(WEBUI_PORT), new=2, autoraise=True)
+
+        sys.stdout.flush()
+
+    @classmethod
+    def reset_containers(cls):
+        log.debug("Resetting docker containers (sending 'pkill -f python')...")
+        for node in cls.nodes:
+            log.debug("resetting node {}".format(node))
+            os.system('docker exec -d {} pkill -f python &'.format(
+                node
+            ))
+
+    @classmethod
+    def stop_docker(cls):
+        assert cls._docker_started, "stop_docker called but cls._docker_started is not True!"
+
+        log.debug("Terminating docker containers")
+
+        cls._run_launch('--clean')
+
+        cls.server.server_close()
+        cls.webui.terminate()
+        cls.websocket.terminate()
+
+        cls._docker_started = False
+
+    @classmethod
+    def tearDownClass(cls):
+        if not cls._docker_started:
+            return
+
+        cls.reset_containers()
+        cls.stop_docker()
