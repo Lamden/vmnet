@@ -4,10 +4,10 @@ import unittest, time
 
 def run_server():
     from vmnet.test.logger import get_logger
-    from group_util import load_ips
+    from .scripts.group_util import load_ips
     import os, time, uuid, random
     log = get_logger(os.getenv('HOSTNAME'))
-    from group_server import GroupServer
+    from .scripts.group_server import GroupServer
 
     ips = load_ips(os.getenv('VMNET_CLIENT').split(','))
     server_ip = os.getenv('VMNET_SERVER')
@@ -25,10 +25,10 @@ def run_server():
 
 def run_client():
     from vmnet.test.logger import get_logger
-    from group_util import load_ips
+    from .scripts.group_util import load_ips
     import os, zmq
     log = get_logger(os.getenv('HOSTNAME'))
-    from group_client import GroupClient
+    from .scripts.group_client import GroupClient
 
     ips = load_ips(os.getenv('VMNET_CLIENT').split(','))
     key = os.getenv('HOST_IP')
