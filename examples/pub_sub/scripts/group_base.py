@@ -1,4 +1,4 @@
-from .group_util import *
+from group_util import *
 import zmq
 
 class GroupBase:

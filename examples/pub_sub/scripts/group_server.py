@@ -1,5 +1,5 @@
-from .group_util import *
-from .group_base import GroupBase
+from group_util import *
+from group_base import GroupBase
 from vmnet.test.logger import get_logger
 import zmq
 import time
