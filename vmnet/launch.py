@@ -54,7 +54,10 @@ def generate_configs(compose_file):
 
     nodes = {}
 
-    build_if_not_exist(compose_config['services'])
+    try:
+        build_if_not_exist(compose_config['services'])
+    except:
+        log.info('No need to build')
 
     for service_name in compose_config['services']:
         if 'base' in service_name:

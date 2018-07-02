@@ -31,12 +31,6 @@ def keyboard_kill_handler(func):
             return func(*args, **kwargs)
         except KeyboardInterrupt:
             pass
-            # log.critical('Sending kill sigs to test...')
-            # for node in BaseNetworkMeta.get_nodes():
-            #     log.critical("killing node {}".format(node))
-            #     os.system('docker exec {} pkill -f python'.format(
-            #         node
-            #     ))
     return func_wrapper
 
 
