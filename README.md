@@ -77,8 +77,8 @@ $ docker exec -ti your_node_name /bin/bash
 # Example
 Confused? Run an example set up just for you!
 ```bash
-$ cd vmnet/docker
-$ python launch.py --compose_file tests/vmnet/compose_files/vmnet-svr-cli.yml --docker_dir tests/vmnet/docker_dir
+$ cd examples/sample
+$ python3 test_sample.py
 ```
 
 # Testing
