@@ -211,10 +211,11 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         cls.groups, cls.nodemap, cls.nodes = groups, nodemap, nodes
 
     @classmethod
-    def execute_python(cls, node, fn, async=False):
+    def execute_python(cls, node, fn, async=False, python_version=3.6):
         fn_str = dill.dumps(fn, 0)
-        exc_str = 'docker exec {} /usr/bin/python -c \"import dill; fn = dill.loads({}); fn();\" {}'.format(
+        exc_str = 'docker exec {} /usr/bin/python{} -c \"import dill; fn = dill.loads({}); fn();\" {}'.format(
             node,
+            python_version,
             fn_str,
             '&' if async else ''
         )

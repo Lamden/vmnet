@@ -1,6 +1,17 @@
 MANIFEST.in
 README.md
 setup.py
+examples/pub_sub/__init__.py
+examples/pub_sub/test_pubsub.py
+examples/pub_sub/scripts/__init__.py
+examples/pub_sub/scripts/group_base.py
+examples/pub_sub/scripts/group_client.py
+examples/pub_sub/scripts/group_server.py
+examples/pub_sub/scripts/group_util.py
+examples/sample/__init__.py
+examples/sample/test_sample.py
+scratch/__init__.py
+scratch/clog.py
 vmnet/__init__.py
 vmnet/launch.py
 vmnet.egg-info/PKG-INFO

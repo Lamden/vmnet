@@ -54,7 +54,10 @@ def generate_configs(compose_file):
 
     nodes = {}
 
-    build_if_not_exist(compose_config['services'])
+    try:
+        build_if_not_exist(compose_config['services'])
+    except:
+        log.info('No need to build')
 
     for service_name in compose_config['services']:
         if 'base' in service_name:
@@ -191,13 +194,12 @@ if __name__ == '__main__':
 
     parser.add_argument('--compose_file', help='.yml file which specifies the image, contexts and build of your services', required=True)
     parser.add_argument('--docker_dir', help='the directory containing the docker files which your compose_file uses', required=True)
+    parser.add_argument('--local_path', help='path containing vmnet and your project', required=True)
     parser.add_argument('--prune', action='store_true', help='removes any hanging images or containers')
     parser.add_argument('--clean', action='store_true', help='remove all containers')
     parser.add_argument('--destroy', action='store_true', help='remove all images and containers listed in the config')
     parser.add_argument('--destroy_all', action='store_true', help='remove all images and containers')
     parser.add_argument('--build_only', action='store_true', help='builds the image and does not run the container')
-
-    parser.add_argument('--local_path', help='path containing vmnet and your project', default=dirname(dirname(dirname(abspath(__file__)))))
 
     args = parser.parse_args()
 

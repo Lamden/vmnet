@@ -18,6 +18,7 @@ from functools import wraps
 
 
 DEFAULT_SETUP_TIME = 20
+DEFAULT_TESTNAME = 'vmnet_test'
 
 WEBUI_PORT = 4320
 WS_PORT = 4321
@@ -30,39 +31,38 @@ def keyboard_kill_handler(func):
             return func(*args, **kwargs)
         except KeyboardInterrupt:
             pass
-            # log.critical('Sending kill sigs to test...')
-            # for node in BaseNetworkMeta.get_nodes():
-            #     log.critical("killing node {}".format(node))
-            #     os.system('docker exec {} pkill -f python'.format(
-            #         node
-            #     ))
     return func_wrapper
 
 
-def vmnet_test(func):
-    """
-    Decorator to allow tests to use VMNET. Designed to be used in combination with Cilantro's MPTest framework.
-    """
-    @wraps(func)
-    def _test_func(*args, **kwargs):
-        self = args[0]
-        assert isinstance(self, BaseNetworkTestCase), \
-            "@vmnet_test can only be used to decorate BaseNetworkTestCase subclass methods (got self={}, but expected " \
-            "a BaseNetworkTestCase subclass instance)".format(self)
+def vmnet_test(*args, **kwargs):
+    def _vmnet_test(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            self = args[0]
+            assert isinstance(self, BaseNetworkTestCase), \
+                "@vmnet_test can only be used to decorate BaseNetworkTestCase subclass methods (got self={}, but expected " \
+                "a BaseNetworkTestCase subclass instance)".format(self)
 
-        klass = self.__class__
+            klass = self.__class__
 
-        log.info("Starting docker...")
-        klass.start_docker()
-        log.info("Stopping docker...")
+            log.info("Starting docker...")
+            klass.start_docker(run_webui=run_webui)
+            log.info("Stopping docker...")
 
-        klass.vmnet_test_active = True
-        res = func(*args, **kwargs)
-        klass.vmnet_test_active = False
+            klass.vmnet_test_active = True
+            res = func(*args, **kwargs)
+            klass.vmnet_test_active = False
 
-        return res
+            return res
 
-    return _test_func
+        return wrapper
+
+    if len(args) == 1 and callable(args[0]):
+        run_webui = False
+        return _vmnet_test(args[0])
+    else:
+        run_webui = kwargs.get('run_webui', False)
+        return _vmnet_test
 
 
 class BaseNetworkMeta(type):
@@ -87,30 +87,24 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         The base testcase allows servers to run for a specified amount of
         wait-time and log the results into a log file. Test functions inside
         this test case should then parse the log file to verify the results.
-
         # Attributes
-
         setuptime (int): The amount of time to allow the network to complete its tasks
         testname (string): Name of the test
         project (string): Name of the project you want to test
         compose_file (string): File path to the compose file
         docker_dir (string): Directory containing all dockerfiles used by your project
-
         # Example
 ```python
         from vmnet.tests.base import BaseTestCase
         from vmnet.tests.util import get_path
-
         class TestVmnetExample(BaseTestCase):
             testname = 'example'
             compose_file = vmnet-svr-cli.yml'
-
             def test_has_listeners(self):
                 listeners = parse_listeners(self.content)
                 for i in range(0,6):
                     self.assertEqual(listeners.get('1000{}'.format(i)), 3)
                     if i > 0: self.assertTrue(listeners.get('172.28.5.{}'.format(i)))
-
             def test_each_can_receive_messages(self):
                 senders, receivers = parse_sender_receiver(self.content)
                 for receiver in receivers:
@@ -119,10 +113,11 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 ```
     """
     _docker_started = False
+    _webui_started = False
     vmnet_test_active = False
 
     setuptime = DEFAULT_SETUP_TIME
-    testname = 'vmnet_test'
+    testname = DEFAULT_TESTNAME
 
     @classmethod
     def _run_launch(cls, params):
@@ -150,7 +145,6 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
             params
         )
         os.system(exc_str)
-
 
     @classmethod
     def _run_webui(cls):
@@ -217,7 +211,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         cls.groups, cls.nodemap, cls.nodes = groups, nodemap, nodes
 
     @classmethod
-    def execute_python(cls, node, fn, async=False, python_version='3.6'):
+    def execute_python(cls, node, fn, async=False, python_version=3.6):
         fn_str = dill.dumps(fn, 0)
         exc_str = 'docker exec {} /usr/bin/python{} -c \"import dill; fn = dill.loads({}); fn();\" {}'.format(
             node,
@@ -228,7 +222,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         os.system(exc_str)
 
     @classmethod
-    def start_docker(cls):
+    def start_docker(cls, run_webui=True):
         assert cls.compose_file, "compose_file class var must be set by subclass"
         assert cls.testname, "testname class var must be set by subclass"
         assert os.getenv('LOCAL_PATH'), "You must set the env variable LOCAL_PATH which contains the project you are testing."
@@ -248,34 +242,46 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         cls._run_launch('--build_only')
         cls._run_launch('&')
 
+        # Configure node map properties including the 'groups', 'nodemap', and 'nodes' attributes
         cls._set_node_map()
 
-        # Configure node map properties including the 'groups', 'nodemap', and 'nodes' attributes
+        if run_webui:
+            log.debug("Launching web UI")
 
+            cls.webui = Process(target=cls._run_webui)
+            cls.webui.start()
+            cls._webui_started = True
 
-        cls.webui = Process(target=cls._run_webui)
-        cls.webui.start()
+            cls.server = WebsocketServer(WS_PORT, host='0.0.0.0')
+            cls.websocket = Process(target=cls._run_websocket, args=(cls.server,))
+            cls.websocket.start()
+
+            webbrowser.open('http://localhost:{}'.format(WEBUI_PORT), new=2, autoraise=True)
+            sys.stdout.flush()
 
         log.info('Running test "{}" and waiting for {}s...'.format(cls.testname, cls.setuptime))
         time.sleep(cls.setuptime)
 
-        if not os.getenv('CONSOLE_RUNNING'):
-            os.environ['CONSOLE_RUNNING'] = '.'
+    @classmethod
+    def stop_docker(cls):
+        assert cls._docker_started, "stop_docker called but cls._docker_started is not True!"
 
-            try:
-                cls.server = WebsocketServer(WS_PORT, host='0.0.0.0')
-                cls.websocket = Process(target=cls._run_websocket, args=(cls.server,))
-                cls.websocket.start()
-            except:
-                log.warning('Test Console already running!')
+        log.debug("Cleaning docker containers")
+        cls._run_launch('--clean')
+        cls._docker_started = False
 
-            webbrowser.open('http://localhost:{}'.format(WEBUI_PORT), new=2, autoraise=True)
+        if cls._webui_started:
+            log.debug("Stopping web UI")
+            cls.server.server_close()
+            cls.webui.terminate()
+            cls.websocket.terminate()
+            cls._webui_started = False
 
-        sys.stdout.flush()
+        cls._reset_containers()
 
     @classmethod
-    def reset_containers(cls):
-        log.debug("Resetting docker containers (sending 'pkill -f python')...")
+    def _reset_containers(cls):
+        log.debug("Resetting docker containers (sending 'pkill -f python')")
         for node in cls.nodes:
             log.debug("resetting node {}".format(node))
             os.system('docker exec -d {} pkill -f python &'.format(
@@ -283,23 +289,11 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
             ))
 
     @classmethod
-    def stop_docker(cls):
-        assert cls._docker_started, "stop_docker called but cls._docker_started is not True!"
-
-        log.debug("Terminating docker containers")
-
-        cls._run_launch('--clean')
-
-        cls.server.server_close()
-        cls.webui.terminate()
-        cls.websocket.terminate()
-
-        cls._docker_started = False
+    def setUpClass(cls):
+        if cls.testname == DEFAULT_TESTNAME:
+            cls.testname = cls.__name__
 
     @classmethod
     def tearDownClass(cls):
-        if not cls._docker_started:
-            return
-
-        cls.reset_containers()
-        cls.stop_docker()
+        if cls._docker_started:
+            cls.stop_docker()
