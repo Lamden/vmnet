@@ -86,11 +86,11 @@ Need to test your network of services? You can run your unittests using the `Bas
 
 1. Write a unittest
 ```python
-from vmnet.tests.base import *
-from vmnet.tests.util import *
+from vmnet.test.base import *
+from vmnet.test.util import *
 import unittest
 
-class TestVmnetExample(BaseTestCase):
+class TestVmnetExample(BaseNetworkTestCase):
     setuptime = 15
     testname = 'vmnet_example'
     def test_your_tasks(self):
