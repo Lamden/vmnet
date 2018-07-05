@@ -267,6 +267,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         assert cls._docker_started, "stop_docker called but cls._docker_started is not True!"
 
         log.debug("Cleaning docker containers")
+        cls._reset_containers()
         cls._run_launch('--clean')
         cls._docker_started = False
 
@@ -277,7 +278,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
             cls.websocket.terminate()
             cls._webui_started = False
 
-        cls._reset_containers()
+
 
     @classmethod
     def _reset_containers(cls):
