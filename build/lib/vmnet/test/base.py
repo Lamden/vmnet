@@ -5,7 +5,7 @@ any normal Python unittests:
 $ python -m unittest discover -v
 ```
 """
-import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml, signal
+import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml, signal, warnings
 from multiprocessing import Process
 from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
 from vmnet.test.util import *
@@ -29,9 +29,15 @@ def keyboard_kill_handler(func):
         try:
             return func(*args, **kwargs)
         except KeyboardInterrupt:
-            pass
+            log.info('Process is stopped by a keyboard interrupt.')
     return func_wrapper
 
+def ignore_warnings(test_func):
+    def do_test(self, *args, **kwargs):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", ResourceWarning)
+            test_func(self, *args, **kwargs)
+    return do_test
 
 def vmnet_test(*args, **kwargs):
     def _vmnet_test(func):
@@ -76,6 +82,7 @@ class BaseNetworkMeta(type):
             if func_name.startswith(cls.TEST_PREFIX):
                 func = getattr(clsobj, func_name)
                 setattr(clsobj, func_name, keyboard_kill_handler(func))
+                setattr(clsobj, func_name, ignore_warnings(func))
 
         return clsobj
 
@@ -184,7 +191,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
     @classmethod
     def _set_node_map(cls):
-        groups, nodemap, nodes = {}, {}, []
+        groups, nodemap, nodes, ports = {}, {}, [], {}
 
         docker_compose_path = '{}/docker-compose.yml'.format(dirname(cls.launch_path))
 
@@ -204,9 +211,14 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
                     for envvar in compose_config['services'][service]['environment']:
                         if envvar.startswith('HOST_IP'):
                             nodemap[service] = envvar.split('=')[-1]
+                service_ports = compose_config['services'][service]['ports']
+                for s in service_ports:
+                    cmd = """docker inspect --format='{{(index (index .NetworkSettings.Ports """ + '"{}/tcp"'.format(s) + """) 0).HostPort}}' """ + service
+                    if not ports.get(service): ports[service] = {}
+                    ports[service][s] = 'localhost:{}'.format(os.popen(cmd).read().strip())
 
         assert nodes, "Nodes list should not be empty!"
-        cls.groups, cls.nodemap, cls.nodes = groups, nodemap, nodes
+        cls.groups, cls.nodemap, cls.nodes, cls.ports = groups, nodemap, nodes, ports
 
     @classmethod
     def execute_python(cls, node, fn, async=False, python_version=3.6):
@@ -240,9 +252,6 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         cls._run_launch('--build_only')
         cls._run_launch('&')
 
-        # Configure node map properties including the 'groups', 'nodemap', and 'nodes' attributes
-        cls._set_node_map()
-
         if run_webui:
             log.debug("Launching web UI")
 
@@ -259,6 +268,8 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
         log.info('Running test "{}" and waiting for {}s...'.format(cls.testname, cls.setuptime))
         time.sleep(cls.setuptime)
+        # Configure node map properties including the 'groups', 'nodemap', and 'nodes' attributes
+        cls._set_node_map()
 
     @classmethod
     def stop_docker(cls):
@@ -275,7 +286,6 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
             cls.webui.terminate()
             cls.websocket.terminate()
             cls._webui_started = False
-
 
 
     @classmethod
