@@ -4,6 +4,11 @@ import time
 import uuid
 import pickle
 
+def add_args(fn, *args, **kwargs):
+    def wrapper():
+        return fn(*args, **kwargs)
+    return wrapper
+
 def get_path(path):
     """
         Uses the `PYTHONPATH` as the base path and returns the path relative to that

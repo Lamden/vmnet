@@ -16,7 +16,6 @@ from sanic import Sanic
 from sanic.response import file
 from functools import wraps
 
-
 DEFAULT_SETUP_TIME = 20
 DEFAULT_TESTNAME = 'vmnet_test'
 
@@ -47,7 +46,6 @@ def vmnet_test(*args, **kwargs):
 
             log.info("Starting docker...")
             klass.start_docker(run_webui=run_webui)
-            log.info("Stopping docker...")
 
             klass.vmnet_test_active = True
             res = func(*args, **kwargs)
