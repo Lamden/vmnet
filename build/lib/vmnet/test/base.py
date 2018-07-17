@@ -49,6 +49,11 @@ def vmnet_test(*args, **kwargs):
                 "a BaseNetworkTestCase subclass instance)".format(self)
 
             klass = self.__class__
+            parent_klass = self.__class__.__bases__[0]  # In Cilantro, this should be MPTestCase
+
+            # Horrible hack to get MPTestCase to work
+            if parent_klass is not BaseNetworkTestCase:
+                klass = parent_klass
 
             log.info("Starting docker...")
             klass.start_docker(run_webui=run_webui)
@@ -211,11 +216,12 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
                     for envvar in compose_config['services'][service]['environment']:
                         if envvar.startswith('HOST_IP'):
                             nodemap[service] = envvar.split('=')[-1]
-                service_ports = compose_config['services'][service]['ports']
-                for s in service_ports:
-                    cmd = """docker inspect --format='{{(index (index .NetworkSettings.Ports """ + '"{}/tcp"'.format(s) + """) 0).HostPort}}' """ + service
-                    if not ports.get(service): ports[service] = {}
-                    ports[service][s] = 'localhost:{}'.format(os.popen(cmd).read().strip())
+                if compose_config['services'][service].get('ports'):
+                    service_ports = compose_config['services'][service]['ports']
+                    for s in service_ports:
+                        cmd = """docker inspect --format='{{(index (index .NetworkSettings.Ports """ + '"{}/tcp"'.format(s) + """) 0).HostPort}}' """ + service
+                        if not ports.get(service): ports[service] = {}
+                        ports[service][s] = 'localhost:{}'.format(os.popen(cmd).read().strip())
 
         assert nodes, "Nodes list should not be empty!"
         cls.groups, cls.nodemap, cls.nodes, cls.ports = groups, nodemap, nodes, ports
