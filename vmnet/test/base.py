@@ -229,7 +229,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     @classmethod
     def execute_python(cls, node, fn, async=False, python_version=3.6):
         fn_str = dill.dumps(fn, 0)
-        fname = 'tmp_{}.py'.format(uuid.uuid4().hex)
+        fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
         with open(fname, 'w+') as f:
             f.write('''import dill; fn = dill.loads({}); fn();'''.format(fn_str))
         os.system('docker cp {fname} {node}:/app/{fname}'.format(fname=fname, node=node))
@@ -297,24 +297,21 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
             cls.websocket.terminate()
             cls._webui_started = False
 
-
     @classmethod
     def _reset_containers(cls):
         log.debug("Resetting docker containers (sending 'pkill -f python')")
         for node in cls.nodes:
             log.debug("resetting node {}".format(node))
-            os.system('docker exec -d {} pkill -f python &'.format(
-                node
-            ))
+            os.system('docker exec -d {} pkill -f python &'.format(node))
 
     @classmethod
     def setUpClass(cls):
         if cls.testname == DEFAULT_TESTNAME:
             cls.testname = cls.__name__
-            os.system('rm -r tmp_*')
+            os.system('find {} -type f -name \'tmp_exec_code_*.py\' -delete'.format(os.getenv('LOCAL_PATH')))
 
     @classmethod
     def tearDownClass(cls):
         if cls._docker_started:
             cls.stop_docker()
-            os.system('rm -r tmp_*')
+            os.system('find {} -type f -name \'tmp_exec_code_*.py\' -delete'.format(os.getenv('LOCAL_PATH')))
