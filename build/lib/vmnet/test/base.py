@@ -5,7 +5,7 @@ any normal Python unittests:
 $ python -m unittest discover -v
 ```
 """
-import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml, signal, warnings
+import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml, signal, warnings, uuid
 from multiprocessing import Process
 from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
 from vmnet.test.util import *
@@ -229,10 +229,14 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     @classmethod
     def execute_python(cls, node, fn, async=False, python_version=3.6):
         fn_str = dill.dumps(fn, 0)
-        exc_str = 'docker exec {} /usr/bin/python{} -c \"import dill; fn = dill.loads({}); fn();\" {}'.format(
+        fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
+        with open(fname, 'w+') as f:
+            f.write('''import dill; fn = dill.loads({}); fn();'''.format(fn_str))
+        os.system('docker cp {fname} {node}:/app/{fname}'.format(fname=fname, node=node))
+        exc_str = 'docker exec {} /usr/bin/python{} {} {}'.format(
             node,
             python_version,
-            fn_str,
+            fname,
             '&' if async else ''
         )
         os.system(exc_str)
@@ -293,22 +297,21 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
             cls.websocket.terminate()
             cls._webui_started = False
 
-
     @classmethod
     def _reset_containers(cls):
         log.debug("Resetting docker containers (sending 'pkill -f python')")
         for node in cls.nodes:
             log.debug("resetting node {}".format(node))
-            os.system('docker exec -d {} pkill -f python &'.format(
-                node
-            ))
+            os.system('docker exec -d {} pkill -f python &'.format(node))
 
     @classmethod
     def setUpClass(cls):
         if cls.testname == DEFAULT_TESTNAME:
             cls.testname = cls.__name__
+            os.system('find {} -type f -name \'tmp_exec_code_*.py\' -delete'.format(os.getenv('LOCAL_PATH')))
 
     @classmethod
     def tearDownClass(cls):
         if cls._docker_started:
             cls.stop_docker()
+            os.system('find {} -type f -name \'tmp_exec_code_*.py\' -delete'.format(os.getenv('LOCAL_PATH')))
