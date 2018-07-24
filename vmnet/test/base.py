@@ -145,6 +145,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         docker_dir_path = '{}/docker_dir'.format(test_path)
         launch_path = '{}/launch.py'.format(vmnet_path)
         if not hasattr(cls, 'docker_dir'): cls.docker_dir = docker_dir_path
+        cls.test_path = test_path
         cls.launch_path = launch_path
 
         exc_str = 'python {} --compose_file {} --docker_dir {} --local_path {} {}'.format(
@@ -227,18 +228,29 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         cls.groups, cls.nodemap, cls.nodes, cls.ports = groups, nodemap, nodes, ports
 
     @classmethod
-    def execute_python(cls, node, fn, async=False, python_version=3.6):
+    def execute_python(cls, node, fn, async=False, python_version=3.6, profiling=False):
         fn_str = dill.dumps(fn, 0)
         fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
         with open(fname, 'w+') as f:
             f.write('''import dill; fn = dill.loads({}); fn();'''.format(fn_str))
         os.system('docker cp {fname} {node}:/app/{fname}'.format(fname=fname, node=node))
-        exc_str = 'docker exec {} /usr/bin/python{} {} {}'.format(
-            node,
-            python_version,
-            fname,
-            '&' if async else ''
-        )
+        if profiling:
+            exc_str = 'docker exec {node} /usr/bin/python{py_ver} -m cProfile -o {node}_profile {fname} {async}'.format(
+                node=node,
+                py_ver=python_version,
+                test_path=cls.test_path,
+                fname=fname,
+                async='&' if async else ''
+            )
+        else:
+            exc_str = 'docker exec {} /usr/bin/python{} {} {}'.format(
+                node,
+                python_version,
+                fname,
+                '&' if async else ''
+            )
+        # python3 -m cProfile -o profile
+        # python3 -c "import pstats; pstats.Stats('profile').strip_dirs().sort_stats('cumtime').print_stats(50)"
         os.system(exc_str)
 
     @classmethod

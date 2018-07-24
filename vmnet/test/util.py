@@ -3,6 +3,10 @@ import os
 import time
 import uuid
 import pickle
+import pstats
+
+def profile(filepath):
+    pstats.Stats(filepath).strip_dirs().sort_stats('cumtime').print_stats(50)
 
 def add_args(fn, *args, **kwargs):
     def wrapper():
