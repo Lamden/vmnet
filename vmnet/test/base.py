@@ -5,7 +5,7 @@ any normal Python unittests:
 $ python -m unittest discover -v
 ```
 """
-import vmnet, unittest, sys, os, dill, shutil, webbrowser, threading, time, json, yaml, signal, warnings, uuid
+import vmnet, unittest, sys, os, re, shutil, webbrowser, threading, time, json, yaml, signal, warnings, uuid, inspect
 from multiprocessing import Process
 from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
 from vmnet.test.util import *
@@ -19,6 +19,7 @@ from functools import wraps
 DEFAULT_SETUP_TIME = 20
 DEFAULT_TESTNAME = 'vmnet_test'
 
+VPROF_PORT = 4322
 WEBUI_PORT = 4320
 WS_PORT = 4321
 
@@ -73,6 +74,22 @@ def vmnet_test(*args, **kwargs):
         run_webui = kwargs.get('run_webui', False)
         return _vmnet_test
 
+def profile(*args, **kwargs):
+    def decorator(self, fn=None):
+        from vprof import runner, stats_server
+        import unittest
+        testname = unittest.TestCase.id(self)
+        node = os.getenv('HOSTNAME','')
+        fnname = fn.__name__
+        log.debug('Running VProf on {},{},{}'.format(testname, node, fnname))
+        run_stats = runner.run_profilers((fn, args, kwargs), 'cmhp')
+        profname = '{}.json'.format(join(os.getcwd(),'profiles',testname, node, fnname))
+        if not os.path.exists(dirname(profname)):
+            os.makedirs(dirname(profname))
+        with open(profname, 'w+') as f:
+            f.write(json.dumps(run_stats))
+        return run_stats
+    return decorator
 
 class BaseNetworkMeta(type):
     TEST_PREFIX = 'test_'
@@ -226,22 +243,44 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
         assert nodes, "Nodes list should not be empty!"
         cls.groups, cls.nodemap, cls.nodes, cls.ports = groups, nodemap, nodes, ports
+        cls.profiles = []
+        for node in nodes:
+            os.system('docker exec {} mkdir -p /app/{}'.format(node, join('profiles', cls.testname, node)))
 
     @classmethod
     def execute_python(cls, node, fn, async=False, python_version=3.6, profiling=False):
-        fn_str = dill.dumps(fn, 0)
+        fn_str = inspect.getsource(fn)
         fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
+        profname = join('profiles', cls.testname, node, fn.__name__)
         with open(fname, 'w+') as f:
-            f.write('''import dill; fn = dill.loads({}); fn();'''.format(fn_str))
+            new_fn_str = ''
+            pattern = re.compile('^    ')
+            lines = fn_str.split('\n')
+            for line in lines[1:]:
+                new_fn_str += pattern.sub('', line) + '\n'
+            if profiling:
+                final_fn_str = """
+import cProfile
+pr = cProfile.Profile()
+pr.enable()
+{}
+pr.create_stats()
+pr.dump_stats('{}.stats')
+                """.format(new_fn_str, profname)
+            else:
+                final_fn_str = new_fn_str
+            f.write(final_fn_str)
+
         os.system('docker cp {fname} {node}:/app/{fname}'.format(fname=fname, node=node))
+
         if profiling:
-            exc_str = 'docker exec {node} /usr/bin/python{py_ver} -m cProfile -o {node}_profile {fname} {async}'.format(
-                node=node,
-                py_ver=python_version,
-                test_path=cls.test_path,
-                fname=fname,
-                async='&' if async else ''
+            exc_str = 'docker exec {} /usr/local/bin/vprof -o /app/{}.json -c cpmh {} {}'.format(
+                node,
+                profname,
+                fname,
+                '&' if async else ''
             )
+            cls.profiles.append('{}'.format(profname))
         else:
             exc_str = 'docker exec {} /usr/bin/python{} {} {}'.format(
                 node,
@@ -249,8 +288,6 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
                 fname,
                 '&' if async else ''
             )
-        # python3 -m cProfile -o profile
-        # python3 -c "import pstats; pstats.Stats('profile').strip_dirs().sort_stats('cumtime').print_stats(50)"
         os.system(exc_str)
 
     @classmethod
@@ -318,12 +355,19 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
     @classmethod
     def setUpClass(cls):
-        if cls.testname == DEFAULT_TESTNAME:
-            cls.testname = cls.__name__
-            os.system('find {} -type f -name \'tmp_exec_code_*.py\' -delete'.format(os.getenv('LOCAL_PATH')))
+        os.system('find {} -type f -name \'tmp_exec_code_*.py\' -delete'.format(os.getenv('LOCAL_PATH')))
 
     @classmethod
     def tearDownClass(cls):
         if cls._docker_started:
             cls.stop_docker()
+            if len(cls.profiles) > 0:
+                for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
+                    for name in files:
+                        fpath = join(root, name)
+                        for i, p in enumerate(cls.profiles):
+                            if fpath.endswith(p+'.json'):
+                                file = splitext(fpath)[0]
+                                os.system('vprof -i {}.json -p {} &'.format(file, VPROF_PORT+i))
+                                os.system('gprof2dot -f pstats {file}.stats | dot -Tpng -o {file}.png'.format(file=file))
             os.system('find {} -type f -name \'tmp_exec_code_*.py\' -delete'.format(os.getenv('LOCAL_PATH')))
