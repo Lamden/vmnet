@@ -5,7 +5,7 @@ any normal Python unittests:
 $ python -m unittest discover -v
 ```
 """
-import vmnet, unittest, sys, os, re, shutil, webbrowser, threading, time, json, yaml, signal, warnings, uuid, inspect
+import vmnet, unittest, sys, os, re, shutil, webbrowser, threading, time, json, yaml, signal, warnings, uuid, inspect, dill
 from multiprocessing import Process
 from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
 from vmnet.test.util import *
@@ -249,17 +249,24 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
     @classmethod
     def execute_python(cls, node, fn, async=False, python_version=3.6, profiling=False):
-        fn_str = inspect.getsource(fn)
+        # fn_str = inspect.getsource(fn)
+        dill_str = dill.dumps(fn)
         fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
         profname = join('profiles', cls.testname, node, fn.__name__)
         with open(fname, 'w+') as f:
-            new_fn_str = ''
-            pattern = re.compile('^    ')
-            lines = fn_str.split('\n')
-            for line in lines[1:]:
-                new_fn_str += pattern.sub('', line) + '\n'
+        #     new_fn_str = ''
+        #     pattern = re.compile('^    ')
+        #     lines = fn_str.split('\n')
+        #     for line in lines[1:]:
+        #         new_fn_str += pattern.sub('', line) + '\n'
+
+            new_fn_str = """
+import dill
+fn = dill.loads({})
+fn()
+            """.format(dill_str)
             if profiling:
-                final_fn_str = """
+                new_fn_str = """
 import cProfile
 pr = cProfile.Profile()
 pr.enable()
@@ -267,9 +274,8 @@ pr.enable()
 pr.create_stats()
 pr.dump_stats('{}.stats')
                 """.format(new_fn_str, profname)
-            else:
-                final_fn_str = new_fn_str
-            f.write(final_fn_str)
+
+            f.write(new_fn_str)
 
         os.system('docker cp {fname} {node}:/app/{fname}'.format(fname=fname, node=node))
 
