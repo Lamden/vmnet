@@ -252,15 +252,19 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         if not callable(fn): return ''
         cv = inspect.getclosurevars(fn)
         non_locals = dict(cv.nonlocals)
+        globals = dict(cv.globals)
         full_fn_str = cls._clear_indents(inspect.getsource(fn))
         fn_str = indent * '    ' + full_fn_str[0] + '\n'
+        for m in globals:
+            fn_str += (indent+1) * '    ' + '{} = dill.loads({})'.format(m, dill.dumps(globals[m])) + '\n'
         for m in non_locals:
             if not callable(non_locals[m]):
                 fn_str += (indent+1) * '    ' + '{} = dill.loads({})'.format(m, dill.dumps(non_locals[m])) + '\n'
         for m in non_locals:
             if callable(non_locals[m]):
                 added_fn_str = cls.get_fn_str(non_locals[m], indent+1) + '\n'
-                added_fn_str = re.sub(r"def {}\(".format(non_locals[m].__name__), 'def {}('.format(m), added_fn_str)
+                added_fn_str = re.sub(r"def ([\w]+)\(", 'def {}('.format(m), added_fn_str)
+                # added_fn_str = re.sub(r"def {}\(".format(non_locals[m].__name__), 'def {}('.format(m), added_fn_str)
                 fn_str += added_fn_str
         for l in full_fn_str[1:]:
             fn_str += indent * '    ' + l + '\n'
