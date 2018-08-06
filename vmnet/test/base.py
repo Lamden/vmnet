@@ -284,16 +284,16 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
     @classmethod
     def execute_python(cls, node, fn, async=False, python_version=3.6, profiling=False):
-        fn_str = cls.get_fn_str(fn, indent=0)
+        fn_str = dill.dumps(fn)#cls.get_fn_str(fn, indent=0)
         fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
         profname = join('profiles', cls.testname, node, fn.__name__)
         with open(fname, 'w+') as f:
             new_fn_str = """
 import dill
 dill.detect.trace(True)
-{}
-{}()
-            """.format(fn_str, fn.__name__)
+fn = dill.loads({})
+fn()
+            """.format(fn_str)
             if profiling:
                 new_fn_str = """
 import cProfile
@@ -392,7 +392,7 @@ pr.dump_stats('{}.stats')
         log.debug("Resetting docker containers (sending 'pkill -f python')")
         for node in cls.nodes:
             log.debug("resetting node {}".format(node))
-            os.system('docker exec -d {} pkill -f python &'.format(node))
+            os.system('docker exec -d {} pkill -f python'.format(node))
 
     @classmethod
     def setUpClass(cls):
