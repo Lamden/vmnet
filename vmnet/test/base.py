@@ -390,9 +390,10 @@ pr.dump_stats('{}.stats')
     @classmethod
     def _reset_containers(cls):
         log.debug("Resetting docker containers (sending 'pkill -f python')")
-        for node in cls.nodes:
-            log.debug("resetting node {}".format(node))
-            os.system('docker exec -d {} pkill -f python'.format(node))
+        if hasattr(cls, 'nodes'):
+            for node in cls.nodes:
+                log.debug("resetting node {}".format(node))
+                os.system('docker exec -d {} pkill -f python'.format(node))
 
     @classmethod
     def setUpClass(cls):
