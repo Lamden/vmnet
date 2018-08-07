@@ -255,8 +255,8 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         globals = dict(cv.globals)
         full_fn_str = cls._clear_indents(inspect.getsource(fn))
         fn_str = indent * '    ' + full_fn_str[0] + '\n'
-        for m in globals:
-            fn_str += (indent+1) * '    ' + '{} = dill.loads({})'.format(m, dill.dumps(globals[m])) + '\n'
+        # for m in globals:
+        #     fn_str += (indent+1) * '    ' + '{} = dill.loads({})'.format(m, dill.dumps(globals[m])) + '\n'
         for m in non_locals:
             if not callable(non_locals[m]):
                 fn_str += (indent+1) * '    ' + '{} = dill.loads({})'.format(m, dill.dumps(non_locals[m])) + '\n'
@@ -264,7 +264,6 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
             if callable(non_locals[m]):
                 added_fn_str = cls.get_fn_str(non_locals[m], indent+1) + '\n'
                 added_fn_str = re.sub(r"def ([\w]+)\(", 'def {}('.format(m), added_fn_str)
-                # added_fn_str = re.sub(r"def {}\(".format(non_locals[m].__name__), 'def {}('.format(m), added_fn_str)
                 fn_str += added_fn_str
         for l in full_fn_str[1:]:
             fn_str += indent * '    ' + l + '\n'
@@ -285,50 +284,52 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     @classmethod
     def execute_python(cls, node, fn, async=False, python_version=3.6, profiling=False):
         fn_str = cls.get_fn_str(fn, indent=0)
+        dill_str = dill.dumps(fn)
         fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
         profname = join('profiles', cls.testname, node, fn.__name__)
         with open(fname, 'w+') as f:
-            new_fn_str = """
-import dill
-dill.detect.trace(True)
-{}
-{}()
-            """.format(fn_str, fn.__name__)
             if profiling:
                 new_fn_str = """
-import cProfile
+from vprof import runner, stats_server
+import cProfile, dill, json, pkg_resources
+dill.detect.trace(True)
 pr = cProfile.Profile()
 pr.enable()
 ################################################################################
 #   Code Block BEGINS
 ################################################################################
-{}
+{fn_str}
 ################################################################################
 #   Code Block ENDS
 ################################################################################
+run_stats = runner.run_profilers(({fnname}, {args}, {kwargs}), 'cmph')
+with open('{profname}.json', 'w+') as f:
+    run_stats['version'] = pkg_resources.get_distribution("vprof").version
+    f.write(json.dumps(run_stats))
 pr.create_stats()
-pr.dump_stats('{}.stats')
-                """.format(new_fn_str, profname)
+pr.dump_stats('{profname}.stats')
+                """.format(fn_str=fn_str, fnname=fn.__name__, args=[], kwargs={}, profname=profname)
+            else:
+                new_fn_str = """
+{fn_str}
+{fnname}()
+                """.format(fn_str=fn_str, fnname=fn.__name__)
+#                 new_fn_str = """
+# import dill
+# dill.detect.trace(True)
+# fn = dill.loads({dill_str})
+# fn()
+#                 """.format(dill_str=dill_str, fnname=fn.__name__)
 
             f.write(new_fn_str)
 
         os.system('docker cp {fname} {node}:/app/{fname}'.format(fname=fname, node=node))
-
-        if profiling:
-            exc_str = 'docker exec {} /usr/local/bin/vprof -o /app/{}.json -c cpmh {} {}'.format(
-                node,
-                profname,
-                fname,
-                '&' if async else ''
-            )
-            cls.profiles.append('{}'.format(profname))
-        else:
-            exc_str = 'docker exec {} /usr/bin/python{} {} {}'.format(
-                node,
-                python_version,
-                fname,
-                '&' if async else ''
-            )
+        exc_str = 'docker exec {} /usr/bin/python{} {} {}'.format(
+            node,
+            python_version,
+            fname,
+            '&' if async else ''
+        )
         os.system(exc_str)
 
     @classmethod
@@ -394,6 +395,15 @@ pr.dump_stats('{}.stats')
             for node in cls.nodes:
                 log.debug("resetting node {}".format(node))
                 os.system('docker exec -d {} pkill -f python'.format(node))
+        if len(cls.profiles) > 0:
+            for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
+                for name in files:
+                    fpath = join(root, name)
+                    for i, p in enumerate(cls.profiles):
+                        if fpath.endswith(p+'.json'):
+                            file = splitext(fpath)[0]
+                            os.system('vprof -i {}.json -p {} &'.format(file, VPROF_PORT+i))
+                            os.system('gprof2dot -f pstats {file}.stats | dot -Tpng -o {file}.png'.format(file=file))
 
     @classmethod
     def setUpClass(cls):
@@ -403,13 +413,4 @@ pr.dump_stats('{}.stats')
     def tearDownClass(cls):
         if cls._docker_started:
             cls.stop_docker()
-            if len(cls.profiles) > 0:
-                for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
-                    for name in files:
-                        fpath = join(root, name)
-                        for i, p in enumerate(cls.profiles):
-                            if fpath.endswith(p+'.json'):
-                                file = splitext(fpath)[0]
-                                os.system('vprof -i {}.json -p {} &'.format(file, VPROF_PORT+i))
-                                os.system('gprof2dot -f pstats {file}.stats | dot -Tpng -o {file}.png'.format(file=file))
             os.system('find {} -type f -name \'tmp_exec_code_*.py\' -delete'.format(os.getenv('LOCAL_PATH')))
