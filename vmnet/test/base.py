@@ -311,6 +311,7 @@ pr.dump_stats('{profname}.stats')
                 """.format(fn_str=fn_str, fnname=fn.__name__, args=[], kwargs={}, profname=profname)
             else:
                 new_fn_str = """
+import dill
 {fn_str}
 {fnname}()
                 """.format(fn_str=fn_str, fnname=fn.__name__)
@@ -395,6 +396,7 @@ pr.dump_stats('{profname}.stats')
             for node in cls.nodes:
                 log.debug("resetting node {}".format(node))
                 os.system('docker exec -d {} pkill -f python'.format(node))
+
         if len(cls.profiles) > 0:
             for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
                 for name in files:
