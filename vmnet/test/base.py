@@ -62,6 +62,7 @@ def vmnet_test(*args, **kwargs):
             klass.vmnet_test_active = True
             res = func(*args, **kwargs)
             klass.vmnet_test_active = False
+            klass._reset_containers()
 
             return res
 
