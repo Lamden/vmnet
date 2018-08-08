@@ -256,8 +256,8 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         globals = dict(cv.globals)
         full_fn_str = cls._clear_indents(inspect.getsource(fn))
         fn_str = indent * '    ' + full_fn_str[0] + '\n'
-        # for m in globals:
-        #     fn_str += (indent+1) * '    ' + '{} = dill.loads({})'.format(m, dill.dumps(globals[m])) + '\n'
+        for m in globals:
+            fn_str += (indent+1) * '    ' + '{} = dill.loads({})'.format(m, dill.dumps(globals[m])) + '\n'
         for m in non_locals:
             if not callable(non_locals[m]):
                 fn_str += (indent+1) * '    ' + '{} = dill.loads({})'.format(m, dill.dumps(non_locals[m])) + '\n'
