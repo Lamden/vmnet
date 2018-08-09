@@ -408,6 +408,8 @@ import dill
                             os.system('vprof -i {}.json -p {} &'.format(file, VPROF_PORT+i))
                             os.system('gprof2dot -f pstats {file}.stats | dot -Tpng -o {file}.png'.format(file=file))
 
+        os.system('pkill docker-compose')
+
     @classmethod
     def setUpClass(cls):
         os.system('find {} -type f -name \'tmp_exec_code_*.py\' -delete'.format(os.getenv('LOCAL_PATH')))
