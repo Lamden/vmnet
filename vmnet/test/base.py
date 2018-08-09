@@ -76,14 +76,14 @@ def vmnet_test(*args, **kwargs):
         return _vmnet_test
 
 def profile(*args, **kwargs):
-    def decorator(self, fn=None):
+    def decorator(self, fn=None, profiling='cmph'):
         from vprof import runner, stats_server
         import unittest
         testname = unittest.TestCase.id(self)
         node = os.getenv('HOSTNAME','')
         fnname = fn.__name__
         log.debug('Running VProf on {},{},{}'.format(testname, node, fnname))
-        run_stats = runner.run_profilers((fn, args, kwargs), 'cmhp')
+        run_stats = runner.run_profilers((fn, args, kwargs), profiling)
         profname = '{}.json'.format(join(os.getcwd(),'profiles',testname, node, fnname))
         if not os.path.exists(dirname(profname)):
             os.makedirs(dirname(profname))
@@ -283,7 +283,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         return new_lines
 
     @classmethod
-    def execute_python(cls, node, fn, async=False, python_version=3.6, profiling=False):
+    def execute_python(cls, node, fn, async=False, python_version=3.6, profiling='c'):
         fn_str = cls.get_fn_str(fn, indent=0)
         dill_str = dill.dumps(fn)
         fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
@@ -303,13 +303,13 @@ pr.enable()
 ################################################################################
 #   Code Block ENDS
 ################################################################################
-run_stats = runner.run_profilers(({fnname}, {args}, {kwargs}), 'cmph')
+run_stats = runner.run_profilers(({fnname}, {args}, {kwargs}), {profiling})
 with open('{profname}.json', 'w+') as f:
     run_stats['version'] = pkg_resources.get_distribution("vprof").version
     f.write(json.dumps(run_stats))
 pr.create_stats()
 pr.dump_stats('{profname}.stats')
-                """.format(fn_str=fn_str, fnname=fn.__name__, args=[], kwargs={}, profname=profname)
+                """.format(fn_str=fn_str, fnname=fn.__name__, args=[], kwargs={}, profname=profname, profiling=profiling)
             else:
                 new_fn_str = """
 import dill
