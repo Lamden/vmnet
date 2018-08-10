@@ -303,7 +303,7 @@ pr.enable()
 ################################################################################
 #   Code Block ENDS
 ################################################################################
-run_stats = runner.run_profilers(({fnname}, {args}, {kwargs}), {profiling})
+run_stats = runner.run_profilers(({fnname}, {args}, {kwargs}), '{profiling}')
 with open('{profname}.json', 'w+') as f:
     run_stats['version'] = pkg_resources.get_distribution("vprof").version
     f.write(json.dumps(run_stats))
