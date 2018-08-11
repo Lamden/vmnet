@@ -283,7 +283,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         return new_lines
 
     @classmethod
-    def execute_python(cls, node, fn, async=False, python_version=3.6, profiling='c'):
+    def execute_python(cls, node, fn, async=False, python_version=3.6, profiling=None):
         fn_str = cls.get_fn_str(fn, indent=0)
         dill_str = dill.dumps(fn)
         fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
@@ -304,9 +304,11 @@ pr.enable()
 #   Code Block ENDS
 ################################################################################
 run_stats = runner.run_profilers(({fnname}, {args}, {kwargs}), '{profiling}')
+print('################################################################################')
 with open('{profname}.json', 'w+') as f:
     run_stats['version'] = pkg_resources.get_distribution("vprof").version
     f.write(json.dumps(run_stats))
+print('################################################################################')
 pr.create_stats()
 pr.dump_stats('{profname}.stats')
                 """.format(fn_str=fn_str, fnname=fn.__name__, args=[], kwargs={}, profname=profname, profiling=profiling)
@@ -316,12 +318,6 @@ import dill
 {fn_str}
 {fnname}()
                 """.format(fn_str=fn_str, fnname=fn.__name__)
-#                 new_fn_str = """
-# import dill
-# dill.detect.trace(True)
-# fn = dill.loads({dill_str})
-# fn()
-#                 """.format(dill_str=dill_str, fnname=fn.__name__)
 
             f.write(new_fn_str)
 
