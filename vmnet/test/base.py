@@ -84,7 +84,7 @@ def profile(*args, **kwargs):
         fnname = fn.__name__
         log.debug('Running VProf on {},{},{}'.format(testname, node, fnname))
         run_stats = runner.run_profilers((fn, args, kwargs), profiling)
-        profname = '{}.json'.format(join(os.getcwd(),'profiles',testname, node, fnname))
+        profname = '{}.json'.format(join(os.getcwd(),'profiles', testname, node, fnname))
         if not os.path.exists(dirname(profname)):
             os.makedirs(dirname(profname))
         with open(profname, 'w+') as f:
@@ -246,8 +246,6 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         assert nodes, "Nodes list should not be empty!"
         cls.groups, cls.nodemap, cls.nodes, cls.ports = groups, nodemap, nodes, ports
         cls.profiles = []
-        for node in nodes:
-            os.system('docker exec {} mkdir -p /app/{}'.format(node, join('profiles', cls.testname, node)))
 
     @classmethod
     def get_fn_str(cls, fn, indent=0):
@@ -288,7 +286,6 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         fn_str = cls.get_fn_str(fn, indent=0)
         dill_str = dill.dumps(fn)
         fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
-        profname = join('profiles', cls.testname, node, fn.__name__)
         with open(fname, 'w+') as f:
             new_fn_str = """
 import dill, os
@@ -322,9 +319,9 @@ os.environ["PROFILING"] = "{profiling}"
         os.environ['TEST_NAME'] = cls.testname
         os.environ['TEST_ID'] = str(int(time.time()))
 
-        for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
-            if os.getenv('TEST_NAME') in root:
-                shutil.rmtree(root)
+        # for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
+        #     if os.getenv('TEST_NAME') in root:
+        #         shutil.rmtree(root)
 
         cls._run_launch('--clean')
         cls._run_launch('--build_only')
