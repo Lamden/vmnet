@@ -319,9 +319,9 @@ os.environ["PROFILING"] = "{profiling}"
         os.environ['TEST_NAME'] = cls.testname
         os.environ['TEST_ID'] = str(int(time.time()))
 
-        # for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
-        #     if os.getenv('TEST_NAME') in root:
-        #         shutil.rmtree(root)
+        for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
+            if os.getenv('TEST_NAME') in root and 'log' in root:
+                shutil.rmtree(root)
 
         cls._run_launch('--clean')
         cls._run_launch('--build_only')
