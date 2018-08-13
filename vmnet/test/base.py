@@ -303,10 +303,16 @@ pr.enable()
 ################################################################################
 #   Code Block ENDS
 ################################################################################
-{fnname}()
+g = dill.loads({globals})
+l = dill.loads({locals})
+cProfile.runctx("{fnname}()", g, l)
 pr.create_stats()
 pr.dump_stats('{profname}.stats')
-                """.format(fn_str=fn_str, fnname=fn.__name__, args=[], kwargs={}, profname=profname, profiling=profiling)
+                """.format(fn_str=fn_str, fnname=fn.__name__,
+                    args=[], kwargs={}, profname=profname,
+                    profiling=profiling,
+                    globals=dill.dumps(globals()),
+                    locals=dill.dumps(locals()))
             elif profiling:
                 new_fn_str = """
 from vprof import runner, stats_server
