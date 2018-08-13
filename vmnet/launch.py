@@ -107,10 +107,10 @@ def generate_configs(compose_file):
         if new_compose_config['services'][service_name].get('range'): del new_compose_config['services'][service_name]['range']
         if new_compose_config['services'][service_name].get('ip'): del new_compose_config['services'][service_name]['ip']
         if os.getenv('TEST_NAME'):
-            new_compose_config['services'][service_name]['environment'].append(
+            new_compose_config['services'][service_name]['environment'] += [
                 'TEST_NAME={}'.format(os.getenv('TEST_NAME')),
                 'TEST_ID={}'.format(os.getenv('TEST_ID', str(int(time.time()))))
-            )
+            ]
     with open('{}/docker-compose.yml'.format(dirname(__file__)), 'w') as yaml_file:
         yaml.dump(new_compose_config, yaml_file, default_flow_style=False)
 
