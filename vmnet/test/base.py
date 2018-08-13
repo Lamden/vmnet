@@ -146,6 +146,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
 
     setuptime = DEFAULT_SETUP_TIME
     testname = DEFAULT_TESTNAME
+    profiles = []
 
     @classmethod
     def _run_launch(cls, params):
