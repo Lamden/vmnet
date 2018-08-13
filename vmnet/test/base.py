@@ -319,6 +319,7 @@ os.environ["PROFILING"] = "{profiling}"
         cls._docker_started = True
 
         os.environ['TEST_NAME'] = cls.testname
+        os.environ['TEST_ID'] = int(time.time())
 
         for root, dirs, files in os.walk(os.getenv('LOCAL_PATH')):
             if os.getenv('TEST_NAME') in root:
