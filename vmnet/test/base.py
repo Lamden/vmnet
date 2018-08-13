@@ -289,12 +289,12 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
         profname = join('profiles', cls.testname, node, fn.__name__)
         with open(fname, 'w+') as f:
-                new_fn_str = """
+            new_fn_str = """
 import dill, os
 os.environ["PROFILING"] = {profiling}
 {fn_str}
 {fnname}()
-                """.format(fn_str=fn_str, fnname=fn.__name__, profiling=profiling)
+            """.format(fn_str=fn_str, fnname=fn.__name__, profiling=profiling)
 
             f.write(new_fn_str)
 
