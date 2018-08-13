@@ -291,7 +291,7 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
         with open(fname, 'w+') as f:
             new_fn_str = """
 import dill, os
-os.environ["PROFILING"] = {profiling}
+os.environ["PROFILING"] = "{profiling}"
 {fn_str}
 {fnname}()
             """.format(fn_str=fn_str, fnname=fn.__name__, profiling=profiling)
