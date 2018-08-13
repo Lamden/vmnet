@@ -286,10 +286,10 @@ class BaseNetworkTestCase(unittest.TestCase, metaclass=BaseNetworkMeta):
     def execute_python(cls, node, fn, async=False, python_version=3.6, profiling=None):
         fn_str = cls.get_fn_str(fn, indent=0)
         dill_str = dill.dumps(fn)
-        fname = 'tmp_exec_code_{}.py'.format(uuid.uuid4().hex)
+        fname = 'tmp_exec_code_{}_{}.py'.format(node, uuid.uuid4().hex)
         profname = join('profiles', cls.testname, node, fn.__name__)
         with open(fname, 'w+') as f:
-            if profiling:
+            if profiling == 'n':
                 new_fn_str = """
 from vprof import runner, stats_server
 import cProfile, dill, json, pkg_resources
@@ -303,14 +303,28 @@ pr.enable()
 ################################################################################
 #   Code Block ENDS
 ################################################################################
+{fnname}()
+pr.create_stats()
+pr.dump_stats('{profname}.stats')
+                """.format(fn_str=fn_str, fnname=fn.__name__, args=[], kwargs={}, profname=profname, profiling=profiling)
+            elif profiling:
+                new_fn_str = """
+from vprof import runner, stats_server
+import cProfile, dill, json, pkg_resources
+dill.detect.trace(True)
+################################################################################
+#   Code Block BEGINS
+################################################################################
+{fn_str}
+################################################################################
+#   Code Block ENDS
+################################################################################
 run_stats = runner.run_profilers(({fnname}, {args}, {kwargs}), '{profiling}')
 print('################################################################################')
 with open('{profname}.json', 'w+') as f:
     run_stats['version'] = pkg_resources.get_distribution("vprof").version
     f.write(json.dumps(run_stats))
 print('################################################################################')
-pr.create_stats()
-pr.dump_stats('{profname}.stats')
                 """.format(fn_str=fn_str, fnname=fn.__name__, args=[], kwargs={}, profname=profname, profiling=profiling)
             else:
                 new_fn_str = """
@@ -320,6 +334,8 @@ import dill
                 """.format(fn_str=fn_str, fnname=fn.__name__)
 
             f.write(new_fn_str)
+
+        cls.profiles.append(profname)
 
         os.system('docker cp {fname} {node}:/app/{fname}'.format(fname=fname, node=node))
         exc_str = 'docker exec {} /usr/bin/python{} {} {}'.format(
