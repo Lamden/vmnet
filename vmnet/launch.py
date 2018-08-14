@@ -38,9 +38,11 @@ def _generate_compose_file(config_file, test_name='sample_test'):
         # Generate services
         dc["services"] = {}
         group_ips = {}
+        group_names = {}
         ip = 0
         for service in config["services"]:
             group_ips[service["name"]] = []
+            group_names[service["name"]] = []
             for c in range(service["count"]):
                 if service["count"] == 1:
                     name = service["name"]
@@ -48,6 +50,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                     name = '{}_{}'.format(service["name"], ip)
                 ip_addr = '{}.{}'.format(IPRANGE, ip)
                 group_ips[service["name"]].append(ip_addr)
+                group_names[service["name"]].append(name)
                 envvar = [
                     'TEST_NAME={}'.format(test_name),
                     'TEST_ID={}'.format(test_id),
@@ -90,7 +93,8 @@ def _generate_compose_file(config_file, test_name='sample_test'):
         'test_name': test_name,
         'test_id': test_id,
         'project_path': project_path,
-        'groups': group_ips
+        'groups_ips': group_ips,
+        'groups': group_names
     }
 
 def _build(config_file, rebuild=False):

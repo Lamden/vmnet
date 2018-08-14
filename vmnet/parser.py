@@ -2,7 +2,7 @@ import inspect, re, dill, os
 
 def get_fn_str(fn, profiling):
     return """
-import os
+import os, dill
 os.environ["PROFILING"] = "{profiling}"
 {fn_str}
 {fnname}()

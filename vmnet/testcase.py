@@ -7,13 +7,12 @@ from os.path import dirname, abspath, join, splitext, expandvars, realpath, exis
 
 class BaseNetworkTestCase(unittest.TestCase):
     @classmethod
-    def setUpClass(cls):
-        cls.webserver_proc, cls.websocket_proc = start_ui(cls.test_name, cls.project_path)
-
-    def setUp(self):
-        cls = BaseNetworkTestCase
+    def setUp(cls):
         cls.test_name = cls.__name__
         cls._set_configs(launch(cls.config_file, cls.test_name))
+        if not hasattr(cls, 'is_setup'):
+            cls.webserver_proc, cls.websocket_proc = start_ui(cls.test_name, cls.project_path)
+            cls.is_setup = True
 
     @classmethod
     def _set_configs(cls, config):
@@ -34,12 +33,11 @@ class BaseNetworkTestCase(unittest.TestCase):
     def execute_nodejs(cls, node, fname):
         pass
 
+    @classmethod
     def tearDown(self):
-        cls = BaseNetworkTestCase
         launch(cls.config_file, cls.test_name, clean=True)
 
     @classmethod
     def tearDownClass(cls):
         cls.webserver_proc.terminate()
         cls.websocket_proc.terminate()
-        launch(cls.config_file, cls.test_name, clean=True)
