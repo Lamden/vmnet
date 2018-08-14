@@ -7,7 +7,6 @@ async-timeout==3.0.0
 attrs==18.1.0
 certifi==2018.8.13
 chardet==3.0.4
-cilantro==0.0.1.dev0
 coloredlogs==10.0
 Cython==0.28.5
 dill==0.2.8.2
@@ -22,7 +21,6 @@ pycares==2.3.0
 PyYAML==3.13
 requests==2.19.1
 sanic==0.7.0
-seneca==0.0.25
 six==1.11.0
 ujson==1.35
 urllib3==1.23
