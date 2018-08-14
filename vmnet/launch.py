@@ -57,7 +57,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                 dc["services"][name] = {
                     "container_name": name,
                     "environment": envvar,
-                    "expose": ['1000-30000'],
+                    "expose": ['1024-49151'],
                     "ports": service.get('ports', []),
                     "image": service['image'],
                     "networks": {
