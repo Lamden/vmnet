@@ -13,3 +13,4 @@ build
 dist
 *.egg-info
 *.log_color
+**/tmp_exec_code*
