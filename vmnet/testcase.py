@@ -1,4 +1,4 @@
-import unittest, asyncio, os
+import unittest, asyncio, os, shutil
 from vmnet.launch import launch
 from vmnet.webserver import start_ui
 from vmnet.parser import get_fn_str
@@ -11,6 +11,7 @@ class BaseNetworkTestCase(unittest.TestCase):
         cls.test_name = cls.__name__
         cls._set_configs(launch(cls.config_file, cls.test_name))
         if not hasattr(cls, 'is_setup'):
+            shutil.rmtree(join(cls.project_path, 'logs', cls.test_name))
             cls.webserver_proc, cls.websocket_proc = start_ui(cls.test_name, cls.project_path)
             cls.is_setup = True
 
