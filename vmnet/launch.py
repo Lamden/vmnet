@@ -1,213 +1,211 @@
-import os
-import copy
-import yaml
-import subprocess
-import time
+import json, yaml, os, time, docker
+from os.path import basename, dirname, join, abspath
+from docker.utils import kwargs_from_env
 
-from os.path import dirname, abspath, splitext, basename, join, expandvars
-from vmnet.test.logger import get_logger
-log = get_logger('vmnet')
+client = docker.APIClient(
+    version='1.37', timeout=60, **kwargs_from_env()
+)
 
-def set_env(local_path, docker_dir):
-    """
-        Sets the environmental variables for launch.py
-    """
-    os.environ['LOCAL_PATH'] = local_path
-    os.environ['DOCKER_DIR'] = docker_dir
+GATEWAY = "252"
+IPRANGE = "172.29.5"
+SUBNET = "172.29.0.0"
 
-def build_image(service):
-    """
-        Builds the image specified in the service
-    """
-    log.info('Building {}...'.format(service['image']))
-    os.system('docker build -t {} -f {} {}'.format(
-        service['image'], service['build']['dockerfile'],
-        service['build']['context']
-    ))
-    log.info('Done.')
+def _generate_compose_file(config_file, test_name='sample_test'):
+    dc = {}
+    test_id = str(int(time.time()))
+    with open(config_file) as f:
+        config = json.loads(f.read())
+        project_path = abspath(config['project_path'])
+        projectname = basename(dirname(project_path))
 
-def build_if_not_exist(services):
-    """
-        Builds the images for all the services starting with ones containing the
-        word "base" and then builds the rest of the images after
-    """
-    lines = subprocess.check_output(['docker', 'images']).decode().split('\n')[1:]
-    built_images = {line.split()[0]: True for line in lines if len(line)}
-    images = [services[i] for i in services if not built_images.get(services[i]['image'])]
-    ordered_images = { 'base':[], 'build':[] }
-    for image in images:
-        ordered_images['base' if 'base' in image['image'] else 'build'].append(image)
-    built = {}
-    for service in ordered_images['base'] + ordered_images['build']:
-        if not built.get(service['image']):
-            build_image(service)
-            built[service['image']] = True
+        # Set Docker-compose version
+        dc["version"] = '2.3'
 
-def generate_configs(compose_file):
-    """
-        Generates correct docker-compose.yml for the "docker-compose up" command
-        from the custom compose yaml file
-    """
-
-    with open(compose_file, 'r') as f:
-        compose_config = yaml.load(f)
-    new_compose_config = copy.deepcopy(compose_config)
-
-    nodes = {}
-
-    try:
-        build_if_not_exist(compose_config['services'])
-    except:
-        log.info('No need to build')
-
-    for service_name in compose_config['services']:
-        if 'base' in service_name:
-            del new_compose_config['services'][service_name]
-            continue
-        service = compose_config['services'][service_name]
-        for volume in service.get('volumes', []):
-            volume['source'] = expandvars(volume['source'])
-        network = service['network'] if service.get('network') else list(compose_config['networks'].keys())[0]
-        if service.get('range'):
-            nodes[service_name] = []
-            for i in range(service['range'][0], service['range'][1]+1):
-                slot_num = int(i) - int(service['range'][0])
-                replica_service_name = '{}_{}'.format(service_name, str(i))
-                replica_ip = service['ip'].replace('x', str(i))
-                service.update(generate_ip_config(network, replica_ip))
-                new_compose_config['services'][replica_service_name] = copy.deepcopy(service)
-                new_compose_config['services'][replica_service_name].update({
-                    'container_name': replica_service_name,
-                    'environment': [
-                        'HOSTNAME={}'.format(replica_service_name),
-                        'HOST_IP={}'.format(replica_ip),
-                        'SLOT_NUM={}'.format(slot_num)
-                    ]
-                })
-                nodes[service_name].append(replica_ip)
-            del new_compose_config['services'][service_name]
-        else:
-            nodes[service_name] = service['ip']
-            service.update(generate_ip_config(network, service['ip']))
-            new_compose_config['services'][service_name] = service
-            new_compose_config['services'][service_name].update({
-                'container_name': service_name,
-                'environment': [
-                    'HOSTNAME={}'.format(service_name),
-                    'HOST_IP={}'.format(service['ip'])
-                ]
-            })
-    for service_name in new_compose_config['services']:
-        for n in nodes:
-            value = ','.join(nodes[n]) if type(nodes[n]) == list else nodes[n]
-            if not new_compose_config['services'][service_name].get('environment'): continue
-            new_compose_config['services'][service_name]['environment'].append(
-                '{}={}'.format(n.upper(), value)
-            )
-        if new_compose_config['services'][service_name].get('range'): del new_compose_config['services'][service_name]['range']
-        if new_compose_config['services'][service_name].get('ip'): del new_compose_config['services'][service_name]['ip']
-        if os.getenv('TEST_NAME'):
-            new_compose_config['services'][service_name]['environment'] += [
-                'TEST_NAME={}'.format(os.getenv('TEST_NAME')),
-                'TEST_ID={}'.format(os.getenv('TEST_ID', str(int(time.time()))))
-            ]
-    with open('{}/docker-compose.yml'.format(dirname(__file__)), 'w') as yaml_file:
-        yaml.dump(new_compose_config, yaml_file, default_flow_style=False)
-
-def generate_ip_config(network_name, ip):
-    """
-        Generate the ip address internal to the docker bridge network
-    """
-    config = {
-        'networks': {
-            network_name: {
-                'ipv4_address': ip
+        # Generate network configs
+        dc["networks"] = {
+            projectname: {
+                "driver": "bridge",
+                "ipam": {
+                    "config": [{
+                        "gateway": "{}.{}".format(IPRANGE, GATEWAY),
+                        "iprange": "{}.0/24".format(IPRANGE),
+                        "subnet": "{}/16".format(SUBNET)
+                    }]
+                }
             }
         }
+
+        # Generate services
+        dc["services"] = {}
+        group_ips = {}
+        group_names = {}
+        ip = 0
+        for service in config["services"]:
+            group_ips[service["name"]] = []
+            group_names[service["name"]] = []
+            for c in range(service["count"]):
+                if service["count"] == 1:
+                    name = service["name"]
+                else:
+                    name = '{}_{}'.format(service["name"], ip)
+                ip_addr = '{}.{}'.format(IPRANGE, ip)
+                group_ips[service["name"]].append(ip_addr)
+                group_names[service["name"]].append(name)
+                envvar = [
+                    'TEST_NAME={}'.format(test_name),
+                    'TEST_ID={}'.format(test_id),
+                    'HOST_NAME={}'.format(name),
+                    'HOST_IP={}.{}'.format(IPRANGE, ip)
+                ]
+                dc["services"][name] = {
+                    "container_name": name,
+                    "environment": envvar,
+                    "expose": ['1024-49151'],
+                    "ports": service.get('ports', []),
+                    "image": service['image'],
+                    "networks": {
+                        projectname: {
+                            "ipv4_address": ip_addr
+                        }
+                    },
+                    "stdin_open": True,
+                    "tty": True,
+                    "volumes": [{
+                        "source": project_path,
+                        "target": '/app/',
+                        "type": 'bind'
+                    }]
+                }
+                ip += 1
+
+        # Set IPs for groups
+        for s in dc["services"]:
+            service = dc["services"][s]
+            for g in group_ips:
+                service['environment'].append(
+                    '{}={}'.format(g.upper(), ','.join(group_ips[g]))
+                )
+
+    with open('docker-compose.yml', 'w+') as outfile:
+        yaml.dump(dc, outfile, default_flow_style=False)
+
+    return {
+        'test_name': test_name,
+        'test_id': test_id,
+        'project_path': project_path,
+        'groups_ips': group_ips,
+        'groups': group_names
     }
-    return config
 
+def _build(config_file, rebuild=False):
+    def _build_image(image):
+        dockerfile = None
+        for root, dirs, files in os.walk(project_path):
+            for file in files:
+                if file == image:
+                    # The API does not show any output!!!
+                    os.system('docker build {} -t {} -f {} {}'.format(
+                        '--no-cache' if rebuild else '',
+                        image, join(root, file),
+                        project_path
+                    ))
 
-def run():
-    """
-        Builds and runs the project
-    """
-    cwd = os.getcwd()
-    os.chdir(dirname(__file__))
-    os.system('docker-compose up')
-    os.chdir(cwd)
+    with open(config_file) as f:
+        config = json.loads(f.read())
+        project_path = abspath(config['project_path'])
+        built = {}
+        for service in config["services"]:
+            if built.get(service['image']): continue
+            if rebuild: _build_image(service['image'])
+            else:
+                try: client.inspect_image(service['image'])
+                except: _build_image(service['image'])
+            built[service['image']] = True
 
-def prune():
-    """
-        Clear any hanging images and containers
-    """
+def run(config_file):
+    _stop()
+    _build(config_file)
+    os.system('docker-compose up --remove-orphans &')
+    ports, containers_up = {}, {}
+    with open('docker-compose.yml') as f:
+        config = yaml.load(f)
+        services = list(config["services"].keys())
+        time.sleep(3.5)
+        while True:
+            for s in services:
+                if containers_up.get(s): continue
+                try:
+                    c = client.containers(filters={'name': s, 'status':'running'})
+                    if not c: continue
+                    containers_up[s] = c
+                except Exception as e:
+                    pass
+            if len(services) == len(containers_up):
+                break
+            time.sleep(0.5)
+
+        for s in config["services"]:
+            service = config["services"][s]
+            for port in service.get('ports', []):
+                cmd = """docker inspect --format='{{(index (index .NetworkSettings.Ports """ + '"{}/tcp"'.format(port) + """) 0).HostPort}}' """ + s
+                if not ports.get(s): ports[s] = {}
+                proc = os.popen(cmd)
+                ports[s][port] = 'localhost:{}'.format(proc.read().strip())
+                proc.close()
+    return ports
+
+def _rm_network():
     os.system('echo y | docker system prune 1>/dev/null')
     os.system('docker network rm $(docker network ls | grep "bridge" | awk \'/ / { print $1 }\') 2>/dev/null')
 
-def clean():
-    """
-        Remove all containers
-    """
-    prune()
-    os.system('docker stop $(docker ps -aq) 2>/dev/null')
+def _stop():
+    _rm_network()
+    with open('docker-compose.yml') as f:
+        config = yaml.load(f)
+        containers = ' '.join(list(config["services"].keys()))
+        os.system('docker kill {} 2>/dev/null'.format(containers))
+        os.system('docker rm -f {} 2>/dev/null'.format(containers))
+
+def _clean():
+    _rm_network()
+    os.system('docker kill $(docker ps -aq) 2>/dev/null')
     os.system('docker rm $(docker ps -aq) -f 2>/dev/null')
 
-def destroy(compose_file):
-    """
-        Remove all images and containers pertaining to the project
-    """
-    clean()
-    with open(compose_file, 'r') as f:
-        compose_config = yaml.load(f)
-        services = compose_config['services']
-        images = ' '.join([services[s]['image'] for s in services])
-        os.system('docker rmi {} -f 2>/dev/null'.format(images))
+def _destroy(config_file):
+    with open(config_file) as f:
+        config = json.loads(f.read())
+        for service in config["services"]:
+            try:
+                client.inspect_image(service['image'])
+                os.system('docker rmi -f {}'.format(service['image']))
+            except:
+                pass
 
-def destroy_all():
-    """
-        Remove all images and containers on docker
-    """
-    clean()
-    os.system('docker rmi $(docker images -a -q) -f 2>/dev/null')
-
-def launch(local_path=None, compose_file=None, docker_dir=None, test_dir=None, docker_prune=False, docker_clean=False, docker_destroy=False, docker_destroy_all=False, docker_build_only=False):
-    if test_dir:
-        compose_file = join(test_dir, 'compose_files', compose_file)
-        docker_dir = join(test_dir, 'docker_dir')
-    if docker_prune:
-        prune()
-    elif docker_clean:
-        clean()
-    elif docker_destroy:
-        destroy(compose_file)
-    elif docker_destroy_all:
-        destroy_all()
+def launch(config_file, test_name, clean=False, destroy=False, build=False, stop=False, on_up=None):
+    configs = _generate_compose_file(config_file, test_name)
+    if stop:
+        _stop()
+    if clean:
+        _clean()
+    elif destroy:
+        _destroy(config_file)
+    elif build:
+        _build(config_file, rebuild=True)
     else:
-        set_env(local_path, docker_dir)
-        generate_configs(compose_file)
-        clean()
-        if not docker_build_only:
-            run()
+        _stop()
+        ports = run(config_file)
+        configs['ports'] = ports
+        if on_up: on_up(configs)
+    return configs
 
 if __name__ == '__main__':
     import argparse
-
     parser = argparse.ArgumentParser(description='Run your project on a docker bridge network')
-
-    parser.add_argument('--compose_file', help='.yml file which specifies the image, contexts and build of your services', required=True)
-    parser.add_argument('--docker_dir', help='the directory containing the docker files which your compose_file uses', required=True)
-    parser.add_argument('--local_path', help='path containing vmnet and your project', required=True)
-    parser.add_argument('--prune', action='store_true', help='removes any hanging images or containers')
-    parser.add_argument('--clean', action='store_true', help='remove all containers')
-    parser.add_argument('--destroy', action='store_true', help='remove all images and containers listed in the config')
-    parser.add_argument('--destroy_all', action='store_true', help='remove all images and containers')
-    parser.add_argument('--build_only', action='store_true', help='builds the image and does not run the container')
-
+    parser.add_argument('--config_file', '-f', help='.yml file which specifies the image, contexts and build of your services', required=True)
+    parser.add_argument('--test_name', '-t', help='name of your test', default='testname')
+    parser.add_argument('--clean', '-c', action='store_true', help='remove all containers')
+    parser.add_argument('--destroy', '-d', action='store_true', help='remove all images and containers listed in the config')
+    parser.add_argument('--build', '-b', action='store_true', help='builds the image and does not run the container')
+    parser.add_argument('--stop', '-s', action='store_true', help='stops and removes the containers for the specified config file')
     args = parser.parse_args()
-
-    launch(
-        compose_file=args.compose_file, docker_dir=args.docker_dir, local_path=args.local_path,
-        docker_prune=args.prune, docker_clean=args.clean,
-        docker_destroy=args.destroy, docker_destroy_all=args.destroy_all,
-        docker_build_only=args.build_only
-    )
+    launch(args.config_file, args.test_name, args.clean, args.destroy, args.build)

@@ -1,7 +1,13 @@
-import logging
+import logging, coloredlogs
 import os, sys
-import coloredlogs
-from os.path import dirname, realpath, abspath
+
+VALID_LVLS = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+_LOG_LVL = os.getenv('LOG_LEVEL', None)
+if _LOG_LVL:
+    assert _LOG_LVL in VALID_LVLS, "Log level {} not in valid levels {}".format(_LOG_LVL, VALID_LVLS)
+    _LOG_LVL = getattr(logging, _LOG_LVL)
+else:
+    _LOG_LVL = 1
 
 format = '%(asctime)s.%(msecs)03d %(name)s[%(process)d][%(processName)s] %(levelname)-2s %(message)s'
 
@@ -26,6 +32,10 @@ def apply_custom_level(log, name: str, level: int):
 
     setattr(log, name.lower(), _lvl_func)
 
+"""
+Custom Styling
+"""
+
 coloredlogs.DEFAULT_LEVEL_STYLES = {
     'critical':{'color':'white', 'bold':True, 'background': 'red'},
     'fatal':{'color':'white', 'bold':True, 'background': 'red', 'underline': True},
@@ -49,7 +59,6 @@ coloredlogs.DEFAULT_FIELD_STYLES = {
     'name': {'color': 'blue'},
     'programname': {'color': 'cyan'}
 }
-
 
 class LoggerWriter:
     def __init__(self, level):
@@ -76,7 +85,7 @@ class ColoredStreamHandler(logging.StreamHandler):
 
 def get_logger(name=''):
     filedir = "logs/{}".format(os.getenv('TEST_NAME', 'test'))
-    filename = "{}/{}.log".format(filedir, os.getenv('HOSTNAME', name))
+    filename = "{}/{}.log".format(filedir, os.getenv('HOST_NAME', name))
     os.makedirs(filedir, exist_ok=True)
 
     filehandlers = [
@@ -84,15 +93,20 @@ def get_logger(name=''):
         ColoredFileHandler('{}_color'.format(filename)),
         ColoredStreamHandler()
     ]
+    
     logging.basicConfig(
         format=format,
         handlers=filehandlers,
         level=logging.DEBUG
     )
+
     log = logging.getLogger(name)
+    log.setLevel(_LOG_LVL)
+
     sys.stdout = LoggerWriter(log.debug)
-    sys.stderr = LoggerWriter(log.warning)
+    sys.stderr = LoggerWriter(log.error)
 
     for log_name, log_level in CUSTOM_LEVELS.items():
         apply_custom_level(log, log_name, log_level)
+
     return log
