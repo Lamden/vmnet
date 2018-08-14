@@ -34,7 +34,7 @@ class BaseNetworkTestCase(unittest.TestCase):
         pass
 
     @classmethod
-    def tearDown(self):
+    def tearDown(cls):
         launch(cls.config_file, cls.test_name, clean=True)
 
     @classmethod
