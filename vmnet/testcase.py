@@ -20,13 +20,13 @@ class BaseNetworkTestCase(unittest.TestCase):
             setattr(cls, c, config[c])
 
     @classmethod
-    def execute_python(cls, node, fn, python_version=3.6, profiling=None):
+    def execute_python(cls, node, fn, python_version=3.6, profiling=None, async=True):
         fname = 'tmp_exec_code_{}_{}.py'.format(node, fn.__name__)
         fpath = join(cls.project_path, fname)
         with open(fpath, 'w+') as f:
             f.write(get_fn_str(fn, profiling))
-        exc_str = 'docker exec {} /usr/bin/python{} {} &'.format(
-            node, python_version, fname)
+        exc_str = 'docker exec {} /usr/bin/python{} {} {}'.format(
+            node, python_version, fname, '&' if async else '')
         os.system(exc_str)
 
     @classmethod
