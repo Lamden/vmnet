@@ -24,7 +24,6 @@ sanic==0.7.0
 six==1.11.0
 ujson==1.35
 urllib3==1.23
-uvloop==0.11.2
 websocket-client==0.49.0
 websocket-server==0.4
 websockets==6.0
