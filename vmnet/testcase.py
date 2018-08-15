@@ -11,7 +11,9 @@ class BaseNetworkTestCase(unittest.TestCase):
         cls.test_name = cls.__name__
         cls._set_configs(launch(cls.config_file, cls.test_name))
         if not hasattr(cls, 'is_setup'):
-            shutil.rmtree(join(cls.project_path, 'logs', cls.test_name))
+            log_dir = join(cls.project_path, 'logs', cls.test_name)
+            shutil.rmtree(log_dir)
+            os.makedirs(log_dir, exist_ok=True)
             cls.webserver_proc, cls.websocket_proc = start_ui(cls.test_name, cls.project_path)
             cls.is_setup = True
 
