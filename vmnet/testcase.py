@@ -42,5 +42,6 @@ class BaseNetworkTestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.webserver_proc.terminate()
-        cls.websocket_proc.terminate()
+        if hasattr(cls, 'webserver_proc'):
+            cls.webserver_proc.terminate()
+            cls.websocket_proc.terminate()
