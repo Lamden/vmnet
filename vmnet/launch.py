@@ -15,15 +15,14 @@ def _generate_compose_file(config_file, test_name='sample_test'):
     test_id = str(int(time.time()))
     with open(config_file) as f:
         config = json.loads(f.read())
-        project_path = abspath(config['project_path'])
-        projectname = basename(dirname(project_path))
+        project_path = abspath(dirname(dirname(config_file)))
 
         # Set Docker-compose version
         dc["version"] = '2.3'
 
         # Generate network configs
         dc["networks"] = {
-            projectname: {
+            'vmnet': {
                 "driver": "bridge",
                 "ipam": {
                     "config": [{
@@ -66,7 +65,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                     "ports": service.get('ports', []),
                     "image": service['image'],
                     "networks": {
-                        projectname: {
+                        'vmnet': {
                             "ipv4_address": ip_addr
                         }
                     },
@@ -115,7 +114,7 @@ def _build(config_file, rebuild=False):
 
     with open(config_file) as f:
         config = json.loads(f.read())
-        project_path = abspath(config['project_path'])
+        project_path = abspath(dirname(dirname(config_file)))
         built = {}
         for service in config["services"]:
             if built.get(service['image']): continue
@@ -162,17 +161,17 @@ def _rm_network():
     os.system('docker network rm $(docker network ls | grep "bridge" | awk \'/ / { print $1 }\') 2>/dev/null')
 
 def _stop():
-    _rm_network()
     with open('docker-compose.yml') as f:
         config = yaml.load(f)
         containers = ' '.join(list(config["services"].keys()))
         os.system('docker kill {} 2>/dev/null'.format(containers))
         os.system('docker rm -f {} 2>/dev/null'.format(containers))
+    _rm_network()
 
 def _clean():
-    _rm_network()
     os.system('docker kill $(docker ps -aq) 2>/dev/null')
     os.system('docker rm $(docker ps -aq) -f 2>/dev/null')
+    _rm_network()
 
 def _destroy(config_file):
     with open(config_file) as f:
