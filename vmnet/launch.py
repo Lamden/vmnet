@@ -37,6 +37,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
 
         # Generate services
         dc["services"] = {}
+        nodemap = {}
         group_ips = {}
         group_names = {}
         ip = 0
@@ -51,6 +52,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                 ip_addr = '{}.{}'.format(IPRANGE, ip)
                 group_ips[service["name"]].append(ip_addr)
                 group_names[service["name"]].append(name)
+                nodemap[name] = ip_addr
                 envvar = [
                     'TEST_NAME={}'.format(test_name),
                     'TEST_ID={}'.format(test_id),
@@ -94,7 +96,8 @@ def _generate_compose_file(config_file, test_name='sample_test'):
         'test_id': test_id,
         'project_path': project_path,
         'groups_ips': group_ips,
-        'groups': group_names
+        'groups': group_names,
+        'nodemap': nodemap
     }
 
 def _build(config_file, rebuild=False):
@@ -150,7 +153,7 @@ def run(config_file):
                 cmd = """docker inspect --format='{{(index (index .NetworkSettings.Ports """ + '"{}/tcp"'.format(port) + """) 0).HostPort}}' """ + s
                 if not ports.get(s): ports[s] = {}
                 proc = os.popen(cmd)
-                ports[s][port] = 'localhost:{}'.format(proc.read().strip())
+                ports[s][str(port)] = 'localhost:{}'.format(proc.read().strip())
                 proc.close()
     return ports
 
