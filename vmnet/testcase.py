@@ -34,14 +34,9 @@ class BaseNetworkTestCase(unittest.TestCase):
             launch(cls.config_file, cls.test_name, clean=True)
 
 class BaseTestCase(BaseNetworkTestCase):
-
     def setUp(self):
-        self.test_name = self.__name__
-        self._set_configs(launch(self.config_file, self.test_name))
-
-    def set_configs(self, config):
-        for c in config:
-            setattr(self, c, config[c])
+        self.test_name = self.id()
+        self._set_configs(BaseTestCase, launch(self.config_file, self.test_name))
 
     def tearDown(self):
         launch(self.config_file, self.test_name, clean=True)

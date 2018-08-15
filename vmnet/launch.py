@@ -183,7 +183,7 @@ def _destroy(config_file):
             except:
                 pass
 
-def launch(config_file, test_name, clean=False, destroy=False, build=False, stop=False, on_up=None):
+def launch(config_file, test_name, clean=False, destroy=False, build=False, stop=False):
     configs = _generate_compose_file(config_file, test_name)
     if stop:
         _stop()
@@ -197,7 +197,6 @@ def launch(config_file, test_name, clean=False, destroy=False, build=False, stop
         _stop()
         ports = run(config_file)
         configs['ports'] = ports
-        if on_up: on_up(configs)
     return configs
 
 if __name__ == '__main__':
