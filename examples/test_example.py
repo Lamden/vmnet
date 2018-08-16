@@ -12,7 +12,7 @@ def world():
     log.important('world')
 
 class TestExample(BaseTestCase):
-    config_file = 'configs/docknet.json'
+    config_file = 'vmnet_configs/docknet.json'
     def test_example(self):
         self.execute_python('masternode', hello)
         self.execute_python('delegate_3', world)

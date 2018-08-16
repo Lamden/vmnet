@@ -194,7 +194,7 @@ def launch(config_file, test_name, clean=False, destroy=False, build=False, stop
     elif build:
         _build(config_file, rebuild=True)
     else:
-        _stop()
+        _clean()
         ports = run(config_file)
         configs['ports'] = ports
     return configs

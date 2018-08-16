@@ -14,7 +14,7 @@ class BaseNetworkTestCase(unittest.TestCase):
 
     @classmethod
     def execute_python(cls, node, fn, python_version=3.6, profiling=None, async=True):
-        fname = 'tmp_exec_code_{}_{}.py'.format(node, fn.__name__)
+        fname = 'tmp_exec_code_{}_{}_{}.py'.format(node, cls.__name__, fn.__name__)
         fpath = join(cls.project_path, fname)
         with open(fpath, 'w+') as f:
             f.write(get_fn_str(fn, profiling))
@@ -34,9 +34,15 @@ class BaseNetworkTestCase(unittest.TestCase):
             launch(cls.config_file, cls.test_name, clean=True)
 
 class BaseTestCase(BaseNetworkTestCase):
+
     def setUp(self):
-        self.test_name = self.id()
-        self._set_configs(BaseTestCase, launch(self.config_file, self.test_name))
+        self._set_configs(BaseTestCase, launch(self.config_file, self.id()))
+        if not hasattr(self, '_launched'):
+            log_dir = join(self.project_path, 'logs', self.id())
+            try: shutil.rmtree(log_dir)
+            except: pass
+            os.makedirs(log_dir, exist_ok=True)
+            start_ui(self.id(), self.project_path)
 
     def tearDown(self):
         launch(self.config_file, self.test_name, clean=True)
