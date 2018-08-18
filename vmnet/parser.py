@@ -23,7 +23,8 @@ def _get_fn_str(fn, indent=0):
     for m in non_locals:
         if callable(non_locals[m]):
             added_fn_str = _get_fn_str(non_locals[m], indent+1) + '\n'
-            added_fn_str = re.sub(r"def ([\w]+)\(", 'def {}('.format(m), added_fn_str)
+
+            added_fn_str = re.sub(r"def ("+non_locals[m].__name__+r")\(", 'def {}('.format(m), added_fn_str)
             fn_str += added_fn_str
     for l in full_fn_str[1:]:
         fn_str += indent * '    ' + l + '\n'
