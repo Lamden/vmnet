@@ -15,7 +15,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
     test_id = str(int(time.time()))
     with open(config_file) as f:
         config = json.loads(f.read())
-        project_path = os.getenv('PROJECT_PATH', abspath(dirname(dirname(config_file))))
+        project_path = os.getenv('PROJECT_PATH', dirname(dirname(config_file)))
 
         # Set Docker-compose version
         dc["version"] = '2.3'
@@ -114,7 +114,7 @@ def _build(config_file, rebuild=False):
 
     with open(config_file) as f:
         config = json.loads(f.read())
-        project_path = os.getenv('PROJECT_PATH', abspath(dirname(dirname(config_file))))
+        project_path = os.getenv('PROJECT_PATH', dirname(dirname(config_file)))
         built = {}
         for service in config["services"]:
             if built.get(service['image']): continue
