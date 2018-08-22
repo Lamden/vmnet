@@ -1,14 +1,16 @@
 from multiprocessing import Process
 import traceback, os, cProfile, pkg_resources, json
 from vprof import runner
+from os import getenv as env
+from os.path import join, exists
 
 class PProc(Process):
     def run(self, name, profiling=''):
-        testname = os.getenv('TEST_NAME', 'test')
-        testid = os.getenv('TEST_ID', '')
-        nodename = os.getenv('HOST_NAME', 'node')
-        profdir = os.path.join('profiles', testname, testid, nodename)
-        profpath = os.path.join(profdir, name)
+        testname = env('TEST_NAME', 'test')
+        testid = env('TEST_ID', '')
+        nodename = env('HOST_NAME', 'node')
+        profdir = join('profiles', testname, testid, nodename)
+        profpath = join(profdir, name)
 
         if not os.path.exists(profdir) and profiling:
             os.makedirs(profdir)
