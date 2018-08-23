@@ -4,6 +4,7 @@ def file_listener(test, callback, failure, timeout):
     fname = '{}/fsock'.format(test.project_path)
     f = open(fname, 'w+')
     f.close()
+    os.chmod(fname, 700)
     f = open(fname, 'r+')
     f.truncate()
     start = time.time()
