@@ -3,7 +3,7 @@
         {
             "name": "masternode",
             "image": "docknet_base",
-            "count": 1,
+            "count": 10,
             "ports": [
                 8080
             ]

@@ -27,7 +27,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                 "ipam": {
                     "config": [{
                         "gateway": "{}.255.{}".format(IPRANGE, GATEWAY),
-                        "iprange": "{}.0/16".format(IPRANGE),
+                        "iprange": "{}.1/16".format(IPRANGE),
                         "subnet": "{}/16".format(SUBNET)
                     }]
                 }
@@ -39,7 +39,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
         nodemap = {}
         group_ips = {}
         group_names = {}
-        ip = 0
+        ip = 1
         for service in config["services"]:
             group_ips[service["name"]] = []
             group_names[service["name"]] = []
@@ -169,7 +169,7 @@ def _stop():
     _rm_network()
 
 def _clean():
-    os.system('echo "y" | docker network prune')
+    os.system('echo "y" | docker network prune 1>/dev/null')
     os.system('docker kill $(docker ps -aq) 2>/dev/null')
     os.system('docker rm $(docker ps -aq) -f 2>/dev/null')
     _rm_network()
