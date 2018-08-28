@@ -7,7 +7,7 @@ client = docker.APIClient(
 )
 
 GATEWAY = "252"
-IPRANGE = "172.29.5"
+IPRANGE = "172.29"
 SUBNET = "172.29.0.0"
 
 def _generate_compose_file(config_file, test_name='sample_test'):
@@ -15,7 +15,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
     test_id = str(int(time.time()))
     with open(config_file) as f:
         config = json.loads(f.read())
-        project_path = os.getenv('PROJECT_PATH', dirname(dirname(config_file)))
+        project_path = os.getenv('PROJECT_PATH', dirname(dirname(abspath(config_file))))
 
         # Set Docker-compose version
         dc["version"] = '2.3'
@@ -26,8 +26,8 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                 "driver": "bridge",
                 "ipam": {
                     "config": [{
-                        "gateway": "{}.{}".format(IPRANGE, GATEWAY),
-                        "iprange": "{}.0/24".format(IPRANGE),
+                        "gateway": "{}.255.{}".format(IPRANGE, GATEWAY),
+                        "iprange": "{}.0/16".format(IPRANGE),
                         "subnet": "{}/16".format(SUBNET)
                     }]
                 }
@@ -48,7 +48,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                     name = service["name"]
                 else:
                     name = '{}_{}'.format(service["name"], ip)
-                ip_addr = '{}.{}'.format(IPRANGE, ip)
+                ip_addr = '{}.{}.{}'.format(IPRANGE, int(ip/256.0), ip%256)
                 group_ips[service["name"]].append(ip_addr)
                 group_names[service["name"]].append(name)
                 nodemap[name] = ip_addr
@@ -56,7 +56,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                     'TEST_NAME={}'.format(test_name),
                     'TEST_ID={}'.format(test_id),
                     'HOST_NAME={}'.format(name),
-                    'HOST_IP={}.{}'.format(IPRANGE, ip)
+                    'HOST_IP={}.{}.{}'.format(IPRANGE, int(ip/256.0), ip%256)
                 ]
                 dc["services"][name] = {
                     "container_name": name,
@@ -114,7 +114,7 @@ def _build(config_file, rebuild=False):
 
     with open(config_file) as f:
         config = json.loads(f.read())
-        project_path = os.getenv('PROJECT_PATH', dirname(dirname(config_file)))
+        project_path = os.getenv('PROJECT_PATH', dirname(dirname(abspath(config_file))))
         built = {}
         for service in config["services"]:
             if built.get(service['image']): continue
@@ -157,7 +157,7 @@ def run(config_file):
     return ports
 
 def _rm_network():
-    os.system('echo y | docker system prune 1>/dev/null')
+    os.system('echo "y" | docker system prune 1>/dev/null')
     os.system('docker network rm $(docker network ls | grep "bridge" | awk \'/ / { print $1 }\') 2>/dev/null')
 
 def _stop():
@@ -169,6 +169,7 @@ def _stop():
     _rm_network()
 
 def _clean():
+    os.system('echo "y" | docker network prune')
     os.system('docker kill $(docker ps -aq) 2>/dev/null')
     os.system('docker rm $(docker ps -aq) -f 2>/dev/null')
     _rm_network()
@@ -198,3 +199,15 @@ def launch(config_file, test_name, clean=False, destroy=False, build=False, stop
         ports = run(config_file)
         configs['ports'] = ports
     return configs
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description='Run your project on a docker bridge network')
+    parser.add_argument('--config_file', '-f', help='.yml file which specifies the image, contexts and build of your services', required=True)
+    parser.add_argument('--test_name', '-t', help='name of your test', default='testname')
+    parser.add_argument('--clean', '-c', action='store_true', help='remove all containers')
+    parser.add_argument('--destroy', '-d', action='store_true', help='remove all images and containers listed in the config')
+    parser.add_argument('--build', '-b', action='store_true', help='builds the image and does not run the container')
+    parser.add_argument('--stop', '-s', action='store_true', help='stops and removes the containers for the specified config file')
+    args = parser.parse_args()
+    launch(args.config_file, args.test_name, args.clean, args.destroy, args.build)
