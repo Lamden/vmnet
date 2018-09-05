@@ -1,5 +1,5 @@
 aiofiles==0.3.2
-certifi==2018.4.16
+certifi
 chardet==3.0.4
 coloredlogs==10.0
 dill==0.2.8.2
