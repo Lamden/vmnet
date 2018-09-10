@@ -10,20 +10,20 @@ This is a network testing framework based on Docker. It can spin up multiple nod
 1. Install [Docker](https://docs.docker.com/install/#desktop)
 
 2. Setting up a virutal environment is highly recommended
-```bash
+```
 $ virtualenv -p python3 venv
 $ source venv/bin/activate
 ```
 
 2. Install vmnet
-```bash
+```
 $ pip3 install vmnet
 ```
 
 # Configuration
 
 1. Create a folder to hold any images and config files inside your main repository which contains the application you want to test. We'll name this one `config_folder`:
-```bash
+```
 $ cd /path/to/your_application/
 $ mkdir config_folder/
 ```
@@ -45,7 +45,7 @@ CMD python3 -m http.server
 ```
 
 3. Use a configuration file like this, we'll name it `config_folder/nodes.json`:
-```
+```json
 {
     "services": [
         {
@@ -84,7 +84,7 @@ $ vment -f /path/to/your_application/config_folder/nodes.json -d
 ```
 ## Start the network with unit-tests
 1. First, create a unit-test like this, let's name it `test_hello_world.py`:
-```
+```python
 import unittest
 from vmnet.testcase import BaseTestCase
 
