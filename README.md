@@ -114,3 +114,7 @@ class TestExample(BaseTestCase):
 if __name__ == '__main__':
     unittest.main()
 ```
+2. and... just run it.
+```
+$ python3 test_hello_world.py
+```
