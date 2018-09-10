@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys
 
-__version__ = '0.2.19'
+__version__ = '0.2.25'
 setup(
     name='vmnet',
     version=__version__,

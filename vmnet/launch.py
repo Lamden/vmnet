@@ -188,7 +188,7 @@ def launch(config_file, test_name, clean=False, destroy=False, build=False, stop
     configs = _generate_compose_file(config_file, test_name)
     if stop:
         _stop()
-    if clean:
+    elif clean:
         _clean()
     elif destroy:
         _destroy(config_file)
@@ -210,4 +210,4 @@ def main():
     parser.add_argument('--build', '-b', action='store_true', help='builds the image and does not run the container')
     parser.add_argument('--stop', '-s', action='store_true', help='stops and removes the containers for the specified config file')
     args = parser.parse_args()
-    launch(args.config_file, args.test_name, args.clean, args.destroy, args.build)
+    launch(args.config_file, args.test_name, args.clean, args.destroy, args.build, args.stop)
