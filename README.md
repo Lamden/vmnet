@@ -3,7 +3,7 @@
 </p>
 
 # Vmnet
-This is a network testing framework based on Docker. It can spin up multiple nodes and allow you to inject code during run-time. This is used for testing Lamden's blockchain technology - Cilantro. It also includes a command client to make running the tests and building images easier. There is a very simply configuration file that sets up everything. Note that this only works for Python3.6+.
+This is a network testing framework based on Docker. It can spin up multiple nodes and allow you to inject code during run-time. This is used for testing Lamden's blockchain technology - Cilantro. It also includes a command client to make running the tests and building images easier. There is a very simply configuration file that sets up everything. Note that this only works for Python3.
 
 # Setup
 
