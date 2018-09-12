@@ -72,7 +72,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                     "stdin_open": True,
                     "tty": True,
                     "volumes": [{
-                        "type": 'bind'
+                        "type": 'bind',
                         "source": project_path,
                         "target": '/app/'
                     }]
