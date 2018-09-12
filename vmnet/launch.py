@@ -72,9 +72,9 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                     "stdin_open": True,
                     "tty": True,
                     "volumes": [{
-                        "source": project_path,
-                        "target": '/app/',
                         "type": 'bind'
+                        "source": project_path,
+                        "target": '/app/'
                     }]
                 }
                 ip += 1
@@ -147,6 +147,8 @@ def run(config_file):
             time.sleep(0.5)
 
         for s in config["services"]:
+            if os.getenv('CIRCLECI'):
+                os.system('docker cp {}/. {}:/app/'.format(project_path, s))
             service = config["services"][s]
             for port in service.get('ports', []):
                 cmd = """docker inspect --format='{{(index (index .NetworkSettings.Ports """ + '"{}/tcp"'.format(port) + """) 0).HostPort}}' """ + s
