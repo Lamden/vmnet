@@ -17,6 +17,8 @@ class BaseNetworkTestCase(unittest.TestCase):
         fpath = join(cls.project_path, fname)
         with open(fpath, 'w+') as f:
             f.write(get_fn_str(fn, profiling))
+        if os.getenv('CIRCLECI'):
+            os.system('docker cp {} {}:/app/'.format(fpath, node))
         exc_str = 'docker exec {} /usr/bin/python{} {} {}'.format(
             node, python_version, fname, '&' if async else '')
         os.system(exc_str)
