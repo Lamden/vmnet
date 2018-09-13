@@ -125,6 +125,7 @@ def run(config_file):
     _build(config_file)
     os.system('docker-compose up --remove-orphans &')
     ports, containers_up = {}, {}
+    project_path = os.getenv('PROJECT_PATH', dirname(dirname(abspath(config_file))))
     with open('docker-compose.yml') as f:
         config = yaml.load(f)
         services = list(config["services"].keys())
