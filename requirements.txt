@@ -3,5 +3,6 @@ dill
 PyYAML
 requests
 sanic
+websockets==5.0
 websocket-server
 docker
