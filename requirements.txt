@@ -4,5 +4,4 @@ PyYAML
 requests
 sanic
 websocket-server
-websockets
 docker
