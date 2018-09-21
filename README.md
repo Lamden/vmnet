@@ -7,7 +7,7 @@ This is a network testing framework based on Docker. It can spin up multiple nod
 
 # Setup
 
-1. Install [Docker](https://docs.docker.com/install/#desktop)
+1. Install Docker 18.03.1-ce for [MacOS](https://docs.docker.com/docker-for-mac/release-notes/) or [Windows](https://docs.docker.com/docker-for-windows/release-notes/)
 
 2. Setting up a virutal environment is highly recommended
 ```
