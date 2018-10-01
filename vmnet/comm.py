@@ -2,6 +2,8 @@ import time, os
 
 def file_listener(test, callback, failure, timeout):
     fname = '{}/fsock'.format(test.project_path)
+    try: os.chmod(fname, 777)
+    except: pass
     f = open(fname, 'w+')
     f.close()
     os.chmod(fname, 777)
