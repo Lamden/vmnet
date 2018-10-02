@@ -2,6 +2,8 @@ import time, os
 
 def file_listener(test, callback, failure, timeout):
     fname = '{}/fsock'.format(test.project_path)
+    if os.path.exists(fname):
+        os.remove(fname)
     open(fname, 'w+').close()
     start = time.time()
     with open(fname, 'r') as f:
