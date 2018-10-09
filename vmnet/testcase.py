@@ -6,10 +6,15 @@ from os.path import dirname, abspath, join, splitext, expandvars, realpath, exis
 
 class BaseNetworkTestCase(unittest.TestCase):
 
+    enable_ui = True
     @staticmethod
     def _set_configs(klass, config):
         for c in config:
             setattr(klass, c, config[c])
+
+    @classmethod
+    def end_test(cls):
+        launch(cls.config_file, cls.test_name, stop=True)
 
     @classmethod
     def execute_python(cls, node, fn, python_version=3.6, profiling=None, async=True):
@@ -29,7 +34,7 @@ class BaseNetworkTestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        if hasattr(cls, 'webserver_proc'):
+        if hasattr(cls, 'webserver_proc') and cls.enable_ui:
             cls.webserver_proc.terminate()
             cls.websocket_proc.terminate()
             launch(cls.config_file, cls.test_name, clean=True)
