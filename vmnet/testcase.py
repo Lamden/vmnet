@@ -35,6 +35,7 @@ class BaseNetworkTestCase(unittest.TestCase):
             launch(cls.config_file, cls.test_name, clean=True)
 
 class BaseTestCase(BaseNetworkTestCase):
+    enable_ui = True
     def setUp(self):
         self._set_configs(BaseTestCase, launch(self.config_file, self.id()))
         if not hasattr(self, '_launched') and not hasattr(self, 'disable_ui'):
@@ -43,10 +44,11 @@ class BaseTestCase(BaseNetworkTestCase):
             try: shutil.rmtree(log_dir)
             except: pass
             os.makedirs(log_dir, exist_ok=True)
-            self.webserver_proc, self.websocket_proc = start_ui(self.id(), self.project_path)
+            if self.enable_ui:
+                self.webserver_proc, self.websocket_proc = start_ui(self.id(), self.project_path)
 
     def tearDown(self):
-        if hasattr(self, 'webserver_proc'):
+        if hasattr(self, 'webserver_proc') and self.enable_ui:
             self.webserver_proc.terminate()
             self.websocket_proc.terminate()
         launch(self.config_file, self.test_name, clean=True)

@@ -1,7 +1,7 @@
 import time, os
 
-def file_listener(test, callback, failure, timeout):
-    fname = '{}/fsock'.format(test.project_path)
+def file_listener(test, callback, failure, timeout, fname='fsock'):
+    fname = os.path.join(test.project_path, fname)
     if os.path.exists(fname):
         os.remove(fname)
     open(fname, 'w+').close()
@@ -19,6 +19,6 @@ def file_listener(test, callback, failure, timeout):
                 break
             time.sleep(0.01)
 
-def send_to_file(data):
-    with open('fsock', 'a+') as f:
+def send_to_file(data, fname='fsock'):
+    with open(fname, 'a+') as f:
         f.write('{}\n'.format(data))
