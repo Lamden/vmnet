@@ -14,7 +14,7 @@ class BaseNetworkTestCase(unittest.TestCase):
 
     @classmethod
     def end_test(cls):
-        launch(cls.config_file, cls.test_name, stop=True)
+        os.environ['TEST_COMPLETE'] = '1'
 
     @classmethod
     def execute_python(cls, node, fn, python_version=3.6, profiling=None, async=True):

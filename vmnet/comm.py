@@ -17,6 +17,8 @@ def file_listener(test, callback, failure, timeout, fname='fsock'):
                 os.remove(fname)
                 failure()
                 break
+            if os.getenv('TEST_COMPLETE'):
+                break
             time.sleep(0.01)
 
 def send_to_file(data, fname='fsock'):
