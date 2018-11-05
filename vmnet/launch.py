@@ -1,14 +1,12 @@
-import json, yaml, os, time, docker
+import json, yaml, os, time, subprocess
 from os.path import basename, dirname, join, abspath
-from docker.utils import kwargs_from_env
-
-client = docker.APIClient(
-    version='1.37', timeout=60, **kwargs_from_env()
-)
 
 GATEWAY = "252"
 IPRANGE = "172.29"
 SUBNET = "172.29.0.0"
+
+def _run_command(command):
+    return subprocess.check_output(command.split(' ')).decode()
 
 def _generate_compose_file(config_file, test_name='sample_test'):
     dc = {}
@@ -116,8 +114,8 @@ def _build(config_file, rebuild=False):
             if built.get(service['image']): continue
             if rebuild: _build_image(service['image'])
             else:
-                try: client.inspect_image(service['image'])
-                except: _build_image(service['image'])
+                if not service['image'] in _run_command('docker images'):
+                    _build_image(service['image'])
             built[service['image']] = True
 
 def run(config_file):
@@ -133,12 +131,8 @@ def run(config_file):
         while True:
             for s in services:
                 if containers_up.get(s): continue
-                try:
-                    c = client.containers(filters={'name': s, 'status':'running'})
-                    if not c: continue
-                    containers_up[s] = c
-                except Exception as e:
-                    pass
+                if s in _run_command('docker ps'):
+                    containers_up[s] = True
             if len(services) == len(containers_up):
                 break
             time.sleep(0.5)
@@ -177,11 +171,8 @@ def _destroy(config_file):
     with open(config_file) as f:
         config = json.loads(f.read())
         for service in config["services"]:
-            try:
-                client.inspect_image(service['image'])
+            if service['image'] in _run_command('docker images'):
                 os.system('docker rmi -f {}'.format(service['image']))
-            except:
-                pass
 
 def launch(config_file, test_name, clean=False, destroy=False, build=False, stop=False):
     configs = _generate_compose_file(config_file, test_name)

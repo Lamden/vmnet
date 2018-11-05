@@ -2,16 +2,13 @@ from websocket_server import WebsocketServer
 from multiprocessing import Process
 from sanic import Sanic
 from sanic.response import file
-from docker.utils import kwargs_from_env
 from coloredlogs.converter import convert
 from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
-import docker, os, webbrowser, sys, time, json
+import os, webbrowser, sys, time, json
 
 WEBUI_PORT = 4320
 WS_PORT = 4321
 STATIC_ROOT = join(dirname(__file__), 'static')
-
-client = docker.APIClient(version='1.37', timeout=60, **kwargs_from_env())
 
 def _start_webserver():
     app = Sanic(__name__)

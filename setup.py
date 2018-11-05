@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys
 
-__version__ = '0.2.31'
+__version__ = '0.2.33'
 setup(
     name='vmnet',
     version=__version__,
@@ -13,7 +13,7 @@ setup(
     install_requires=open('requirements.txt').readlines(),
     url='https://github.com/Lamden/vmnet',
     author='Lamden',
-    email='team@lamden.io',
+    author_email='team@lamden.io',
     include_package_data=True,
     classifiers=[
         'Programming Language :: Python :: 3.6',

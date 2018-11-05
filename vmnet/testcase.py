@@ -38,6 +38,7 @@ class BaseNetworkTestCase(unittest.TestCase):
             cls.webserver_proc.terminate()
             cls.websocket_proc.terminate()
             launch(cls.config_file, cls.test_name, clean=True)
+        os.system('rm ./tmp_*.py')
 
 class BaseTestCase(BaseNetworkTestCase):
     enable_ui = True
