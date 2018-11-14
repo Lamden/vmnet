@@ -29,7 +29,7 @@ $ mkdir config_folder/
 ```
 
 2. Use an image file such as this one, we'll call it `config_folder/docknet_base`:
-```
+```text
 FROM alpine:3.7
 COPY . /app
 WORKDIR /app
@@ -45,7 +45,7 @@ CMD python3 -m http.server
 ```
 
 3. Use a configuration file like this, we'll name it `config_folder/nodes.json`:
-```
+```json
 {
     "services": [
         {
