@@ -31,16 +31,16 @@ $ mkdir config_folder/
 2. Use an image file such as this one, we'll call it `config_folder/docknet_base`:
 ```text
 FROM alpine:3.7
-  
+ 
 COPY . /app
 WORKDIR /app
 EXPOSE 8080
-  
+ 
 RUN apk update \
    && apk add --update --no-cache python3 py-pip python3-dev build-base \
    && pip3 install vmnet --upgrade --no-cache-dir \
    && apk del py-pip python3-dev
-  
+ 
 CMD python3 -m http.server
 ```
 
@@ -87,7 +87,7 @@ $ vment -f /path/to/your_application/config_folder/nodes.json -d
 ```python
 import unittest
 from vmnet.testcase import BaseTestCase
-  
+ 
 def hello():
     import time
     from vmnet.logger import get_logger
@@ -95,7 +95,7 @@ def hello():
     while True:
         log.critical('hello')
         time.sleep(1)
-  
+ 
 def world():
     import time
     from vmnet.logger import get_logger
@@ -103,14 +103,14 @@ def world():
     while True:
         log.important('world')
         time.sleep(1)
-  
+ 
 class TestExample(BaseTestCase):
     config_file = 'config_folder/node.json'
     def test_example(self):
         self.execute_python('node_1', hello)
         self.execute_python('node_2', world)
         input('Hit enter to terminate')
-  
+ 
 if __name__ == '__main__':
     unittest.main()
 ```
