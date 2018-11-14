@@ -45,7 +45,7 @@ CMD python3 -m http.server
 ```
 
 3. Use a configuration file like this, we'll name it `config_folder/nodes.json`:
-```json
+```
 {
     "services": [
         {
