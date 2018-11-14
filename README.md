@@ -33,14 +33,11 @@ $ mkdir config_folder/
 FROM alpine:3.7
 COPY . /app
 WORKDIR /app
-
 EXPOSE 8080
-
-RUN apk update
-RUN apk add --update --no-cache python3 py-pip python3-dev build-base
-RUN pip3 install vmnet --upgrade --no-cache-dir
-RUN apk del py-pip python3-dev
-
+RUN apk update \
+  && apk add --update --no-cache python3 py-pip python3-dev build-base \
+  && pip3 install vmnet --upgrade --no-cache-dir \
+  && apk del py-pip python3-dev
 CMD python3 -m http.server
 ```
 
