@@ -1,7 +1,22 @@
 from setuptools import setup, find_packages
-import sys
+import sys, os
 
-__version__ = '0.2.33'
+def include(path):
+    all_files = []
+    for root, dirs, files in os.walk(path):
+        all_files.append(
+            (root, [os.path.join(root, f) for f in files])
+        )
+    return all_files
+
+def package_data(path):
+    all_files = []
+    for root, dirs, files in os.walk(path):
+        all_files += [os.path.join(root, f) for f in files]
+    return all_files
+
+__version__ = '0.2.40'
+
 setup(
     name='vmnet',
     version=__version__,
@@ -14,6 +29,7 @@ setup(
     url='https://github.com/Lamden/vmnet',
     author='Lamden',
     author_email='team@lamden.io',
+    zip_safe=True,
     include_package_data=True,
     classifiers=[
         'Programming Language :: Python :: 3.6',

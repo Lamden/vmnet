@@ -4,11 +4,13 @@ from sanic import Sanic
 from sanic.response import file
 from coloredlogs.converter import convert
 from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
-import os, webbrowser, sys, time, json
+import os, webbrowser, sys, time, json, vmnet
 
 WEBUI_PORT = 4320
 WS_PORT = 4321
-STATIC_ROOT = join(dirname(__file__), 'static')
+
+vmnet_path = vmnet.__path__[0]
+STATIC_ROOT = join(vmnet_path, 'static')
 
 def _start_webserver():
     app = Sanic(__name__)
