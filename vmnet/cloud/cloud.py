@@ -8,9 +8,7 @@ class Cloud:
         self.config_file = config_file
         self.dir = dirname(config_file)
         with open(config_file) as f:
-            j = json.loads(f.read())
-            self.config = j['aws']
-            self.services = j['services']
+            self.config = json.loads(f.read())
         self.setup_working_dir()
 
     def setup_working_dir(self):
@@ -36,7 +34,6 @@ class Cloud:
                         if line['instruction'] == 'RUN':
                             tasks['run'].append(line['value'])
                         elif line['instruction'] == 'CMD':
-
                             tasks['cmd'] = line['value']
 
                     image_script = join(self.dir, 'scripts', '{}-setup.sh'.format(file))

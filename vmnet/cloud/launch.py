@@ -1,16 +1,34 @@
 from vmnet.cloud.aws import AWS
+import click
 
-def main():
-    import argparse
-    parser = argparse.ArgumentParser(description='Run your project on AWS')
-    parser.add_argument('--platform', '-p', help='Currently only support AWS', default='aws')
-    parser.add_argument('--config', '-c', help='Configuration JSON', required=True)
-    parser.add_argument('--build', '-b', help='Build the images specified in the config', action='store_true')
-    parser.add_argument('--up', '-u', help='Bring up the services and get it ready for vmnet to use', action='store_true')
-    parser.add_argument('--down', '-d', help='Stop and bring down the services', action='store_true')
-    parser.add_argument('--reload', '-r', help='Reload the code in the services', action='store_true')
-    args = parser.parse_args()
-    if args.platform == 'aws':
-        AWS(args.config, build=args.build, up=args.up, down=args.down, reload=args.reload)
-    else:
-        parser.print_help(sys.stderr)
+class API:
+    platform = None
+
+@click.command()
+@click.option('--image_name', '-n', help='Rebuild specific image in the config')
+@click.option('--all', '-a', help='Rebuild all images listed in the config', is_flag=True)
+def build(image_name, all):
+    assert image_name or all, 'Must specify --image_name -n or --all -a to build'
+    API.platform.build(image_name, all)
+
+@click.command()
+def up():
+    API.platform.up()
+
+@click.command()
+def down():
+    API.platform.down()
+
+@click.group()
+@click.option('--platform', '-p', help='Currently only support AWS', default='aws')
+@click.option('--config', '-c', help='Configuration JSON', required=True)
+def main(platform, config):
+    if platform == 'aws':
+        API.platform = AWS(config)
+
+main.add_command(build)
+main.add_command(up)
+main.add_command(down)
+
+if __name__ == '__main__':
+    main()
