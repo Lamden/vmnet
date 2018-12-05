@@ -54,15 +54,18 @@ class AWS(Cloud):
                 self.remove_ami(old_run_ami)
 
     def up(self):
+        self.down()
         print('#' * 64)
         print('    Brining up services on AWS...')
         print('#' * 64)
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
             image['security_group_id'] = self.update_security_groups(image)
+
+        instances = []
         for service in self.config['services']:
             image = self.config['aws']['images'][service['image']]
-            instances = ec2.create_instances(
+            instances += ec2.create_instances(
                 ImageId=image['run_ami'],
                 MinCount=service['count'],
                 MaxCount=service['count'],
@@ -71,9 +74,17 @@ class AWS(Cloud):
                 SecurityGroupIds=[image['security_group_id']],
                 TagSpecifications=[{
                     'ResourceType': 'instance',
-                    'Tags': [{'Key':'Name','Value':'{}:{}-run'.format(image['repo_name'], image['branch'])}]
+                    'Tags': [{'Key':'Name','Value':'{}:{}:{}-run'.format(
+                        image['repo_name'], image['branch'],
+                        service['name']
+                    )}]
                 }]
             )
+        self.wait_for_instances(instances)
+        self.find_instances(image, image['run_ami'])
+        print('Allocating {} elastic ips for {}...'.format(len(instances), image['name']))
+        for instance in instances:
+            self.allocate_elastic_ip(instance)
         print('Done.')
 
     def down(self):
@@ -91,12 +102,27 @@ class AWS(Cloud):
                 print('"run_ami" not found for {}, skipping...'.format(image['name']))
                 continue
             instances = self.find_instances(image, image['run_ami'])
+            print('Dallocating {} elastic ips for {}...'.format(len(instances), image['name']))
+            self.deallocate_all_elastic_ips([ins['PublicIpAddress'] for ins in instances])
             print('Terminating {} instances for {}...'.format(len(instances), image['name']))
             for instance in instances:
                 ins = ec2.Instance(instance['InstanceId'])
                 ins.terminate()
 
         print('Done.')
+
+    def allocate_elastic_ip(self, instance):
+        allocation = ec2_client.allocate_address(Domain='vpc')
+        response = ec2_client.associate_address(AllocationId=allocation['AllocationId'],
+                                         InstanceId=instance.id)
+
+    def deallocate_all_elastic_ips(self, public_ips):
+        try:
+            response = ec2_client.describe_addresses(PublicIps=public_ips)
+            for addr in response['Addresses']:
+                ec2_client.release_address(AllocationId=addr['AllocationId'])
+        except botocore.exceptions.ClientError as e:
+            print(e)
 
     def create_aws_key_pair(self, image):
         image_name = image['name']
@@ -118,15 +144,14 @@ class AWS(Cloud):
         vpc = list(ec2.vpcs.all())
         vpc_id = vpc[0].id
         print('#' * 64)
-        print('    Setting up security groups...')
+        print('    Setting up security groups for {}...'.format(image['name']))
         print('#' * 64)
         print('Creating Security Group "{}"...'.format(sg_name))
         try:
             response = ec2.create_security_group(GroupName=sg_name, Description=sg_desc, VpcId=vpc_id)
             security_group_id = response['GroupId']
-        except botocore.exceptions.ClientError:
-            # Already exist skipping step
-            pass
+        except botocore.exceptions.ClientError as e:
+            print(e)
         print('Done.')
         print('Setting permissions for Security Group "{}"...'.format(sg_name))
         for group in list(vpc[0].security_groups.all()):
@@ -282,12 +307,11 @@ class AWS(Cloud):
         instance_ids = set([ins.id for ins in instances])
         print('Waiting for instances: {}'.format(instance_ids))
         while True:
+            time.sleep(5)
             print('{}/{} instances is ready: {}'.format(len(ready), len(instance_ids), ready))
+            if len(ready) == len(instance_ids):
+                return [ec2.Instance(ins_id) for ins_id in instance_ids]
             response = ec2_client.describe_instance_status(InstanceIds=list(instance_ids-ready))
             for status in response['InstanceStatuses']:
                 if status['InstanceState']['Name'] == 'running':
                     ready.add(status['InstanceId'])
-                    if len(ready) == len(instance_ids):
-                        print('Success: all reaedy!')
-                        return [ec2.Instance(ins_id) for ins_id in instance_ids]
-            time.sleep(5)
