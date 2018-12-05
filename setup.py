@@ -21,7 +21,10 @@ setup(
     name='vmnet',
     version=__version__,
     entry_points={
-        'console_scripts': ['vmnet=vmnet.launch:main'],
+        'console_scripts': [
+            'vmnet=vmnet.launch:main',
+            'vmnet-cloud=vmnet.cloud.launch:main'
+        ],
     },
     description='A test-suite for distributed networks',
     packages=find_packages(exclude=['docs', 'examples']),

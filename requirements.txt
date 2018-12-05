@@ -1,5 +1,8 @@
+awscli==1.16.67
+boto3==1.9.57
 coloredlogs==10.0
 dill==0.2.8.2
+dockerfile-parse==0.0.13
 PyYAML==3.13
 sanic==0.8.3
 websocket-server==0.4
