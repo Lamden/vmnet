@@ -71,10 +71,7 @@ class AWS(Cloud):
                 SecurityGroupIds=[image['security_group_id']],
                 TagSpecifications=[{
                     'ResourceType': 'instance',
-                    'Tags': [
-                        {'Key':'Name','Value':'{}:{}'.format(image['repo_name'], image['branch'])},
-                        {'Key':'Mode','Value':'run'},
-                    ]
+                    'Tags': [{'Key':'Name','Value':'{}:{}-run'.format(image['repo_name'], image['branch'])}]
                 }]
             )
         print('Done.')
@@ -217,10 +214,7 @@ class AWS(Cloud):
             SecurityGroupIds=[security_group_id],
             TagSpecifications=[{
                 'ResourceType': 'instance',
-                'Tags': [
-                    {'Key':'Name','Value':'{}:{}'.format(image['repo_name'], image['branch'])},
-                    {'Key':'Mode','Value':'build'},
-                ]
+                'Tags': [{'Key':'Name','Value':'{}:{}-build'.format(image['repo_name'], image['branch'])}]
             }]
         )[0]
 
