@@ -11,7 +11,7 @@ ec2_client = boto3.client('ec2')
 
 class AWS(Cloud):
 
-    def __init__(self, config_file, build=False):
+    def __init__(self, config_file, build=False, up=False, down=False, reload=False):
 
         super().__init__(config_file)
 
@@ -19,17 +19,21 @@ class AWS(Cloud):
             raise Exception('You must first run "aws configure" to set-up your AWS credentials. Follow these steps from: https://blog.ipswitch.com/how-to-create-an-ec2-instance-with-python')
 
         for image in self.config['images']:
+
             image['tasks'] = self.parse_docker_file(image)
             self.create_aws_key_pair(image)
             security_group_id = self.set_aws_security_groups(image)
-            instance = self.find_instance(image)
+
+            if build or reload:
+                instance = self.find_instance(image, start=True)
+            else:
+                instance = self.find_instance(image)
+
             if build:
                 instance = self.build_aws_image(image, security_group_id, instance)
                 ami_id = self.upload_ami(image, instance)
-            else:
-                assert instnace, 'Instance is either not ready or does not exist. If it does not exist please run with --build.'
-                instance_ip = instance.public_ip_address if hasattr(instance, 'public_ip_address') else instance['PublicIpAddress']
-                self.update_aws_image_code(image, instance_ip)
+            elif reload:
+                self.update_aws_image_code(image, instance)
 
     def create_aws_key_pair(self, image):
         image_name = image['name']
@@ -86,7 +90,7 @@ class AWS(Cloud):
                 break
         return security_group_id
 
-    def find_instance(self, image):
+    def find_instance(self, image, start=False):
         response = ec2_client.describe_instances(Filters=[
             {
                 'Name': 'key-name',
@@ -94,7 +98,7 @@ class AWS(Cloud):
             },
             {
                 'Name': 'image-id',
-                'Values': [image['ami']]
+                'Values': [image['build_ami']]
             }
         ])
 
@@ -102,8 +106,12 @@ class AWS(Cloud):
             for ins in r['Instances']:
                 if ins['State']['Name'] == 'running':
                     return ins
+                elif start:
+                    _ins = ec2.Instance(ins['InstanceId']).start()
+                    self.wait_for_instances([_ins])
 
     def upload_ami(self, image, instance):
+
         if instance['State']['Name'] == 'running':
             print('#' * 64)
             print('    Creating and uploading image for "{}"...'.format(image['name']))
@@ -115,10 +123,12 @@ class AWS(Cloud):
                 NoReboot=True,
             )
             ec2_client.create_tags(Resources=[ami['ImageId']], Tags=[{'Key': 'Name', 'Value': image['name']}])
+
             print('#' * 64)
             print('    Tearing down build environment')
             print('#' * 64)
-            self.terminate_aws_instance(instance['InstanceId'])
+            ins = ec2.Instance(instance['InstanceId'])
+            ins.stop()
 
             print('#' * 64)
             print('    Building complete ami_id="{}"...'.format(ami['ImageId']))
@@ -130,7 +140,7 @@ class AWS(Cloud):
 
         if not instance:
             instance = ec2.create_instances(
-                ImageId=image['ami'],
+                ImageId=image['build_ami'],
                 MinCount=1,
                 MaxCount=1,
                 InstanceType=image['instance_type'],
@@ -176,7 +186,11 @@ class AWS(Cloud):
         except Exception as e:
             raise
 
-    def update_aws_image_code(self, image, instance_ip):
+    def update_aws_image_code(self, image, instance):
+
+
+
+
         print('#' * 64)
         print('    Cloning repository into AWS instance')
         print('#' * 64)
@@ -198,7 +212,3 @@ class AWS(Cloud):
                     if len(ready) == len(instances):
                         return
             time.sleep(5)
-
-    def terminate_aws_instance(self, instance_id):
-        ins = ec2.Instance(instance_id)
-        ins.terminate()
