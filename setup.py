@@ -15,13 +15,16 @@ def package_data(path):
         all_files += [os.path.join(root, f) for f in files]
     return all_files
 
-__version__ = '0.2.40'
+__version__ = '0.3.0'
 
 setup(
     name='vmnet',
     version=__version__,
     entry_points={
-        'console_scripts': ['vmnet=vmnet.launch:main'],
+        'console_scripts': [
+            'vmnet=vmnet.launch:main',
+            'vmnet-cloud=vmnet.cloud.launch:main'
+        ],
     },
     description='A test-suite for distributed networks',
     packages=find_packages(exclude=['docs', 'examples']),

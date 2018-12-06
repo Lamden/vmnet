@@ -1,6 +1,6 @@
 import inspect, re, dill, os
 
-def get_fn_str(fn, profiling):
+def get_fn_str(fn, profiling=False):
     return """
 import os, dill
 os.environ["PROFILING"] = "{profiling}"
@@ -40,3 +40,11 @@ def _clear_indents(s):
             return lines
         new_lines.append(pattern.sub('', line))
     return new_lines
+
+def load_test_envvar(test_name, test_id, host_name, host_ip):
+    return [
+        'TEST_NAME={}'.format(test_name),
+        'TEST_ID={}'.format(test_id),
+        'HOST_NAME={}'.format(host_name),
+        'HOST_IP={}'.format(host_ip)
+    ]

@@ -6,6 +6,17 @@ from os.path import dirname, abspath, join, splitext, expandvars, realpath, exis
 
 class BaseNetworkTestCase(unittest.TestCase):
 
+    print('''
+                               _
+     _   _ ____  ____  _____ _| |_
+    | | | |    \|  _ \| ___ (_   _)
+     \ V /| | | | | | | ____| | |_
+      \_/ |_|_|_|_| |_|_____)  \__)
+
+      Brought to you by Lamden.io
+
+    ''')
+
     enable_ui = True
     @staticmethod
     def _set_configs(klass, config):
@@ -38,15 +49,21 @@ class BaseNetworkTestCase(unittest.TestCase):
             cls.webserver_proc.terminate()
             cls.websocket_proc.terminate()
             launch(cls.config_file, cls.test_name, clean=True)
-        os.system('rm ./tmp_*.py')
+        os.system('rm -f ./tmp_*.py')
 
 class BaseTestCase(BaseNetworkTestCase):
+
     enable_ui = True
     def setUp(self):
-        self._set_configs(BaseTestCase, launch(self.config_file, self.id()))
-        if not hasattr(self, '_launched') and not hasattr(self, 'disable_ui'):
+        BaseNetworkTestCase._set_configs(BaseTestCase, launch(self.config_file, self.id()))
+        BaseNetworkTestCase.test_name, BaseNetworkTestCase.test_id = self.id().split('.')[-2:]
+        test_name = '{}.{}'.format(BaseNetworkTestCase.test_name, BaseNetworkTestCase.test_id)
+        print('#' * 128 + '\n')
+        print('    Running {}...\n'.format(test_name))
+        print('#' * 128 + '\n')
+        if not hasattr(self, '_launched'):
             self._launched = True
-            log_dir = join(self.project_path, 'logs', self.id())
+            log_dir = join(self.project_path, 'logs', test_name)
             try: shutil.rmtree(log_dir)
             except: pass
             os.makedirs(log_dir, exist_ok=True)

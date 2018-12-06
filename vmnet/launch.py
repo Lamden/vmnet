@@ -1,5 +1,6 @@
-import json, yaml, os, time, subprocess
+import json, yaml, os, time, subprocess, sys
 from os.path import basename, dirname, join, abspath
+from vmnet.parser import load_test_envvar
 
 GATEWAY = "252"
 IPRANGE = "172.29"
@@ -9,6 +10,11 @@ def _run_command(command):
     return subprocess.check_output(command.split(' ')).decode()
 
 def _generate_compose_file(config_file, test_name='sample_test'):
+    if not config_file:
+        return {}
+    print('_' * 128 + '\n')
+    print('    Generating docker-compose.yml for "{}"...'.format(test_name))
+    print('_' * 128 + '\n')
     dc = {}
     test_id = str(int(time.time()))
     with open(config_file) as f:
@@ -50,12 +56,8 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                 group_ips[service["name"]].append(ip_addr)
                 group_names[service["name"]].append(name)
                 nodemap[name] = ip_addr
-                envvar = [
-                    'TEST_NAME={}'.format(test_name),
-                    'TEST_ID={}'.format(test_id),
-                    'HOST_NAME={}'.format(name),
-                    'HOST_IP={}.{}.{}'.format(IPRANGE, int(ip/256.0), ip%256)
-                ]
+                envvar = load_test_envvar(test_name, test_id, name,
+                    '{}.{}.{}'.format(IPRANGE, int(ip/256.0), ip%256))
                 dc["services"][name] = {
                     "container_name": name,
                     "environment": envvar,
@@ -84,6 +86,8 @@ def _generate_compose_file(config_file, test_name='sample_test'):
     with open('docker-compose.yml', 'w+') as outfile:
         yaml.dump(dc, outfile, default_flow_style=False)
 
+    print('\nDone.\n')
+
     return {
         'test_name': test_name,
         'test_id': test_id,
@@ -93,8 +97,11 @@ def _generate_compose_file(config_file, test_name='sample_test'):
         'nodemap': nodemap
     }
 
-def _build(config_file, rebuild=False):
+def _build(config_file=None, rebuild=False, image_name=None):
     def _build_image(image):
+        print('_' * 128 + '\n')
+        print('    Building image "{}"'.format(image))
+        print('_' * 128 + '\n')
         dockerfile = None
         for root, dirs, files in os.walk(project_path):
             for file in files:
@@ -105,22 +112,36 @@ def _build(config_file, rebuild=False):
                         image, join(root, file),
                         project_path
                     ))
+        print('\nDone.\n')
 
-    with open(config_file) as f:
-        config = json.loads(f.read())
-        project_path = os.getenv('PROJECT_PATH', dirname(dirname(abspath(config_file))))
-        built = {}
-        for service in config["services"]:
-            if built.get(service['image']): continue
-            if rebuild: _build_image(service['image'])
-            else:
-                if not service['image'] in _run_command('docker images'):
-                    _build_image(service['image'])
-            built[service['image']] = True
+    if image_name:
+        for root, dirs, files in os.walk('.'):
+            for file in files:
+                if image_name == file:
+                    os.system('docker build {} -t {} -f {} {}'.format(
+                        '--no-cache' if rebuild else '',
+                        image_name, os.path.join(root, image_name),
+                        '.'
+                    ))
+    else:
+        with open(config_file) as f:
+            config = json.loads(f.read())
+            project_path = os.getenv('PROJECT_PATH', dirname(dirname(abspath(config_file))))
+            built = {}
+            for service in config["services"]:
+                if built.get(service['image']): continue
+                if rebuild: _build_image(service['image'])
+                else:
+                    if not service['image'] in _run_command('docker images'):
+                        _build_image(service['image'])
+                built[service['image']] = True
 
-def run(config_file):
+def _run(config_file):
     _stop()
     _build(config_file)
+    print('_' * 128 + '\n')
+    print('    Starting Docker Containers...')
+    print('_' * 128 + '\n')
     os.system('docker-compose up --remove-orphans &')
     ports, containers_up = {}, {}
     project_path = os.getenv('PROJECT_PATH', dirname(dirname(abspath(config_file))))
@@ -147,6 +168,9 @@ def run(config_file):
                 proc = os.popen(cmd)
                 ports[s][str(port)] = 'localhost:{}'.format(proc.read().strip())
                 proc.close()
+    print('_' * 128 + '\n')
+    print('    Docker Containers are now ready for use')
+    print('_' * 128 + '\n')
     return ports
 
 def _rm_network():
@@ -157,47 +181,92 @@ def _stop():
     with open('docker-compose.yml') as f:
         config = yaml.load(f)
         containers = ' '.join(list(config["services"].keys()))
+        print('_' * 128 + '\n')
+        print('    Killing Docker Containers {}...'.format(containers))
+        print('_' * 128 + '\n')
         os.system('docker kill {} 2>/dev/null'.format(containers))
         os.system('docker rm -f {} 2>/dev/null'.format(containers))
     _rm_network()
+    print('\nOk.\n')
 
 def _clean():
+    print('_' * 128 + '\n')
+    print('    Killing all Docker Containers...')
+    print('_' * 128 + '\n')
     os.system('echo "y" | docker network prune 1>/dev/null')
     os.system('docker kill $(docker ps -aq) 2>/dev/null')
     os.system('docker rm $(docker ps -aq) -f 2>/dev/null')
     _rm_network()
+    print('\nOk.\n')
 
-def _destroy(config_file):
-    with open(config_file) as f:
-        config = json.loads(f.read())
-        for service in config["services"]:
-            if service['image'] in _run_command('docker images'):
-                os.system('docker rmi -f {}'.format(service['image']))
+def _destroy(config_file=None, image_name=None):
 
-def launch(config_file, test_name, clean=False, destroy=False, build=False, stop=False):
-    configs = _generate_compose_file(config_file, test_name)
+    if not config_file:
+        print('_' * 128 + '\n')
+        print('    Wiping all Docker Images...')
+        print('_' * 128 + '\n')
+        os.system('docker rmi -f {}'.format(image_name))
+    else:
+        with open(config_file) as f:
+            config = json.loads(f.read())
+            print('_' * 128 + '\n')
+            print('    Wiping Docker Images for {}...'.format(config["services"].keys()))
+            print('_' * 128 + '\n')
+            for service in config["services"]:
+                if service['image'] in _run_command('docker images'):
+                    os.system('docker rmi -f {}'.format(service['image']))
+
+    print('\nOk.\n')
+
+def launch(config_file, test_name, clean=False, destroy=False, build=False, stop=False, project_path=None):
+
+    configs = None
+    if project_path:
+        os.environ['PROJECT_PATH'] = os.path.abspath(project_path)
     if stop:
         _stop()
     elif clean:
         _clean()
     elif destroy:
-        _destroy(config_file)
+        if type(destroy) == str:
+            _destroy(image_name=destroy)
+        else:
+            _destroy(config_file)
     elif build:
-        _build(config_file, rebuild=True)
+        configs = _generate_compose_file(config_file, test_name)
+        if type(build) == str:
+            _build(rebuild=True, image_name=build)
+        else:
+            _build(build)
     else:
-        _clean()
-        ports = run(config_file)
+        configs = _generate_compose_file(config_file, test_name)
+        if not config_file:
+            raise Exception('You must provide the path to the config file via --config_file or -f')
+        ports = _run(config_file)
         configs['ports'] = ports
+
     return configs
 
 def main():
+    print('''
+                               _
+     _   _ ____  ____  _____ _| |_
+    | | | |    \|  _ \| ___ (_   _)
+     \ V /| | | | | | | ____| | |_
+      \_/ |_|_|_|_| |_|_____)  \__)
+
+      Brought to you by Lamden.io
+
+    ''')
     import argparse
     parser = argparse.ArgumentParser(description='Run your project on a docker bridge network')
-    parser.add_argument('--config_file', '-f', help='.yml file which specifies the image, contexts and build of your services', required=True)
+    parser.add_argument('--config_file', '-f', help='.yml file which specifies the image, contexts and build of your services')
+    parser.add_argument('--project_path', '-p', help='Project path to run your code from', required=True)
     parser.add_argument('--test_name', '-t', help='name of your test', default='testname')
     parser.add_argument('--clean', '-c', action='store_true', help='remove all containers')
-    parser.add_argument('--destroy', '-d', action='store_true', help='remove all images and containers listed in the config')
-    parser.add_argument('--build', '-b', action='store_true', help='builds the image and does not run the container')
+    parser.add_argument('--destroy', '-d', help='remove all images and containers listed in the config')
+    parser.add_argument('--build', '-b', help='builds the image and does not run the container')
     parser.add_argument('--stop', '-s', action='store_true', help='stops and removes the containers for the specified config file')
     args = parser.parse_args()
-    launch(args.config_file, args.test_name, args.clean, args.destroy, args.build, args.stop)
+    if not launch(args.config_file, args.test_name, args.clean, args.destroy, args.build, args.stop, args.project_path):
+        parser.print_help(sys.stderr)
