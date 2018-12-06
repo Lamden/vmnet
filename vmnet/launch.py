@@ -182,7 +182,7 @@ def _stop():
         config = yaml.load(f)
         containers = ' '.join(list(config["services"].keys()))
         print('_' * 128 + '\n')
-        print('    Killing Docker Containers for {}...'.format(containers))
+        print('    Killing Docker Containers {}...'.format(containers))
         print('_' * 128 + '\n')
         os.system('docker kill {} 2>/dev/null'.format(containers))
         os.system('docker rm -f {} 2>/dev/null'.format(containers))

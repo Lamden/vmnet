@@ -49,7 +49,7 @@ class BaseNetworkTestCase(unittest.TestCase):
             cls.webserver_proc.terminate()
             cls.websocket_proc.terminate()
             launch(cls.config_file, cls.test_name, clean=True)
-        os.system('rm ./tmp_*.py')
+        os.system('rm -f ./tmp_*.py')
 
 class BaseTestCase(BaseNetworkTestCase):
 
