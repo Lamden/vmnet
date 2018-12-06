@@ -16,7 +16,7 @@ def world():
 class TestCloud(AWSTestCase):
 
     config_file = '../vmnet_configs/cilantro_mn.json'
-    keep_up = True
+    keep_up = False
     timeout = 30
 
     def test_cloud(self):
