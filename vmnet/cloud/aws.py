@@ -30,9 +30,9 @@ class AWS(Cloud):
             f.write(json.dumps(self.config, indent=4))
 
     def build(self, image_name, all):
-        print('#' * 64)
+        print('_' * 128 + '\n')
         print('    Building images on AWS...')
-        print('#' * 64)
+        print('_' * 128 + '\n')
         image_list = list(self.config['aws']['images'].keys()) if all else [image_name]
         for img in image_list:
             image = self.config['aws']['images'][img]
@@ -55,9 +55,9 @@ class AWS(Cloud):
 
     def up(self):
         self.down()
-        print('#' * 64)
+        print('_' * 128 + '\n')
         print('    Brining up services on AWS...')
-        print('#' * 64)
+        print('_' * 128 + '\n')
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
             image['security_group_id'] = self.update_security_groups(image)
@@ -79,6 +79,7 @@ class AWS(Cloud):
                         service['name']
                     )}]
                 }]
+                # TODO Add regions
             )
         self.wait_for_instances(instances)
         self.find_instances(image, image['run_ami'])
@@ -88,9 +89,9 @@ class AWS(Cloud):
         print('Done.')
 
     def down(self):
-        print('#' * 64)
+        print('_' * 128 + '\n')
         print('    Bringing down services on AWS...')
-        print('#' * 64)
+        print('_' * 128 + '\n')
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
             instances = self.find_instances(image, image['build_ami'])
@@ -135,7 +136,6 @@ class AWS(Cloud):
                 os.chmod(key_path, 0o400)
 
     def set_aws_security_groups(self, image):
-        # SECURITY GROUPS
         sg = self.config['aws']['security_groups'][image['security_group']]
         sg_name = sg['name']
         sg_desc = sg.get('description', sg_name)
@@ -143,9 +143,7 @@ class AWS(Cloud):
         security_group_id = None
         vpc = list(ec2.vpcs.all())
         vpc_id = vpc[0].id
-        print('#' * 64)
-        print('    Setting up security groups for {}...'.format(image['name']))
-        print('#' * 64)
+        print('<> Setting up security groups for {}...'.format(image['name']))
         print('Creating Security Group "{}"...'.format(sg_name))
         try:
             response = ec2.create_security_group(GroupName=sg_name, Description=sg_desc, VpcId=vpc_id)
@@ -202,9 +200,7 @@ class AWS(Cloud):
     def upload_ami(self, image, instance):
 
         if instance['State']['Name'] == 'running':
-            print('#' * 64)
-            print('    Creating and uploading image for "{}"...'.format(image['name']))
-            print('#' * 64)
+            print('<> Creating and uploading image for "{}"...'.format(image['name']))
             ami = ec2_client.create_image(
                 InstanceId=instance['InstanceId'],
                 Name=image['name'] + str(datetime.datetime.now().strftime("%Y%m%d%H%M")),
@@ -213,15 +209,11 @@ class AWS(Cloud):
             )
             ec2_client.create_tags(Resources=[ami['ImageId']], Tags=[{'Key': 'Name', 'Value': image['name']}])
 
-            print('#' * 64)
-            print('    Tearing down build environment')
-            print('#' * 64)
+            print('<> Tearing down build environment')
             ins = ec2.Instance(instance['InstanceId'])
             ins.stop()
 
-            print('#' * 64)
-            print('    Building complete ami_id="{}"...'.format(ami['ImageId']))
-            print('#' * 64)
+            print('<> Building complete ami_id="{}"...'.format(ami['ImageId']))
 
             return ami['ImageId']
 
@@ -249,32 +241,6 @@ class AWS(Cloud):
 
         return instance_ip
 
-    def execute_command(self, instance_ip, cmd, username, environment={}):
-
-        key = paramiko.RSAKey.from_private_key_file(self.key_path)
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-        try:
-            print('Sending command "{}" to {}'.format(cmd, instance_ip))
-            client.connect(hostname=instance_ip, username=username, pkey=key)
-
-            for c in cmd.split('&&'):
-                print('+ '+ c)
-                stdin, stdout, stderr = client.exec_command('sudo '+c, get_pty=True, environment=environment)
-                output = stdout.read().decode("utf-8")
-                if 'E: ' in output:
-                    stdin, stdout, stderr = client.exec_command(c, get_pty=True, environment=environment)
-                    output = stdout.read().decode("utf-8")
-                    if 'E: ' in output:
-                        raise Exception(output)
-                print(output)
-
-            client.close()
-
-        except Exception as e:
-            raise
-
     def start_aws_image(self, image, instance):
         ins = ec2.Instance(instance['InstanceId'])
         if instance['State']['Name'] == 'stopped': ins.start()
@@ -283,9 +249,7 @@ class AWS(Cloud):
 
     def update_aws_image_code(self, image, instance_ip):
 
-        print('#' * 64)
-        print('    Cloning repository into AWS instance')
-        print('#' * 64)
+        print('<> Cloning repository into AWS instance')
         for cmd in [
             'sudo rm -rf ./*',
             'git clone --single-branch -b {} {} .tmp_repo && echo "cloned."'.format(image['branch'], image['repo_url']),
@@ -296,9 +260,7 @@ class AWS(Cloud):
 
     def run_aws_image_setup_script(self, image, instance_ip):
 
-        print('#' * 64)
-        print('    Running setup scripts from Docker Image "{}" on AWS instance'.format(image['name']))
-        print('#' * 64)
+        print('<> Running setup scripts from Docker Image "{}" on AWS instance'.format(image['name']))
         for cmd in self.tasks[image['name']]['run']:
             self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
 

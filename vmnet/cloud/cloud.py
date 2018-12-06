@@ -42,3 +42,37 @@ class Cloud:
                         f.write('\n'.join(tasks) + '\n')
                         f.write('echo "{} is built successfully!"\n'.format(file))
                     return tasks
+
+    def execute_command(self, instance_ip, cmd, username, environment={}):
+
+        key = paramiko.RSAKey.from_private_key_file(self.key_path)
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        try:
+            print('Sending command "{}" to {}'.format(cmd, instance_ip))
+            client.connect(hostname=instance_ip, username=username, pkey=key)
+
+            for c in cmd.split('&&'):
+                print('+ '+ c)
+                stdin, stdout, stderr = client.exec_command('sudo '+c, get_pty=True, environment=environment)
+                output = stdout.read().decode("utf-8")
+                if 'E: ' in output:
+                    stdin, stdout, stderr = client.exec_command(c, get_pty=True, environment=environment)
+                    output = stdout.read().decode("utf-8")
+                    if 'E: ' in output:
+                        raise Exception(output)
+                print(output)
+
+            client.close()
+
+        except Exception as e:
+            raise
+
+    def send_file(self, instance_ip, username, fname, file_content):
+        key = paramiko.RSAKey.from_private_key_file(self.key_path)
+        t = paramiko.Transport((hostname, Port))
+        t.connect(key, username)
+        sftp = paramiko.SFTPClient.from_transport(t)
+        with sftp.open(fname, "w+") as f:
+            f.write(file_content)

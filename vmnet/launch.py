@@ -1,5 +1,6 @@
 import json, yaml, os, time, subprocess, sys
 from os.path import basename, dirname, join, abspath
+from vmnet.parser import load_test_envvar
 
 GATEWAY = "252"
 IPRANGE = "172.29"
@@ -52,12 +53,8 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                 group_ips[service["name"]].append(ip_addr)
                 group_names[service["name"]].append(name)
                 nodemap[name] = ip_addr
-                envvar = [
-                    'TEST_NAME={}'.format(test_name),
-                    'TEST_ID={}'.format(test_id),
-                    'HOST_NAME={}'.format(name),
-                    'HOST_IP={}.{}.{}'.format(IPRANGE, int(ip/256.0), ip%256)
-                ]
+                envvar = load_test_envvar(test_name, test_id, name,
+                    '{}.{}.{}'.format(IPRANGE, int(ip/256.0), ip%256))
                 dc["services"][name] = {
                     "container_name": name,
                     "environment": envvar,

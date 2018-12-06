@@ -65,7 +65,7 @@
       {
          "name":"delegate",
          "image":"cilantro_base",
-         "count":2,
+         "count":1,
          "ports":[
             443
          ]
