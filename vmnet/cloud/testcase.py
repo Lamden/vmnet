@@ -8,14 +8,14 @@ from threading import Thread
 class CloudNetworkTestCase(unittest.TestCase):
 
     print('''
-                                          _                 _
-                           _             | |               | |
- _   _ ____  ____  _____ _| |_ _____ ____| | ___  _   _  __| |
-| | | |    \|  _ \| ___ (_   _|_____) ___) |/ _ \| | | |/ _  |
- \ V /| | | | | | | ____| | |_     ( (___| | |_| | |_| ( (_| |
-  \_/ |_|_|_|_| |_|_____)  \__)     \____)\_)___/|____/ \____|
+                                              _                 _
+                               _             | |               | |
+     _   _ ____  ____  _____ _| |_ _____ ____| | ___  _   _  __| |
+    | | | |    \|  _ \| ___ (_   _|_____) ___) |/ _ \| | | |/ _  |
+     \ V /| | | | | | | ____| | |_     ( (___| | |_| | |_| ( (_| |
+      \_/ |_|_|_|_| |_|_____)  \__)     \____)\_)___/|____/ \____|
 
-                Brought to you by Lamden.io
+                    Brought to you by Lamden.io
 
     ''')
     keep_up = False
@@ -69,7 +69,7 @@ class CloudNetworkTestCase(unittest.TestCase):
         current_time = 0
         while current_time < self.timeout:
             if self._raise_error() == 'done':
-                
+
                 return
             current_time += 1
             time.sleep(1)

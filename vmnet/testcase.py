@@ -6,9 +6,21 @@ from os.path import dirname, abspath, join, splitext, expandvars, realpath, exis
 
 class BaseNetworkTestCase(unittest.TestCase):
 
+    print('''
+                               _
+     _   _ ____  ____  _____ _| |_
+    | | | |    \|  _ \| ___ (_   _)
+     \ V /| | | | | | | ____| | |_
+      \_/ |_|_|_|_| |_|_____)  \__)
+
+      Brought to you by Lamden.io
+
+    ''')
+
     enable_ui = True
     @staticmethod
     def _set_configs(klass, config):
+        print('xxxx')
         for c in config:
             setattr(klass, c, config[c])
 
@@ -41,10 +53,11 @@ class BaseNetworkTestCase(unittest.TestCase):
         os.system('rm ./tmp_*.py')
 
 class BaseTestCase(BaseNetworkTestCase):
+
     enable_ui = True
     def setUp(self):
-        self._set_configs(BaseTestCase, launch(self.config_file, self.id()))
-        if not hasattr(self, '_launched') and not hasattr(self, 'disable_ui'):
+        BaseNetworkTestCase._set_configs(BaseTestCase, launch(self.config_file, self.id()))
+        if not hasattr(self, '_launched'):
             self._launched = True
             log_dir = join(self.project_path, 'logs', self.id())
             try: shutil.rmtree(log_dir)
