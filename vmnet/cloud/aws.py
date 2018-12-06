@@ -85,7 +85,12 @@ class AWS(Cloud):
         self.find_instances(image, image['run_ami'])
         print('Allocating {} elastic ips for {}...'.format(len(instances), image['name']))
         for instance in instances:
-            self.allocate_elastic_ip(instance)
+            instance_ip = self.allocate_elastic_ip(instance)
+            for cmd in self.tasks[image['name']]['cmd']:
+                self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
+        print('Allocating {} elastic ips for {}...'.format(len(instances), image['name']))
+        self.find_instances(image, image['run_ami'])
+
         print('Done.')
 
     def down(self):
@@ -116,6 +121,7 @@ class AWS(Cloud):
         allocation = ec2_client.allocate_address(Domain='vpc')
         response = ec2_client.associate_address(AllocationId=allocation['AllocationId'],
                                          InstanceId=instance.id)
+        return response['PublicIp']
 
     def deallocate_all_elastic_ips(self, public_ips):
         try:
