@@ -219,7 +219,8 @@ def _destroy(config_file=None, image_name=None):
     print('\nOk.\n')
 
 def launch(config_file, test_name, clean=False, destroy=False, build=False, stop=False, project_path=None):
-    configs = _generate_compose_file(config_file, test_name)
+
+    configs = None
     if project_path:
         os.environ['PROJECT_PATH'] = os.path.abspath(project_path)
     if stop:
@@ -232,11 +233,13 @@ def launch(config_file, test_name, clean=False, destroy=False, build=False, stop
         else:
             _destroy(config_file)
     elif build:
+        configs = _generate_compose_file(config_file, test_name)
         if type(build) == str:
             _build(rebuild=True, image_name=build)
         else:
             _build(build)
     else:
+        configs = _generate_compose_file(config_file, test_name)
         if not config_file:
             raise Exception('You must provide the path to the config file via --config_file or -f')
         ports = _run(config_file)

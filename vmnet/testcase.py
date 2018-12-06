@@ -20,7 +20,6 @@ class BaseNetworkTestCase(unittest.TestCase):
     enable_ui = True
     @staticmethod
     def _set_configs(klass, config):
-        print('xxxx')
         for c in config:
             setattr(klass, c, config[c])
 
@@ -57,9 +56,14 @@ class BaseTestCase(BaseNetworkTestCase):
     enable_ui = True
     def setUp(self):
         BaseNetworkTestCase._set_configs(BaseTestCase, launch(self.config_file, self.id()))
+        BaseNetworkTestCase.test_name, BaseNetworkTestCase.test_id = self.id().split('.')[-2:]
+        test_name = '{}.{}'.format(BaseNetworkTestCase.test_name, BaseNetworkTestCase.test_id)
+        print('#' * 128 + '\n')
+        print('    Running {}...\n'.format(test_name))
+        print('#' * 128 + '\n')
         if not hasattr(self, '_launched'):
             self._launched = True
-            log_dir = join(self.project_path, 'logs', self.id())
+            log_dir = join(self.project_path, 'logs', test_name)
             try: shutil.rmtree(log_dir)
             except: pass
             os.makedirs(log_dir, exist_ok=True)
