@@ -213,6 +213,16 @@ def launch(config_file, test_name, clean=False, destroy=False, build=False, stop
     return configs
 
 def main():
+    print('''
+                           _
+ _   _ ____  ____  _____ _| |_
+| | | |    \|  _ \| ___ (_   _)
+ \ V /| | | | | | | ____| | |_
+  \_/ |_|_|_|_| |_|_____)  \__)
+
+  Brought to you by Lamden.io
+  
+    ''')
     import argparse
     parser = argparse.ArgumentParser(description='Run your project on a docker bridge network')
     parser.add_argument('--config_file', '-f', help='.yml file which specifies the image, contexts and build of your services')

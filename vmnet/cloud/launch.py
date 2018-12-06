@@ -23,6 +23,17 @@ def down():
 @click.option('--platform', '-p', help='Currently only support AWS', default='aws')
 @click.option('--config', '-c', help='Configuration JSON', required=True)
 def main(platform, config):
+    print('''
+                                          _                 _
+                           _             | |               | |
+ _   _ ____  ____  _____ _| |_ _____ ____| | ___  _   _  __| |
+| | | |    \|  _ \| ___ (_   _|_____) ___) |/ _ \| | | |/ _  |
+ \ V /| | | | | | | ____| | |_     ( (___| | |_| | |_| ( (_| |
+  \_/ |_|_|_|_| |_|_____)  \__)     \____)\_)___/|____/ \____|
+
+                Brought to you by Lamden.io
+
+    ''')
     if platform == 'aws':
         API.platform = AWS(config)
 

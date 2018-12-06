@@ -4,7 +4,7 @@ from pprint import pprint
 
 from vmnet.cloud.cloud import Cloud
 
-import boto3, botocore, paramiko
+import boto3, botocore
 ec2 = boto3.resource('ec2')
 ec2_client = boto3.client('ec2')
 
@@ -18,16 +18,11 @@ class AWS(Cloud):
         if not exists(expanduser('~/.aws/')):
             raise Exception('You must first run "aws configure" to set-up your AWS credentials. Follow these steps from: https://blog.ipswitch.com/how-to-create-an-ec2-instance-with-python')
 
-
     def update_security_groups(self, image):
         self.tasks[image['name']] = self.parse_docker_file(image)
         self.create_aws_key_pair(image)
         security_group_id = self.set_aws_security_groups(image)
         return security_group_id
-
-    def update_config(self):
-        with open(self.config_file, 'w+') as f:
-            f.write(json.dumps(self.config, indent=4))
 
     def build(self, image_name, all):
         print('_' * 128 + '\n')
@@ -38,14 +33,14 @@ class AWS(Cloud):
             image = self.config['aws']['images'][img]
             old_run_ami = self.config['aws']['images'][image['name']].get('run_ami')
             security_group_id = self.update_security_groups(image)
-            instances = self.find_instances(image, image['build_ami'])
+            instances = self.find_aws_instances(image, image['build_ami'])
             if len(instances) == 0:
                 instance_ip = self.build_aws_image(image, security_group_id)
             else:
                 instance_ip = self.start_aws_image(image, instances[0])
-            instance = self.find_instances(image, image['build_ami'])[0]
-            self.update_aws_image_code(image, instance_ip)
-            self.run_aws_image_setup_script(image, instance_ip)
+            instance = self.find_aws_instances(image, image['build_ami'])[0]
+            self.update_image_code(image, instance_ip)
+            self.run_image_setup_script(image, instance_ip)
             ec2.Instance(instance['InstanceId']).terminate()
             ami_id = self.upload_ami(image, instance)
             self.config['aws']['images'][image['name']]['run_ami'] = ami_id
@@ -53,15 +48,19 @@ class AWS(Cloud):
             if old_run_ami:
                 self.remove_ami(old_run_ami)
 
-    def up(self):
-        self.down()
-        print('_' * 128 + '\n')
-        print('    Brining up services on AWS...')
-        print('_' * 128 + '\n')
+    def up(self, keep_up=False):
+
+        if not keep_up: self.down()
+
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
             image['security_group_id'] = self.update_security_groups(image)
 
+        if keep_up and len(self.find_aws_instances(image, image['run_ami'])) > 0: return
+
+        print('_' * 128 + '\n')
+        print('    Brining up services on AWS...')
+        print('_' * 128 + '\n')
         instances = []
         for service in self.config['services']:
             image = self.config['aws']['images'][service['image']]
@@ -82,15 +81,14 @@ class AWS(Cloud):
                 # TODO Add regions
             )
         self.wait_for_instances(instances)
-        self.find_instances(image, image['run_ami'])
+        self.find_aws_instances(image, image['run_ami'])
         print('Allocating {} elastic ips for {}...'.format(len(instances), image['name']))
-        for instance in instances:
-            instance_ip = self.allocate_elastic_ip(instance)
-            for cmd in self.tasks[image['name']]['cmd']:
-                self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
-        print('Allocating {} elastic ips for {}...'.format(len(instances), image['name']))
-        self.find_instances(image, image['run_ami'])
-
+        ips = [self.allocate_elastic_ip(instance) for instance in instances]
+        time.sleep(5)
+        print('Executing CMD for {}...'.format(image['name']))
+        cmd = self.tasks[image['name']]['cmd']
+        for instance_ip in ips:
+            self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
         print('Done.')
 
     def down(self):
@@ -99,7 +97,7 @@ class AWS(Cloud):
         print('_' * 128 + '\n')
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
-            instances = self.find_instances(image, image['build_ami'])
+            instances = self.find_aws_instances(image, image['build_ami'])
             print('Stopping the build instance for {}...'.format(image['name']))
             for instance in instances:
                 ins = ec2.Instance(instance['InstanceId'])
@@ -107,7 +105,7 @@ class AWS(Cloud):
             if not image.get('run_ami'):
                 print('"run_ami" not found for {}, skipping...'.format(image['name']))
                 continue
-            instances = self.find_instances(image, image['run_ami'])
+            instances = self.find_aws_instances(image, image['run_ami'])
             print('Dallocating {} elastic ips for {}...'.format(len(instances), image['name']))
             self.deallocate_all_elastic_ips([ins['PublicIpAddress'] for ins in instances])
             print('Terminating {} instances for {}...'.format(len(instances), image['name']))
@@ -121,7 +119,7 @@ class AWS(Cloud):
         allocation = ec2_client.allocate_address(Domain='vpc')
         response = ec2_client.associate_address(AllocationId=allocation['AllocationId'],
                                          InstanceId=instance.id)
-        return response['PublicIp']
+        return allocation['PublicIp']
 
     def deallocate_all_elastic_ips(self, public_ips):
         try:
@@ -149,7 +147,9 @@ class AWS(Cloud):
         security_group_id = None
         vpc = list(ec2.vpcs.all())
         vpc_id = vpc[0].id
-        print('<> Setting up security groups for {}...'.format(image['name']))
+        print('_' * 128 + '\n')
+        print('    Setting up security groups for {}...'.format(image['name']))
+        print('_' * 128 + '\n')
         print('Creating Security Group "{}"...'.format(sg_name))
         try:
             response = ec2.create_security_group(GroupName=sg_name, Description=sg_desc, VpcId=vpc_id)
@@ -183,7 +183,7 @@ class AWS(Cloud):
                 break
         return security_group_id
 
-    def find_instances(self, image, ami_id):
+    def find_aws_instances(self, image, ami_id):
         if not ami_id: return []
         instances = []
         filters = [
@@ -206,7 +206,9 @@ class AWS(Cloud):
     def upload_ami(self, image, instance):
 
         if instance['State']['Name'] == 'running':
-            print('<> Creating and uploading image for "{}"...'.format(image['name']))
+            print('_' * 128 + '\n')
+            print('    Creating and uploading image for "{}"...'.format(image['name']))
+            print('_' * 128 + '\n')
             ami = ec2_client.create_image(
                 InstanceId=instance['InstanceId'],
                 Name=image['name'] + str(datetime.datetime.now().strftime("%Y%m%d%H%M")),
@@ -215,11 +217,11 @@ class AWS(Cloud):
             )
             ec2_client.create_tags(Resources=[ami['ImageId']], Tags=[{'Key': 'Name', 'Value': image['name']}])
 
-            print('<> Tearing down build environment')
+            print('Tearing down build environment')
             ins = ec2.Instance(instance['InstanceId'])
             ins.stop()
 
-            print('<> Building complete ami_id="{}"...'.format(ami['ImageId']))
+            print('Building complete ami_id="{}"...'.format(ami['ImageId']))
 
             return ami['ImageId']
 
@@ -241,9 +243,10 @@ class AWS(Cloud):
             }]
         )[0]
 
-        instances = self.wait_for_instances([instance])
-        time.sleep(10)
-        instance_ip = instances[0].public_ip_address
+        self.wait_for_instances([instance])
+        time.sleep(5)
+        instances = self.find_aws_instances(image, image['build_ami'])
+        instance_ip = instances[0]['PublicIpAddress']
 
         return instance_ip
 
@@ -252,23 +255,6 @@ class AWS(Cloud):
         if instance['State']['Name'] == 'stopped': ins.start()
         instances = self.wait_for_instances([ins])
         return instances[0].public_ip_address
-
-    def update_aws_image_code(self, image, instance_ip):
-
-        print('<> Cloning repository into AWS instance')
-        for cmd in [
-            'sudo rm -rf ./*',
-            'git clone --single-branch -b {} {} .tmp_repo && echo "cloned."'.format(image['branch'], image['repo_url']),
-            'sudo mv .tmp_repo/* ./',
-            'sudo rm -rf ./.tmp_repo'
-        ]:
-            self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
-
-    def run_aws_image_setup_script(self, image, instance_ip):
-
-        print('<> Running setup scripts from Docker Image "{}" on AWS instance'.format(image['name']))
-        for cmd in self.tasks[image['name']]['run']:
-            self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
 
     def wait_for_instances(self, instances):
         ready = set()

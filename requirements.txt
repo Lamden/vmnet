@@ -4,6 +4,7 @@ Click==7.0
 coloredlogs==10.0
 dill==0.2.8.2
 dockerfile-parse==0.0.13
+python-gssapi==0.6.4
 PyYAML==3.13
 sanic==0.8.3
 websocket-server==0.4
