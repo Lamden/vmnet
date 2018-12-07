@@ -32,9 +32,7 @@ class Cloud:
 
     def setup_working_dir(self):
         certs_dir = join(self.dir, 'certs')
-        scripts_dir = join(self.dir, 'scripts')
         os.makedirs(certs_dir, exist_ok=True)
-        os.makedirs(scripts_dir, exist_ok=True)
 
     def parse_docker_file(self, image):
 
@@ -56,11 +54,6 @@ class Cloud:
                         elif line['instruction'] == 'CMD':
                             tasks['cmd'] = line['value']
 
-                    image_script = join(self.dir, 'scripts', '{}-setup.sh'.format(file))
-                    with open(image_script, 'w+') as f:
-                        f.write('echo "Building {} ..."\n'.format(file))
-                        f.write('\n'.join(tasks) + '\n')
-                        f.write('echo "{} is built successfully!"\n'.format(file))
                     return tasks
 
     def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_q=False):
