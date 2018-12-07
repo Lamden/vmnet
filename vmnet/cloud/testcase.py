@@ -1,9 +1,10 @@
-import unittest, asyncio, os, shutil, sys, queue, time
+import unittest, asyncio, os, shutil, sys, time
 from vmnet.cloud.aws import AWS
 from vmnet.parser import get_fn_str, load_test_envvar
 from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
 from pprint import pprint
 from threading import Thread
+from vmnet.cloud.cloud import Cloud
 
 class CloudNetworkTestCase(unittest.TestCase):
 
@@ -19,7 +20,6 @@ class CloudNetworkTestCase(unittest.TestCase):
 
     ''')
     keep_up = False
-    exec_q = queue.Queue()
     timeout = 30
 
     @staticmethod
@@ -29,6 +29,8 @@ class CloudNetworkTestCase(unittest.TestCase):
 
     def setUp(self):
         self.envvar = {}
+        CloudNetworkTestCase.all_nodes = set()
+        CloudNetworkTestCase.all_loaded_nodes = set()
         CloudNetworkTestCase.test_name, CloudNetworkTestCase.test_id = self.id().split('.')[-2:]
         print('#' * 128 + '\n')
         print('    Running {}.{}...\n'.format(CloudNetworkTestCase.test_name, CloudNetworkTestCase.test_id))
@@ -38,11 +40,15 @@ class CloudNetworkTestCase(unittest.TestCase):
     def execute_python(cls, node, fn, python_version=3.6):
         def _run():
             try:
+                CloudNetworkTestCase.all_nodes.add(node)
                 cls.api.send_file(instance_ip, username, fname, fn_str)
+                while len(CloudNetworkTestCase.all_loaded_nodes) < len(CloudNetworkTestCase.all_nodes):
+                    CloudNetworkTestCase.all_loaded_nodes.add(node)
+                    time.sleep(1)
                 cls.api.execute_command(instance_ip, 'python3 {}'.format(fname), username, immediate_raise=True)
-                cls.exec_q.put('done')
+                Cloud.q.put(node)
             except Exception as e:
-                cls.exec_q.put(sys.exc_info())
+                Cloud.q.put(sys.exc_info())
 
         fname = 'tmp_exec_code_{}_{}_{}.py'.format(node, cls.__name__, fn.__name__)
         group = node.rsplit('_', 1)
@@ -68,25 +74,16 @@ class CloudNetworkTestCase(unittest.TestCase):
         print('_' * 128 + '\n')
         current_time = 0
         while current_time < self.timeout:
-            if self._raise_error() == 'done':
-
-                return
+            exc = Cloud._raise_error(self.api)
+            if exc != None:
+                if type(exc) == str:
+                    CloudNetworkTestCase.all_nodes.remove(exc)
+                else:
+                    raise exc[0].with_traceback(exc[1], exc[2])
+            if len(CloudNetworkTestCase.all_nodes) == 0: return
             current_time += 1
             time.sleep(1)
         raise Exception('{}.{} has timed out after {}s'.format(CloudNetworkTestCase.test_name, CloudNetworkTestCase.test_id, self.timeout))
-
-    @classmethod
-    def _raise_error(cls):
-        try:
-            exc = cls.exec_q.get(block=False)
-            return exc
-        except queue.Empty:
-            pass
-        else:
-            if not cls.keep_up:
-                print('Bringing down services...')
-                cls.api.down()
-            raise exc[0].with_traceback(exc[1], exc[2])
 
     @classmethod
     def execute_nodejs(cls, node, fname):

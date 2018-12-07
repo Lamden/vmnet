@@ -1,6 +1,7 @@
 import json, sys, os, time, datetime
 from os.path import join, exists, expanduser, dirname
 from pprint import pprint
+from threading import Thread
 
 from vmnet.cloud.cloud import Cloud
 
@@ -14,6 +15,7 @@ class AWS(Cloud):
 
         super().__init__(config_file)
         self.tasks = {}
+        self.threads = []
 
         if not exists(expanduser('~/.aws/')):
             raise Exception('You must first run "aws configure" to set-up your AWS credentials. Follow these steps from: https://blog.ipswitch.com/how-to-create-an-ec2-instance-with-python')
@@ -50,13 +52,33 @@ class AWS(Cloud):
 
     def up(self, keep_up=False):
 
+        def _update_instance(image, ip, cmd):
+            try:
+                self.update_image_code(image, instance_ip)
+                self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
+            except Exception:
+                Cloud.q.put(sys.exc_info())
+
         if not keep_up: self.down()
+
+        all_instances = []
 
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
             image['security_group_id'] = self.update_security_groups(image)
+            cmd = self.tasks[image['name']]['cmd']
+            instances = self.find_aws_instances(image, image['run_ami'])
+            if keep_up and len(instances) > 0:
+                for instance in instances:
+                    all_instances.append(instance)
+                    instance_ip = instance['PublicIpAddress']
+                    self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd,)))
 
-        if keep_up and len(self.find_aws_instances(image, image['run_ami'])) > 0: return
+        if keep_up and len(all_instances) != 0:
+            for t in self.threads: t.start()
+            for t in self.threads: t.join()
+            Cloud._raise_error()
+            return
 
         print('_' * 128 + '\n')
         print('    Brining up services on AWS...')
@@ -88,8 +110,10 @@ class AWS(Cloud):
         print('Executing CMD for {}...'.format(image['name']))
         cmd = self.tasks[image['name']]['cmd']
         for instance_ip in ips:
-            self.update_image_code(image, instance_ip)
-            self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
+            self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd,)))
+
+        for t in self.threads: t.start()
+        for t in self.threads: t.join()
         print('Done.')
 
     def down(self):

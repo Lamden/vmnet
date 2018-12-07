@@ -1,8 +1,10 @@
-import os, sys, json, paramiko, socket
+import os, sys, json, paramiko, socket, queue
 from dockerfile_parse import DockerfileParser
 from os.path import join, exists, expanduser, dirname
 
 class Cloud:
+
+    q = queue.Queue()
 
     def __init__(self, config_file):
         self.config_file = config_file
@@ -10,6 +12,19 @@ class Cloud:
         with open(config_file) as f:
             self.config = json.loads(f.read())
         self.setup_working_dir()
+
+    @classmethod
+    def _raise_error(cls, api=None):
+        try:
+            exc = Cloud.q.get(block=False)
+            return exc
+        except queue.Empty:
+            pass
+        else:
+            if api:
+                print('Bringing down services...')
+                api.down()
+            raise exc[0].with_traceback(exc[1], exc[2])
 
     def update_config(self):
         with open(self.config_file, 'w+') as f:
@@ -48,10 +63,10 @@ class Cloud:
                         f.write('echo "{} is built successfully!"\n'.format(file))
                     return tasks
 
-    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_errors=False):
+    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_q=False):
 
         def _has_err(out):
-            if ignore_errors: return False
+            if ignore_q: return False
             return out.channel.recv_exit_status() == 1
 
         key = paramiko.RSAKey.from_private_key_file(self.key_path)
@@ -92,19 +107,22 @@ class Cloud:
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(hostname=instance_ip, username=username, pkey=key)
         sftp = client.open_sftp()
-
-        with sftp.open(fname, "w+") as f:
+        with open(fname, 'w+') as f:
             f.write(file_content)
+        sftp.put(fname, fname, callback=None, confirm=True)
+        os.system('rm {}'.format(fname))
+        print('\ndone.\n')
 
     def update_image_code(self, image, instance_ip):
         print('_' * 128 + '\n')
         print('    Cloning repository into instance with ip {}'.format(instance_ip))
         print('_' * 128 + '\n')
         for cmd in [
-            'sudo rm -rf ./*',
-            'git clone --single-branch -b {} {} .tmp_repo && echo "cloned."'.format(image['branch'], image['repo_url']),
-            'sudo mv .tmp_repo/* ./',
-            'sudo rm -rf ./.tmp_repo'
+            'git init',
+            'git remote add origin {}'.format(image['repo_url']),
+            'git fetch origin',
+            'git checkout -b {} --track origin/{}'.format(image['branch'], image['branch']),
+            'git pull'
         ]:
             self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
 
