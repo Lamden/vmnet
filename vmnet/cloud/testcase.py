@@ -55,12 +55,12 @@ class CloudNetworkTestCase(unittest.TestCase):
         idx = int(group[1]) if len(group) == 2 else 0
         instance_ip = cls.group_ips[group[0]][idx]
         username = cls.images[node]['username']
-        environment = {
-            'TEST_NAME': CloudNetworkTestCase.test_name,
-            'TEST_ID': CloudNetworkTestCase.test_id,
-            'HOST_NAME': node,
-            'HOST_IP': instance_ip
-        }
+        environment = load_test_envvar(
+            test_name=CloudNetworkTestCase.test_name,
+            test_id=CloudNetworkTestCase.test_id,
+            host_name=node,
+            host_ip=instance_ip
+        )
         environment.update(cls.environment)
         env_str = 'import os\n'
         env_str += '\n'.join(['os.environ["{}"]="{}"'.format(name, environment[name]) for name in environment])

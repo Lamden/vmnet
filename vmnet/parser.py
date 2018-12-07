@@ -1,4 +1,6 @@
-import inspect, re, dill, os
+import inspect, re, dill, os, uuid
+
+GLOBAL_SEED = uuid.uuid4().hex
 
 def get_fn_str(fn, profiling=False):
     return """
@@ -46,5 +48,7 @@ def load_test_envvar(test_name, test_id, host_name, host_ip):
         'TEST_NAME={}'.format(test_name),
         'TEST_ID={}'.format(test_id),
         'HOST_NAME={}'.format(host_name),
-        'HOST_IP={}'.format(host_ip)
+        'HOST_IP={}'.format(host_ip),
+        'RANDOM_SEED={}'.format(uuid.uuid4().hex),
+        'GLOBAL_SEED={}'.format(GLOBAL_SEED)
     ]
