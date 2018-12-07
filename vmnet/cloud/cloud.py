@@ -98,7 +98,7 @@ class Cloud:
 
     def update_image_code(self, image, instance_ip):
         print('_' * 128 + '\n')
-        print('    Cloning repository into instance with ip {}'.format(instance))
+        print('    Cloning repository into instance with ip {}'.format(instance_ip))
         print('_' * 128 + '\n')
         for cmd in [
             'sudo rm -rf ./*',

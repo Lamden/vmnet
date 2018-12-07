@@ -88,6 +88,7 @@ class AWS(Cloud):
         print('Executing CMD for {}...'.format(image['name']))
         cmd = self.tasks[image['name']]['cmd']
         for instance_ip in ips:
+            self.update_image_code(image, instance_ip)
             self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
         print('Done.')
 
