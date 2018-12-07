@@ -55,9 +55,9 @@ class BaseTestCase(BaseNetworkTestCase):
 
     enable_ui = True
     def setUp(self):
-        BaseNetworkTestCase._set_configs(BaseTestCase, launch(self.config_file, self.id()))
         BaseNetworkTestCase.test_name, BaseNetworkTestCase.test_id = self.id().split('.')[-2:]
         test_name = '{}.{}'.format(BaseNetworkTestCase.test_name, BaseNetworkTestCase.test_id)
+        BaseNetworkTestCase._set_configs(BaseTestCase, launch(self.config_file, test_name))
         print('#' * 128 + '\n')
         print('    Running {}...\n'.format(test_name))
         print('#' * 128 + '\n')
