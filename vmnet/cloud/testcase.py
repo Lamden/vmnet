@@ -8,9 +8,7 @@ from vmnet.cloud.cloud import Cloud
 
 class CloudNetworkTestCase(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        print('''
+    print('''
                                               _                 _
                                _             | |               | |
      _   _ ____  ____  _____ _| |_ _____ ____| | ___  _   _  __| |
@@ -20,7 +18,7 @@ class CloudNetworkTestCase(unittest.TestCase):
 
                     Brought to you by Lamden.io
 
-        ''')
+    ''')
     keep_up = False
     timeout = 30
 
