@@ -1,6 +1,7 @@
-import os, sys, json, paramiko, socket, queue
+import os, sys, json, paramiko, socket, queue, select, time
 from dockerfile_parse import DockerfileParser
 from os.path import join, exists, expanduser, dirname
+from vmnet.logger import get_logger
 
 class Cloud:
 
@@ -56,11 +57,20 @@ class Cloud:
 
                     return tasks
 
-    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_error=False):
+    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_error=False, source_env=False):
 
-        def _has_err(out):
-            if ignore_error: return False
-            return out.channel.recv_exit_status() == 1
+        def _run(ssh, command):
+            if source_env:
+                envvar_str = ''
+                for k,v in environment.items():
+                    envvar_str += '{}={}\n'.format(k,v)
+                command = 'echo "'+envvar_str+'" > .env; source .env; '+command
+            stdin, stdout, stderr = ssh.exec_command(command, get_pty=True, environment=environment)
+            output = stdout.read().decode("utf-8")
+            if output.strip():
+                print(output)
+            if stdout.channel.recv_exit_status() == 1:
+                raise Exception(output)
 
         key = paramiko.RSAKey.from_private_key_file(self.key_path)
         client = paramiko.SSHClient()
@@ -71,22 +81,14 @@ class Cloud:
         try:
             print('Sending commands to {}'.format(instance_ip))
             client.connect(hostname=instance_ip, username=username, pkey=key)
-
+            transport = client.get_transport()
             for c in cmd.split('&&'):
                 print('+ '+ c)
-                stdin, stdout, stderr = client.exec_command('sudo '+c, get_pty=True, environment=environment)
-                output = stdout.read().decode("utf-8")
-
-                if _has_err(stdout):
-                    if immediate_raise:
-                        raise Exception(output)
-                    else:
-                        stdin, stdout, stderr = client.exec_command(c, get_pty=True, environment=environment)
-                        output = stdout.read().decode("utf-8")
-                        if _has_err(stdout):
-                            raise Exception(output)
-
-                print(output)
+                if immediate_raise:
+                    _run(client, c)
+                else:
+                    try: _run(client, 'sudo '+c)
+                    except: _run(client, c)
 
             client.close()
 

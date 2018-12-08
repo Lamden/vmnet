@@ -21,6 +21,7 @@ class CloudNetworkTestCase(unittest.TestCase):
     ''')
     keep_up = False
     timeout = 30
+    all_nodes_ready = False
 
     @staticmethod
     def _set_configs(klass, config):
@@ -45,7 +46,8 @@ class CloudNetworkTestCase(unittest.TestCase):
                 while len(CloudNetworkTestCase.all_loaded_nodes) < len(CloudNetworkTestCase.all_nodes):
                     CloudNetworkTestCase.all_loaded_nodes.add(node)
                     time.sleep(1)
-                cls.api.execute_command(instance_ip, 'python3 {}'.format(fname), username, immediate_raise=True)
+                CloudNetworkTestCase.all_nodes_ready = True
+                cls.api.execute_command(instance_ip, 'python3 {}'.format(fname), username, immediate_raise=True, source_env=True)
                 Cloud.q.put(node)
             except Exception as e:
                 Cloud.q.put(sys.exc_info())
@@ -70,6 +72,8 @@ class CloudNetworkTestCase(unittest.TestCase):
         t.start()
 
     def tearDown(self):
+        while not CloudNetworkTestCase.all_nodes_ready:
+            time.sleep(1)
         print('_' * 128 + '\n')
         print('    Running test for a max of {}s'.format(self.timeout))
         print('_' * 128 + '\n')

@@ -89,11 +89,11 @@ def get_logger(name=''):
     os.makedirs(filedir, exist_ok=True)
 
     filehandlers = [
-        logging.FileHandler(filename),
-        ColoredFileHandler('{}_color'.format(filename)),
+        logging.FileHandler(filename, delay=True),
+        ColoredFileHandler('{}_color'.format(filename), delay=True),
         ColoredStreamHandler()
     ]
-    
+
     logging.basicConfig(
         format=format,
         handlers=filehandlers,
