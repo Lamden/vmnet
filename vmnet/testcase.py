@@ -6,7 +6,9 @@ from os.path import dirname, abspath, join, splitext, expandvars, realpath, exis
 
 class BaseNetworkTestCase(unittest.TestCase):
 
-    print('''
+    @classmethod
+    def setUpClass(cls):
+        print('''
                                _
      _   _ ____  ____  _____ _| |_
     | | | |    \|  _ \| ___ (_   _)
@@ -15,7 +17,7 @@ class BaseNetworkTestCase(unittest.TestCase):
 
       Brought to you by Lamden.io
 
-    ''')
+        ''')
 
     enable_ui = True
     @staticmethod

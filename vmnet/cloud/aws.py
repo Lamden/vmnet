@@ -159,13 +159,10 @@ class AWS(Cloud):
         key_file = 'ec2-{}.pem'.format(image_name)
         self.key_path = key_path = join(self.dir, 'certs', key_file)
         if not exists(key_path):
+            key_pair = ec2.create_key_pair(KeyName='ec2-{}'.format(image_name))
             with open(key_path, 'w+') as f:
-                try:
-                    key_pair = ec2.create_key_pair(KeyName='ec2-{}'.format(image_name))
-                    f.write(str(key_pair.key_material))
-                    os.chmod(key_path, 0o400)
-                except:
-                    print('Key already created...')
+                f.write(str(key_pair.key_material))
+            os.chmod(key_path, 0o400)
 
     def set_aws_security_groups(self, image):
         sg = self.config['aws']['security_groups'][image['security_group']]

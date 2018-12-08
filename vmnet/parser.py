@@ -43,8 +43,8 @@ def _clear_indents(s):
         new_lines.append(pattern.sub('', line))
     return new_lines
 
-def load_test_envvar(test_name, test_id, host_name, host_ip):
-    return [
+def load_test_envvar(test_name, test_id, host_name, host_ip, to_dict=False):
+    envvars = [
         'TEST_NAME={}'.format(test_name),
         'TEST_ID={}'.format(test_id),
         'HOST_NAME={}'.format(host_name),
@@ -52,3 +52,11 @@ def load_test_envvar(test_name, test_id, host_name, host_ip):
         'RANDOM_SEED={}'.format(uuid.uuid4().hex),
         'GLOBAL_SEED={}'.format(GLOBAL_SEED)
     ]
+    if to_dict:
+        environment = {}
+        for envvar in envvars:
+            e = envvar.rsplit('=', 1)
+            environment.update({e[0]: e[1]})
+        return environment
+    else:
+        return envvars

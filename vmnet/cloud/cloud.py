@@ -56,15 +56,17 @@ class Cloud:
 
                     return tasks
 
-    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_q=False):
+    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_error=False):
 
         def _has_err(out):
-            if ignore_q: return False
+            if ignore_error: return False
             return out.channel.recv_exit_status() == 1
 
         key = paramiko.RSAKey.from_private_key_file(self.key_path)
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        environment.update({'VMNET': 'True'})
 
         try:
             print('Sending commands to {}'.format(instance_ip))
@@ -111,11 +113,12 @@ class Cloud:
         print('    Cloning repository into instance with ip {}'.format(instance_ip))
         print('_' * 128 + '\n')
         for cmd in [
+            'sudo chown -R {} .'.format(image['username']),
             'git init',
             'git remote add origin {}'.format(image['repo_url']),
             'git fetch origin',
-            'git checkout -b {} --track origin/{}'.format(image['branch'], image['branch']),
-            'git pull'
+            'git checkout -f {}'.format(image['branch']),
+            'git pull origin {}'.format(image['branch'])
         ]:
             self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
 

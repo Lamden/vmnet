@@ -1,4 +1,4 @@
-import unittest, asyncio, os, shutil, sys, time
+import unittest, asyncio, os, shutil, sys, time, logging
 from vmnet.cloud.aws import AWS
 from vmnet.parser import get_fn_str, load_test_envvar
 from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
@@ -8,7 +8,9 @@ from vmnet.cloud.cloud import Cloud
 
 class CloudNetworkTestCase(unittest.TestCase):
 
-    print('''
+    @classmethod
+    def setUpClass(cls):
+        print('''
                                               _                 _
                                _             | |               | |
      _   _ ____  ____  _____ _| |_ _____ ____| | ___  _   _  __| |
@@ -18,7 +20,7 @@ class CloudNetworkTestCase(unittest.TestCase):
 
                     Brought to you by Lamden.io
 
-    ''')
+        ''')
     keep_up = False
     timeout = 30
 
@@ -52,14 +54,15 @@ class CloudNetworkTestCase(unittest.TestCase):
 
         fname = 'tmp_exec_code_{}_{}_{}.py'.format(node, cls.__name__, fn.__name__)
         group = node.rsplit('_', 1)
-        idx = int(group[1]) if len(group) == 2 else 0
+        idx = cls.groups[group[0]].index(node)
         instance_ip = cls.group_ips[group[0]][idx]
         username = cls.images[node]['username']
         environment = load_test_envvar(
             test_name=CloudNetworkTestCase.test_name,
             test_id=CloudNetworkTestCase.test_id,
             host_name=node,
-            host_ip=instance_ip
+            host_ip=instance_ip,
+            to_dict=True
         )
         environment.update(cls.environment)
         env_str = 'import os\n'
