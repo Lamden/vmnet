@@ -43,8 +43,8 @@ class AWS(Cloud):
             instance = self.find_aws_instances(image, image['build_ami'])[0]
             self.update_image_code(image, instance_ip)
             self.run_image_setup_script(image, instance_ip)
-            ec2.Instance(instance['InstanceId']).terminate()
             ami_id = self.upload_ami(image, instance)
+            ec2.Instance(instance['InstanceId']).terminate()
             self.config['aws']['images'][image['name']]['run_ami'] = ami_id
             self.update_config()
             if old_run_ami:
@@ -55,7 +55,7 @@ class AWS(Cloud):
         def _update_instance(image, ip, cmd):
             try:
                 self.update_image_code(image, ip)
-                self.execute_command(ip, cmd, image['username'], image.get('environment', {}), source_env=True)
+                self.execute_command(ip, cmd, image['username'], image.get('environment', {}))
             except Exception:
                 Cloud.q.put(sys.exc_info())
 
@@ -123,10 +123,10 @@ class AWS(Cloud):
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
             instances = self.find_aws_instances(image, image['build_ami'])
-            print('Stopping the build instance for {}...'.format(image['name']))
+            print('Terminating the build instance for {}...'.format(image['name']))
             for instance in instances:
                 ins = ec2.Instance(instance['InstanceId'])
-                ins.stop()
+                ins.terminate()
             if not image.get('run_ami'):
                 print('"run_ami" not found for {}, skipping...'.format(image['name']))
                 continue
@@ -251,7 +251,10 @@ class AWS(Cloud):
             return ami['ImageId']
 
     def remove_ami(self, ami_id):
-        ec2_client.deregister_image(ImageId=ami_id)
+        try:
+            ec2_client.deregister_image(ImageId=ami_id)
+        except:
+            pass
 
     def build_aws_image(self, image, security_group_id, instance=None):
 
@@ -269,7 +272,7 @@ class AWS(Cloud):
         )[0]
 
         self.wait_for_instances([instance])
-        time.sleep(5)
+        time.sleep(10)
         instances = self.find_aws_instances(image, image['build_ami'])
         instance_ip = instances[0]['PublicIpAddress']
 
@@ -277,9 +280,13 @@ class AWS(Cloud):
 
     def start_aws_image(self, image, instance):
         ins = ec2.Instance(instance['InstanceId'])
-        if instance['State']['Name'] == 'stopped': ins.start()
-        instances = self.wait_for_instances([ins])
-        return instances[0].public_ip_address
+        if instance['State']['Name'] == 'stopped':
+            ins.start()
+            instances = self.wait_for_instances([ins])
+            instance_ip = instances[0].public_ip_address
+        else:
+            instance_ip = instance['PublicIpAddress']
+        return instance_ip
 
     def wait_for_instances(self, instances):
         ready = set()

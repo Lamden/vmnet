@@ -1,6 +1,6 @@
 import os, sys, json, paramiko, socket, queue, select, time
 from dockerfile_parse import DockerfileParser
-from os.path import join, exists, expanduser, dirname
+from os.path import join, exists, expanduser, dirname, abspath
 from vmnet.logger import get_logger
 
 class Cloud:
@@ -8,9 +8,9 @@ class Cloud:
     q = queue.Queue()
 
     def __init__(self, config_file):
-        self.config_file = config_file
-        self.dir = dirname(config_file)
-        with open(config_file) as f:
+        self.config_file = abspath(config_file)
+        self.dir = dirname(self.config_file)
+        with open(self.config_file) as f:
             self.config = json.loads(f.read())
         self.setup_working_dir()
 
@@ -57,14 +57,9 @@ class Cloud:
 
                     return tasks
 
-    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_error=False, source_env=False):
+    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_error=False):
 
         def _run(ssh, command):
-            if source_env:
-                envvar_str = ''
-                for k,v in environment.items():
-                    envvar_str += '{}={}\n'.format(k,v)
-                command = 'echo "'+envvar_str+'" > .env; source .env; '+command
             stdin, stdout, stderr = ssh.exec_command(command, get_pty=True, environment=environment)
             output = stdout.read().decode("utf-8")
             if output.strip():
@@ -81,14 +76,16 @@ class Cloud:
         try:
             print('Sending commands to {}'.format(instance_ip))
             client.connect(hostname=instance_ip, username=username, pkey=key)
-            transport = client.get_transport()
             for c in cmd.split('&&'):
                 print('+ '+ c)
                 if immediate_raise:
                     _run(client, c)
                 else:
-                    try: _run(client, 'sudo '+c)
-                    except: _run(client, c)
+                    if c.startswith('sudo'):
+                        _run(client, c)
+                    else:
+                        try: _run(client, 'sudo '+c)
+                        except: _run(client, c)
 
             client.close()
 
