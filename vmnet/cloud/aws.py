@@ -54,8 +54,8 @@ class AWS(Cloud):
 
         def _update_instance(image, ip, cmd):
             try:
-                self.update_image_code(image, instance_ip)
-                self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
+                self.update_image_code(image, ip)
+                self.execute_command(ip, cmd, image['username'], image.get('environment', {}))
             except Exception:
                 Cloud.q.put(sys.exc_info())
 
