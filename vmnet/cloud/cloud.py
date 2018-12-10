@@ -60,6 +60,11 @@ class Cloud:
     def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_error=False):
 
         def _run(ssh, command):
+            env_str = ''
+            for k,v in environment.items():
+                env_str += '{}={}\n'.format(k,v)
+            if env_str != '':
+                command = 'echo "{}" > .env; source .env; '.format(env_str) + command
             stdin, stdout, stderr = ssh.exec_command(command, get_pty=True, environment=environment)
             output = stdout.read().decode("utf-8")
             if output.strip():
@@ -105,7 +110,7 @@ class Cloud:
             f.write(file_content)
         sftp.put(fname, fname, callback=None, confirm=True)
         os.system('rm {}'.format(fname))
-        print('\ndone.\n')
+        print('\n{} is done.\n'.format(instance_ip))
 
     def update_image_code(self, image, instance_ip):
         print('_' * 128 + '\n')

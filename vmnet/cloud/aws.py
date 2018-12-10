@@ -52,14 +52,25 @@ class AWS(Cloud):
 
     def up(self, keep_up=False):
 
-        def _update_instance(image, ip, cmd):
+        def _update_instance(image, ip, cmd, e={}):
             try:
                 self.update_image_code(image, ip)
-                self.execute_command(ip, cmd, image['username'], image.get('environment', {}))
+                e.update({'HOST_IP': ip})
+                e.update(image.get('environment', {}))
+                self.execute_command(ip, cmd, image['username'], e)
             except Exception:
                 Cloud.q.put(sys.exc_info())
 
         if not keep_up: self.down()
+
+        envvars = []
+        idx = 0
+        for service in self.config['services']:
+            for ct in range(service['count']):
+                envvars.append({
+                    'HOST_NAME': '{}_{}'.format(service['name'], idx)
+                })
+                idx += 1
 
         all_instances = []
 
@@ -69,10 +80,10 @@ class AWS(Cloud):
             cmd = self.tasks[image['name']]['cmd']
             instances = self.find_aws_instances(image, image['run_ami'])
             if keep_up and len(instances) > 0:
-                for instance in instances:
+                for idx, instance in enumerate(instances):
                     all_instances.append(instance)
                     instance_ip = instance['PublicIpAddress']
-                    self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd,)))
+                    self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, envvars[idx])))
 
         if keep_up and len(all_instances) != 0:
             for t in self.threads: t.start()
@@ -109,8 +120,8 @@ class AWS(Cloud):
         time.sleep(5)
         print('Executing CMD for {}...'.format(image['name']))
         cmd = self.tasks[image['name']]['cmd']
-        for instance_ip in ips:
-            self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd,)))
+        for idx, instance_ip in enumerate(ips):
+            self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, envvars[idx])))
 
         for t in self.threads: t.start()
         for t in self.threads: t.join()
