@@ -4,7 +4,7 @@ Click==7.0
 coloredlogs==10.0
 dill==0.2.8.2
 dockerfile-parse==0.0.13
-PyYAML==3.13
+PyYAML
 sanic==0.8.3
 websocket-server==0.4
 websockets==5.0.1

@@ -131,6 +131,7 @@ class AWS(Cloud):
         print('_' * 128 + '\n')
         print('    Bringing down services on AWS...')
         print('_' * 128 + '\n')
+
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
             instances = self.find_aws_instances(image, image['build_ami'])
@@ -149,6 +150,9 @@ class AWS(Cloud):
                 ins = ec2.Instance(instance['InstanceId'])
                 ins.terminate()
 
+        print('Removing unused snapshots')
+        self.remove_unused_snapshots()
+
         print('Done.')
 
     def allocate_elastic_ip(self, instance):
@@ -164,6 +168,15 @@ class AWS(Cloud):
                 ec2_client.release_address(AllocationId=addr['AllocationId'])
         except botocore.exceptions.ClientError as e:
             print(e)
+
+    def remove_unused_snapshots(self):
+        images = ec2.images.all()
+        images = [image.id for image in images]
+        for snapshot in ec2.snapshots.filter(OwnerIds=["my-account-id"]):
+            r = re.match(r".*for (ami-.*) from.*", snapshot.description)
+            if r:
+                if r.groups()[0] not in images:
+                    snapshot.delete()
 
     def create_aws_key_pair(self, image):
         image_name = image['name']
