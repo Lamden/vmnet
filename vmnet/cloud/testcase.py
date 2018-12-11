@@ -106,7 +106,6 @@ class AWSTestCase(CloudNetworkTestCase):
         cls.nodemap = {}
         cls.images = {}
         cls.environment = {}
-        instance_idx = 1
         for service in cls.api.config['services']:
             image = cls.api.config['aws']['images'][service['image']]
             instances = cls.api.find_aws_instances(image, image['run_ami'])
@@ -117,12 +116,11 @@ class AWSTestCase(CloudNetworkTestCase):
                 if service["count"] == 1:
                     name = service["name"]
                 else:
-                    name = '{}_{}'.format(service['name'], instance_idx)
+                    name = '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
                 cls.group_ips[service['name']].append(ip)
                 cls.groups[service['name']].append(name)
                 cls.nodemap[name] = ip
                 cls.images[name] = image
-                instance_idx += 1
 
         for group in cls.group_ips:
             cls.environment[group.upper()] = ','.join(cls.group_ips[group])

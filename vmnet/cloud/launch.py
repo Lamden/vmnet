@@ -1,5 +1,6 @@
 from vmnet.cloud.aws import AWS
-import click
+import click, vmnet
+from os.path import abspath, exists, join
 
 class API:
     platform = None
@@ -19,9 +20,15 @@ def up():
 def down():
     API.platform.down()
 
+@click.command()
+@click.option('--service_name', '-n', help='Service name of the node as specified in the config.')
+@click.option('--index', '-i', help='The node index number in the service', type=int, default=0)
+def ssh(service_name, index):
+    API.platform.ssh(service_name, index)
+
 @click.group()
 @click.option('--platform', '-p', help='Currently only support AWS', default='aws')
-@click.option('--config', '-c', help='Configuration JSON', required=True)
+@click.option('--config', '-c', help='Configuration JSON')
 def main(platform, config):
     print('''
                                               _                 _
@@ -34,12 +41,25 @@ def main(platform, config):
                     Brought to you by Lamden.io
 
     ''')
+    path = abspath(vmnet.__path__[0])
+    old_config = join(path, '.vmnet_previous_config')
+    if not config:
+        if not exists(old_config):
+            raise Exception('Please specify --config -c as it has not been set in the previous run.')
+        else:
+            with open(old_config) as f:
+                config = f.read().strip()
+                print('Old config found, using "{}"'.format(config))
+    else:
+        with open(old_config, 'w+') as f:
+            f.write(abspath(config))
     if platform == 'aws':
         API.platform = AWS(config)
 
 main.add_command(build)
 main.add_command(up)
 main.add_command(down)
+main.add_command(ssh)
 
 if __name__ == '__main__':
 

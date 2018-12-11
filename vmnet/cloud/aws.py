@@ -1,4 +1,4 @@
-import json, sys, os, time, datetime
+import json, sys, os, time, datetime, subprocess
 from os.path import join, exists, expanduser, dirname
 from pprint import pprint
 from threading import Thread
@@ -49,6 +49,27 @@ class AWS(Cloud):
             if old_run_ami:
                 self.remove_ami(old_run_ami)
 
+    def ssh(self, service_name=None, index=None):
+        assert service_name != None and index != None, 'Must provide --service_name -n and --index -i'
+        try: service = [s for s in self.config['services'] if s['name'] == service_name][0]
+        except: raise Exception('No service named "{}"'.format(service_name))
+        if index+1 > service['count']:
+            raise Exception('There are only {} nodes in {}'.format(service['count'], service_name))
+        image = self.config['aws']['images'][service['image']]
+        instance = self.find_aws_instances(image, image['run_ami'], [{
+            'Name': 'tag:Name',
+            'Values': ['{}:{}:{}-run'.format(image['repo_name'], image['branch'], service['name'])]
+        },{
+            'Name': 'launch-index',
+            'Values': [str(index)]
+        }])[0]
+        cert = join(self.certs_dir, 'ec2-{}.pem'.format(image['name']))
+        url = '{}@{}'.format(image['username'], instance['PublicDnsName'])
+        ssh = subprocess.Popen(["ssh", "-i", cert, url],
+                       shell=False)
+        ssh.wait()
+
+
     def up(self, keep_up=False):
 
         def _update_instance(image, ip, cmd, e={}, init=False):
@@ -62,19 +83,11 @@ class AWS(Cloud):
 
         if not keep_up: self.down()
 
-        envvars = []
-        idx = 0
-        for service in self.config['services']:
-            for ct in range(service['count']):
-                envvars.append({
-                    'HOST_NAME': '{}_{}'.format(service['name'], idx)
-                })
-                idx += 1
-
         all_instances = []
 
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
+            service = [s for s in self.config['services'] if s['image'] == image['name']][0]
             image['security_group_id'] = self.update_security_groups(image)
             cmd = self.tasks[image['name']]['cmd']
             instances = self.find_aws_instances(image, image['run_ami'])
@@ -82,7 +95,9 @@ class AWS(Cloud):
                 for idx, instance in enumerate(instances):
                     all_instances.append(instance)
                     instance_ip = instance['PublicIpAddress']
-                    self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, envvars[idx])))
+                    self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, {
+                        'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
+                    })))
 
         if keep_up and len(all_instances) != 0:
             for t in self.threads: t.start()
@@ -120,7 +135,9 @@ class AWS(Cloud):
         print('Executing CMD for {}...'.format(image['name']))
         cmd = self.tasks[image['name']]['cmd']
         for idx, instance_ip in enumerate(ips):
-            self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, envvars[idx], True)))
+            self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, {
+                'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
+            }, True)))
 
         for t in self.threads: t.start()
         for t in self.threads: t.join()
@@ -220,7 +237,7 @@ class AWS(Cloud):
                 break
         return security_group_id
 
-    def find_aws_instances(self, image, ami_id):
+    def find_aws_instances(self, image, ami_id, additional_filters=[]):
         if not ami_id: return []
         instances = []
         filters = [
@@ -232,7 +249,7 @@ class AWS(Cloud):
                 'Name': 'image-id',
                 'Values': [ami_id]
             }
-        ]
+        ] + additional_filters
         response = ec2_client.describe_instances(Filters=filters)
         for r in response['Reservations']:
             for ins in r['Instances']:

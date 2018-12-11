@@ -34,8 +34,8 @@ class Cloud:
             f.write(json.dumps(self.config, indent=4))
 
     def setup_working_dir(self):
-        certs_dir = join(self.dir, 'certs')
-        os.makedirs(certs_dir, exist_ok=True)
+        self.certs_dir = join(self.dir, 'certs')
+        os.makedirs(self.certs_dir, exist_ok=True)
 
     def parse_docker_file(self, image):
 
@@ -73,11 +73,11 @@ class Cloud:
             while True:
                 if stdout.channel.recv_ready():
                     out = stdout.channel.recv(1024).decode()
-                    if out == success_msg:
-                        return
+                    if success_msg in out: return
                     print(out, end='')
                 if stdout.channel.recv_stderr_ready():
                     err = stderr.channel.recv_stderr(len(stderr.channel.in_stderr_buffer)).decode()
+                    if success_msg in err: return
                     print(err)
                 if stdout.channel.exit_status_ready():
                     break
