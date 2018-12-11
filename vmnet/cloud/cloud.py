@@ -1,4 +1,4 @@
-import os, sys, json, paramiko, socket, queue, select, time
+import os, sys, json, paramiko, socket, queue, select, time, select
 from dockerfile_parse import DockerfileParser
 from os.path import join, exists, expanduser, dirname, abspath
 from vmnet.logger import get_logger
@@ -57,7 +57,7 @@ class Cloud:
 
                     return tasks
 
-    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, ignore_error=False):
+    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False):
 
         def _run(ssh, command):
             env_str = ''
@@ -65,34 +65,40 @@ class Cloud:
                 env_str += '{}={}\n'.format(k,v)
             if env_str != '':
                 command = 'echo "{}" > .env; source .env; '.format(env_str) + command
-            stdin, stdout, stderr = ssh.exec_command(command, get_pty=True, environment=environment)
-            output = stdout.read().decode("utf-8")
-            if output.strip():
-                print(output)
+
+            stdin, stdout, stderr = ssh.exec_command(command)
+            while True:
+                if stdout.channel.recv_ready():
+                    print(stdout.channel.recv(1024).decode(), end='')
+                if stdout.channel.recv_stderr_ready():
+                    print(stderr.channel.recv_stderr(len(stderr.channel.in_stderr_buffer)).decode())
+                if stdout.channel.exit_status_ready():
+                    break
+
             if stdout.channel.recv_exit_status() == 1:
-                raise Exception(output)
+                stderr.channel.recv_stderr(len(stderr.channel.in_stderr_buffer)).decode()
 
         key = paramiko.RSAKey.from_private_key_file(self.key_path)
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         environment.update({'VMNET': 'True'})
 
         try:
             print('Sending commands to {}'.format(instance_ip))
-            client.connect(hostname=instance_ip, username=username, pkey=key)
+            ssh.connect(hostname=instance_ip, username=username, pkey=key)
             for c in cmd.split('&&'):
                 print('+ '+ c)
                 if immediate_raise:
-                    _run(client, c)
+                    _run(ssh, c)
                 else:
                     if c.startswith('sudo'):
-                        _run(client, c)
+                        _run(ssh, c)
                     else:
-                        try: _run(client, 'sudo '+c)
-                        except: _run(client, c)
+                        try: _run(ssh, 'sudo '+c)
+                        except: _run(ssh, c)
 
-            client.close()
+            ssh.close()
 
         except Exception as e:
             raise
@@ -116,15 +122,19 @@ class Cloud:
         print('_' * 128 + '\n')
         print('    Cloning repository into instance with ip {}'.format(instance_ip))
         print('_' * 128 + '\n')
-        for cmd in [
-            'sudo chown -R {} .'.format(image['username']),
-            'git init',
-            'git remote add origin {}'.format(image['repo_url']),
-            'git fetch origin',
-            'git checkout -f {}'.format(image['branch']),
-            'git pull origin {}'.format(image['branch'])
-        ]:
-            self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
+        pull = 'git pull origin {}'.format(image['branch'])
+        try:
+            self.execute_command(instance_ip, pull, image['username'], image.get('environment', {}))
+        except:
+            for cmd in [
+                'sudo chown -R {} .'.format(image['username']),
+                'git init',
+                'git remote add origin {}'.format(image['repo_url']),
+                'git fetch origin',
+                'git checkout -f {}'.format(image['branch']),
+                pull
+            ]:
+                self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
 
     def run_image_setup_script(self, image, instance_ip):
         print('_' * 128 + '\n')

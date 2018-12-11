@@ -6,17 +6,6 @@ from os.path import dirname, abspath, join, splitext, expandvars, realpath, exis
 
 class BaseNetworkTestCase(unittest.TestCase):
 
-    print('''
-                               _
-     _   _ ____  ____  _____ _| |_
-    | | | |    \|  _ \| ___ (_   _)
-     \ V /| | | | | | | ____| | |_
-      \_/ |_|_|_|_| |_|_____)  \__)
-
-      Brought to you by Lamden.io
-
-    ''')
-
     enable_ui = True
     @staticmethod
     def _set_configs(klass, config):
@@ -52,6 +41,19 @@ class BaseNetworkTestCase(unittest.TestCase):
         os.system('rm -f ./tmp_*.py')
 
 class BaseTestCase(BaseNetworkTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        print('''
+                               _
+     _   _ ____  ____  _____ _| |_
+    | | | |    \|  _ \| ___ (_   _)
+     \ V /| | | | | | | ____| | |_
+      \_/ |_|_|_|_| |_|_____)  \__)
+
+      Brought to you by Lamden.io
+
+        ''')
 
     enable_ui = True
     def setUp(self):

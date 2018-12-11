@@ -8,17 +8,6 @@ from vmnet.cloud.cloud import Cloud
 
 class CloudNetworkTestCase(unittest.TestCase):
 
-    print('''
-                                              _                 _
-                               _             | |               | |
-     _   _ ____  ____  _____ _| |_ _____ ____| | ___  _   _  __| |
-    | | | |    \|  _ \| ___ (_   _|_____) ___) |/ _ \| | | |/ _  |
-     \ V /| | | | | | | ____| | |_     ( (___| | |_| | |_| ( (_| |
-      \_/ |_|_|_|_| |_|_____)  \__)     \____)\_)___/|____/ \____|
-
-                    Brought to you by Lamden.io
-
-    ''')
     keep_up = False
     timeout = 30
     all_nodes_ready = False
@@ -98,6 +87,17 @@ class AWSTestCase(CloudNetworkTestCase):
 
     @classmethod
     def setUpClass(cls):
+        print('''
+                                              _                 _
+                               _             | |               | |
+     _   _ ____  ____  _____ _| |_ _____ ____| | ___  _   _  __| |
+    | | | |    \|  _ \| ___ (_   _|_____) ___) |/ _ \| | | |/ _  |
+     \ V /| | | | | | | ____| | |_     ( (___| | |_| | |_| ( (_| |
+      \_/ |_|_|_|_| |_|_____)  \__)     \____)\_)___/|____/ \____|
+
+                    Brought to you by Lamden.io
+
+        ''')
         cls.api = AWS(cls.config_file)
         cls.api.up(cls.keep_up)
         cls.group_ips = {}
