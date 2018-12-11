@@ -130,13 +130,15 @@ class AWS(Cloud):
         self.wait_for_instances(instances)
         self.find_aws_instances(image, image['run_ami'])
         print('Allocating {} elastic ips for {}...'.format(len(instances), image['name']))
-        ips = [self.allocate_elastic_ip(instance) for instance in instances]
+        inss = [{'ip':self.allocate_elastic_ip(instance), 'instance': instance} for instance in instances]
         time.sleep(5)
         print('Executing CMD for {}...'.format(image['name']))
         cmd = self.tasks[image['name']]['cmd']
-        for idx, instance_ip in enumerate(ips):
+        for idx, obj in enumerate(inss):
+            instance_ip = obj['ip']
+            instance = obj['instance']
             self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, {
-                'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
+                'HOST_NAME': '{}_{}'.format(service['name'], instance.ami_launch_index)
             }, True)))
 
         for t in self.threads: t.start()
