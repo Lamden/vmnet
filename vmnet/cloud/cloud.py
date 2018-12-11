@@ -1,7 +1,6 @@
 import os, sys, json, paramiko, socket, queue, select, time, select
 from dockerfile_parse import DockerfileParser
 from os.path import join, exists, expanduser, dirname, abspath
-from vmnet.logger import get_logger
 
 class Cloud:
 
@@ -67,16 +66,17 @@ class Cloud:
                 command = 'echo "{}" > .env; source .env; '.format(env_str) + command
 
             stdin, stdout, stderr = ssh.exec_command(command)
+            err = None
             while True:
                 if stdout.channel.recv_ready():
                     print(stdout.channel.recv(1024).decode(), end='')
                 if stdout.channel.recv_stderr_ready():
-                    print(stderr.channel.recv_stderr(len(stderr.channel.in_stderr_buffer)).decode())
+                    err = stderr.channel.recv_stderr(len(stderr.channel.in_stderr_buffer)).decode()
                 if stdout.channel.exit_status_ready():
                     break
 
             if stdout.channel.recv_exit_status() == 1:
-                stderr.channel.recv_stderr(len(stderr.channel.in_stderr_buffer)).decode()
+                raise Exception(err)
 
         key = paramiko.RSAKey.from_private_key_file(self.key_path)
         ssh = paramiko.SSHClient()
