@@ -1,10 +1,13 @@
 import os, sys, json, paramiko, socket, queue, select, time, select
 from dockerfile_parse import DockerfileParser
 from os.path import join, exists, expanduser, dirname, abspath
+from vmnet.logger import get_logger
+from vmnet.cloud.comm import success_msg
 
 class Cloud:
 
     q = queue.Queue()
+
 
     def __init__(self, config_file):
         self.config_file = abspath(config_file)
@@ -66,16 +69,21 @@ class Cloud:
                 command = 'echo "{}" > .env; source .env; '.format(env_str) + command
 
             stdin, stdout, stderr = ssh.exec_command(command)
-            err = None
+            err = ''
             while True:
                 if stdout.channel.recv_ready():
-                    print(stdout.channel.recv(1024).decode(), end='')
+                    out = stdout.channel.recv(1024).decode()
+                    if out == success_msg:
+                        return
+                    print(out, end='')
                 if stdout.channel.recv_stderr_ready():
                     err = stderr.channel.recv_stderr(len(stderr.channel.in_stderr_buffer)).decode()
+                    print(err)
                 if stdout.channel.exit_status_ready():
                     break
 
-            if stdout.channel.recv_exit_status() == 1:
+            status = stdout.channel.recv_exit_status()
+            if status == 1 and err != '':
                 raise Exception(err)
 
         key = paramiko.RSAKey.from_private_key_file(self.key_path)
@@ -92,6 +100,7 @@ class Cloud:
                 if immediate_raise:
                     _run(ssh, c)
                 else:
+
                     if c.startswith('sudo'):
                         _run(ssh, c)
                     else:
@@ -118,14 +127,14 @@ class Cloud:
         os.system('rm {}'.format(fname))
         print('\n{} is done.\n'.format(instance_ip))
 
-    def update_image_code(self, image, instance_ip):
+    def update_image_code(self, image, instance_ip, init=False):
         print('_' * 128 + '\n')
         print('    Cloning repository into instance with ip {}'.format(instance_ip))
         print('_' * 128 + '\n')
         pull = 'git pull origin {}'.format(image['branch'])
-        try:
+        if init == False:
             self.execute_command(instance_ip, pull, image['username'], image.get('environment', {}))
-        except:
+        else:
             for cmd in [
                 'sudo chown -R {} .'.format(image['username']),
                 'git init',
