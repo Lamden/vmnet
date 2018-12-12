@@ -27,7 +27,7 @@ class CloudNetworkTestCase(unittest.TestCase):
         print('#' * 128 + '\n')
 
     @classmethod
-    def execute_python(cls, node, fn, python_version=3.6):
+    def execute_python(cls, node, fn, python_version=3.6, no_kill=False):
         def _run():
             try:
                 CloudNetworkTestCase.all_nodes.add(node)
@@ -36,7 +36,8 @@ class CloudNetworkTestCase(unittest.TestCase):
                     CloudNetworkTestCase.all_loaded_nodes.add(node)
                     time.sleep(1)
                 CloudNetworkTestCase.all_nodes_ready = True
-                cls.api.execute_command(instance_ip, 'pkill python{}'.format(python_version), username, immediate_raise=True)
+                if not no_kill:
+                    cls.api.execute_command(instance_ip, 'pkill python{}'.format(python_version), username, immediate_raise=True)
                 cls.api.execute_command(instance_ip, 'python{} {}'.format(python_version, fname), username, environment=environment, immediate_raise=True)
                 Cloud.q.put(node)
             except Exception as e:
@@ -105,10 +106,13 @@ class AWSTestCase(CloudNetworkTestCase):
         cls.groups = {}
         cls.nodemap = {}
         cls.images = {}
-        cls.environment = {}
+        cls.environment = {'VMNET': 'True'}
         for service in cls.api.config['services']:
             image = cls.api.config['aws']['images'][service['image']]
-            instances = cls.api.find_aws_instances(image, image['run_ami'])
+            instances = cls.api.find_aws_instances(image, image['run_ami'], additional_filters=[{
+                'Name': 'tag:Name',
+                'Values': ['{}:{}:{}-run'.format(image['repo_name'], image['branch'], service['name'])]
+            }])
             cls.group_ips[service['name']] = []
             cls.groups[service['name']] = []
             for instance in instances:

@@ -1,5 +1,5 @@
 import json, sys, os, time, datetime, subprocess
-from os.path import join, exists, expanduser, dirname
+from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
 
@@ -16,6 +16,7 @@ class AWS(Cloud):
         super().__init__(config_file)
         self.tasks = {}
         self.threads = []
+        self.keyname = 'ec2-{}'.format(splitext(basename(self.config_file))[0])
 
         if not exists(expanduser('~/.aws/')):
             raise Exception('You must first run "aws configure" to set-up your AWS credentials. Follow these steps from: https://blog.ipswitch.com/how-to-create-an-ec2-instance-with-python')
@@ -63,7 +64,7 @@ class AWS(Cloud):
             'Name': 'launch-index',
             'Values': [str(index)]
         }])[0]
-        cert = join(self.certs_dir, 'ec2-{}.pem'.format(image['name']))
+        cert = join(self.certs_dir, '{}-{}.pem'.format(self.keyname, image['name']))
         url = '{}@{}'.format(image['username'], instance['PublicDnsName'])
         ssh = subprocess.Popen(["ssh", "-i", cert, url],
                        shell=False)
@@ -116,7 +117,7 @@ class AWS(Cloud):
                 MinCount=service['count'],
                 MaxCount=service['count'],
                 InstanceType=image['instance_type'],
-                KeyName='ec2-{}'.format(image['name']),
+                KeyName='{}-{}'.format(self.keyname, image['name']),
                 SecurityGroupIds=[image['security_group_id']],
                 TagSpecifications=[{
                     'ResourceType': 'instance',
@@ -128,17 +129,16 @@ class AWS(Cloud):
                 # TODO Add regions
             )
         self.wait_for_instances(instances)
-        self.find_aws_instances(image, image['run_ami'])
-        print('Allocating {} elastic ips for {}...'.format(len(instances), image['name']))
-        inss = [{'ip':self.allocate_elastic_ip(instance), 'instance': instance} for instance in instances]
-        time.sleep(5)
+        instances = self.find_aws_instances(image, image['run_ami'])
+        # print('Allocating {} elastic ips for {}...'.format(len(instances), image['name']))
+        # inss = [{'ip':self.allocate_elastic_ip(instance), 'instance': instance} for instance in instances]
+        # time.sleep(5)
         print('Executing CMD for {}...'.format(image['name']))
         cmd = self.tasks[image['name']]['cmd']
-        for idx, obj in enumerate(inss):
-            instance_ip = obj['ip']
-            instance = obj['instance']
+        for idx, instance in enumerate(instances):
+            instance_ip = instance['PublicIpAddress']
             self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, {
-                'HOST_NAME': '{}_{}'.format(service['name'], instance.ami_launch_index)
+                'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
             }, True)))
 
         for t in self.threads: t.start()
@@ -185,10 +185,10 @@ class AWS(Cloud):
 
     def create_aws_key_pair(self, image):
         image_name = image['name']
-        key_file = 'ec2-{}.pem'.format(image_name)
+        key_file = '{}-{}.pem'.format(self.keyname, image['name'])
         self.key_path = key_path = join(self.dir, 'certs', key_file)
         if not exists(key_path):
-            key_pair = ec2.create_key_pair(KeyName='ec2-{}'.format(image_name))
+            key_pair = ec2.create_key_pair(KeyName='{}-{}'.format(self.keyname, image['name']))
             with open(key_path, 'w+') as f:
                 f.write(str(key_pair.key_material))
             os.chmod(key_path, 0o400)
@@ -245,7 +245,7 @@ class AWS(Cloud):
         filters = [
             {
                 'Name': 'key-name',
-                'Values': ['ec2-{}'.format(image['name'])]
+                'Values': ['{}-{}'.format(self.keyname, image['name'])]
             },
             {
                 'Name': 'image-id',
@@ -310,7 +310,7 @@ class AWS(Cloud):
             MinCount=1,
             MaxCount=1,
             InstanceType=image.get('build_instance_type', image['instance_type']),
-            KeyName='ec2-{}'.format(image['name']),
+            KeyName='{}-{}'.format(self.keyname, image['name']),
             SecurityGroupIds=[security_group_id],
             TagSpecifications=[{
                 'ResourceType': 'instance',

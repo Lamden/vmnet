@@ -124,7 +124,6 @@ class Cloud:
         with open(fname, 'w+') as f:
             f.write(file_content)
         sftp.put(fname, fname, callback=None, confirm=True)
-        os.system('rm {}'.format(fname))
         print('\n{} is done.\n'.format(instance_ip))
 
     def update_image_code(self, image, instance_ip, init=False):
