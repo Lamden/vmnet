@@ -58,6 +58,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                 nodemap[name] = ip_addr
                 envvar = load_test_envvar(test_name, test_id, name,
                     '{}.{}.{}'.format(IPRANGE, int(ip/256.0), ip%256))
+                envvar.append('VMNET_DOCKER=True')
                 dc["services"][name] = {
                     "container_name": name,
                     "environment": envvar,

@@ -76,7 +76,7 @@ class AWS(Cloud):
         def _update_instance(image, ip, cmd, e={}, init=False):
             try:
                 self.update_image_code(image, ip, init=init)
-                e.update({'HOST_IP': ip, 'VMNET': 'True'})
+                e.update({'HOST_IP': ip, 'VMNET_CLOUD': 'True'})
                 e.update(image.get('environment', {}))
                 self.execute_command(ip, cmd, image['username'], e)
             except Exception:

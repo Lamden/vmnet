@@ -90,7 +90,7 @@ class Cloud:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        environment.update({'VMNET': 'True'})
+        environment.update({'VMNET_CLOUD': 'True'})
 
         try:
             print('Sending commands to {}'.format(instance_ip))
