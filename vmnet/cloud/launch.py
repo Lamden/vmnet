@@ -41,18 +41,6 @@ def main(platform, config):
                     Brought to you by Lamden.io
 
     ''')
-    path = abspath(vmnet.__path__[0])
-    old_config = join(path, '.vmnet_previous_config')
-    if not config:
-        if not exists(old_config):
-            raise Exception('Please specify --config -c as it has not been set in the previous run.')
-        else:
-            with open(old_config) as f:
-                config = f.read().strip()
-                print('Old config found, using "{}"'.format(config))
-    else:
-        with open(old_config, 'w+') as f:
-            f.write(abspath(config))
     if platform == 'aws':
         API.platform = AWS(config)
 

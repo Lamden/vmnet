@@ -64,7 +64,7 @@ class AWS(Cloud):
             'Name': 'launch-index',
             'Values': [str(index)]
         }])[0]
-        cert = join(self.certs_dir, '{}-{}.pem'.format(self.keyname, image['name']))
+        cert = join(self.certs_dir, '{}.pem'.format(self.keyname))
         url = '{}@{}'.format(image['username'], instance['PublicDnsName'])
         ssh = subprocess.Popen(["ssh", "-i", cert, url],
                        shell=False)
@@ -117,7 +117,7 @@ class AWS(Cloud):
                 MinCount=service['count'],
                 MaxCount=service['count'],
                 InstanceType=image['instance_type'],
-                KeyName='{}-{}'.format(self.keyname, image['name']),
+                KeyName=self.keyname,
                 SecurityGroupIds=[image['security_group_id']],
                 TagSpecifications=[{
                     'ResourceType': 'instance',
@@ -132,7 +132,6 @@ class AWS(Cloud):
         instances = self.find_aws_instances(image, image['run_ami'])
         # print('Allocating {} elastic ips for {}...'.format(len(instances), image['name']))
         # inss = [{'ip':self.allocate_elastic_ip(instance), 'instance': instance} for instance in instances]
-        # time.sleep(5)
         print('Executing CMD for {}...'.format(image['name']))
         cmd = self.tasks[image['name']]['cmd']
         for idx, instance in enumerate(instances):
@@ -143,6 +142,7 @@ class AWS(Cloud):
 
         for t in self.threads: t.start()
         for t in self.threads: t.join()
+        Cloud._raise_error()
         print('Done.')
 
     def down(self):
@@ -185,13 +185,14 @@ class AWS(Cloud):
 
     def create_aws_key_pair(self, image):
         image_name = image['name']
-        key_file = '{}-{}.pem'.format(self.keyname, image['name'])
+        key_file = '{}.pem'.format(self.keyname)
         self.key_path = key_path = join(self.dir, 'certs', key_file)
         if not exists(key_path):
-            key_pair = ec2.create_key_pair(KeyName='{}-{}'.format(self.keyname, image['name']))
+            key_pair = ec2.create_key_pair(KeyName='{}'.format(self.keyname))
             with open(key_path, 'w+') as f:
                 f.write(str(key_pair.key_material))
             os.chmod(key_path, 0o400)
+        return key_path
 
     def set_aws_security_groups(self, image):
         sg = self.config['aws']['security_groups'][image['security_group']]
@@ -245,7 +246,7 @@ class AWS(Cloud):
         filters = [
             {
                 'Name': 'key-name',
-                'Values': ['{}-{}'.format(self.keyname, image['name'])]
+                'Values': [self.keyname]
             },
             {
                 'Name': 'image-id',
@@ -310,7 +311,7 @@ class AWS(Cloud):
             MinCount=1,
             MaxCount=1,
             InstanceType=image.get('build_instance_type', image['instance_type']),
-            KeyName='{}-{}'.format(self.keyname, image['name']),
+            KeyName=self.keyname,
             SecurityGroupIds=[security_group_id],
             TagSpecifications=[{
                 'ResourceType': 'instance',
@@ -343,6 +344,7 @@ class AWS(Cloud):
             time.sleep(5)
             print('{}/{} instances is ready: {}'.format(len(ready), len(instance_ids), ready))
             if len(ready) == len(instance_ids):
+                time.sleep(5)
                 return [ec2.Instance(ins_id) for ins_id in instance_ids]
             response = ec2_client.describe_instance_status(InstanceIds=list(instance_ids-ready))
             for status in response['InstanceStatuses']:

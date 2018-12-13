@@ -37,8 +37,8 @@ class CloudNetworkTestCase(unittest.TestCase):
                     time.sleep(1)
                 CloudNetworkTestCase.all_nodes_ready = True
                 if not no_kill:
-                    cls.api.execute_command(instance_ip, 'pkill python{}'.format(python_version), username, immediate_raise=True)
-                cls.api.execute_command(instance_ip, 'python{} {}'.format(python_version, fname), username, environment=environment, immediate_raise=True)
+                    cls.api.execute_command(instance_ip, 'sudo pkill python{}'.format(python_version), username, immediate_raise=True)
+                cls.api.execute_command(instance_ip, 'sudo python{} {}'.format(python_version, fname), username, environment=environment, immediate_raise=True)
                 Cloud.q.put(node)
             except Exception as e:
                 Cloud.q.put(sys.exc_info())

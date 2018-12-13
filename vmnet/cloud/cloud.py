@@ -1,15 +1,31 @@
-import os, sys, json, paramiko, socket, queue, select, time, select
+import os, sys, json, paramiko, socket, queue, select, time, select, vmnet
 from dockerfile_parse import DockerfileParser
 from os.path import join, exists, expanduser, dirname, abspath
 from vmnet.logger import get_logger
 from vmnet.cloud.comm import success_msg
+path = abspath(vmnet.__path__[0])
 
 class Cloud:
 
     q = queue.Queue()
 
 
-    def __init__(self, config_file):
+    def __init__(self, config_file=None):
+
+
+        old_config = join(path, '.vmnet_previous_config')
+        if not config_file:
+            if not exists(old_config):
+                raise Exception('Please specify --config -c as it has not been set in the previous run.')
+            else:
+                with open(old_config) as f:
+                    config_file = f.read().strip()
+                    print('Old config found, using "{}"'.format(config_file))
+        else:
+            with open(old_config, 'w+') as f:
+                f.write(abspath(config_file))
+
+
         self.config_file = abspath(config_file)
         self.dir = dirname(self.config_file)
         with open(self.config_file) as f:
