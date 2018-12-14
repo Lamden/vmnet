@@ -13,12 +13,14 @@ def build(image_name, all):
     API.platform.build(image_name, all)
 
 @click.command()
-def up():
-    API.platform.up()
+@click.option('--logging', '-l', help='Enable logging storage if the platform supports it', is_flag=True)
+def up(logging):
+    API.platform.up(logging=logging)
 
 @click.command()
-def down():
-    API.platform.down()
+@click.option('--destroy', '-d', help='Destroy resources for each platform as much as possible', is_flag=True)
+def down(destroy):
+    API.platform.down(destroy=destroy)
 
 @click.command()
 @click.option('--service_name', '-n', help='Service name of the node as specified in the config.')

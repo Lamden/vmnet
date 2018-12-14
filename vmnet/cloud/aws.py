@@ -1,13 +1,11 @@
-import json, sys, os, time, datetime, subprocess
+import json, sys, os, time, datetime, subprocess, logging
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
 
 from vmnet.cloud.cloud import Cloud
-
 import boto3, botocore
-ec2 = boto3.resource('ec2')
-ec2_client = boto3.client('ec2')
+
 
 class AWS(Cloud):
 
@@ -16,10 +14,45 @@ class AWS(Cloud):
         super().__init__(config_file)
         self.tasks = {}
         self.threads = []
-        self.keyname = 'ec2-{}'.format(splitext(basename(self.config_file))[0])
+        self.logging = False
+        self.keyname = 'ec2-{}'.format(self.config_name)
+        self.environment = self.config.get('environment', {})
+
+        instance_data_dir = join(self.dir, 'data')
+        os.makedirs(instance_data_dir, exist_ok=True)
+        self.instance_data_file = join(instance_data_dir, self.config_name + '.json')
 
         if not exists(expanduser('~/.aws/')):
             raise Exception('You must first run "aws configure" to set-up your AWS credentials. Follow these steps from: https://blog.ipswitch.com/how-to-create-an-ec2-instance-with-python')
+        else:
+            import s3fs
+            logging.getLogger('s3fs.core').setLevel(logging.WARNING)
+            self.boto_session = boto3.session.Session()
+            self.ec2 = boto3.resource('ec2')
+            self.ec2_client = boto3.client('ec2')
+            self.s3 = boto3.resource('s3')
+            self.fs = s3fs.S3FileSystem(anon=False)
+            self.log_config = self.environment.get('log', {
+                'freq': 1800,
+                'bucket': 'vmnet-{}'.format(self.config_name)
+            })
+            self.log_file = None
+
+    def log(self, msg):
+        print(msg, end='')
+        if self.logging:
+            self.log_file = '{}/{}'.format(self.log_config['bucket'], int(time.time() / self.log_config['freq']))
+            content = msg.encode()
+            try:
+                self.s3.create_bucket(Bucket=self.log_config['bucket'], CreateBucketConfiguration={'LocationConstraint': self.boto_session.region_name})
+            except: pass
+            try:
+                with self.fs.open(self.log_file, 'rb') as f:
+                    content = f.read() + content
+            except: pass
+            if len(content) == 0: return
+            with self.fs.open(self.log_file, 'wb') as f:
+                f.write(content)
 
     def update_security_groups(self, image):
         self.tasks[image['name']] = self.parse_docker_file(image)
@@ -71,7 +104,8 @@ class AWS(Cloud):
         ssh.wait()
 
 
-    def up(self, keep_up=False):
+    def up(self, keep_up=False, logging=False):
+        self.logging = logging
 
         def _update_instance(image, ip, cmd, e={}, init=False):
             try:
@@ -93,6 +127,7 @@ class AWS(Cloud):
             cmd = self.tasks[image['name']]['cmd']
             instances = self.find_aws_instances(image, image['run_ami'])
             if keep_up and len(instances) > 0:
+                self.allocate_elastic_ips(instances, image)
                 for idx, instance in enumerate(instances):
                     all_instances.append(instance)
                     instance_ip = instance['PublicIpAddress']
@@ -101,6 +136,7 @@ class AWS(Cloud):
                     })))
 
         if keep_up and len(all_instances) != 0:
+            self.save_instance_data(all_instances)
             for t in self.threads: t.start()
             for t in self.threads: t.join()
             Cloud._raise_error()
@@ -112,7 +148,7 @@ class AWS(Cloud):
         instances = []
         for service in self.config['services']:
             image = self.config['aws']['images'][service['image']]
-            instances += ec2.create_instances(
+            instances += self.ec2.create_instances(
                 ImageId=image['run_ami'],
                 MinCount=service['count'],
                 MaxCount=service['count'],
@@ -129,23 +165,27 @@ class AWS(Cloud):
                 # TODO Add regions
             )
         self.wait_for_instances(instances)
-        instances = self.find_aws_instances(image, image['run_ami'])
-        # print('Allocating {} elastic ips for {}...'.format(len(instances), image['name']))
-        # inss = [{'ip':self.allocate_elastic_ip(instance), 'instance': instance} for instance in instances]
-        print('Executing CMD for {}...'.format(image['name']))
-        cmd = self.tasks[image['name']]['cmd']
-        for idx, instance in enumerate(instances):
-            instance_ip = instance['PublicIpAddress']
-            self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, {
-                'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
-            }, True)))
+        all_instances = []
+        for img in self.config['aws']['images']:
+            image = self.config['aws']['images'][img]
+            instances = self.find_aws_instances(image, image['run_ami'])
+            instances = self.allocate_elastic_ips(instances, image)
+            print('Executing CMD for {}...'.format(image['name']))
+            cmd = self.tasks[image['name']]['cmd']
+            for idx, instance in enumerate(instances):
+                all_instances.append(instance)
+                instance_ip = instance['PublicIpAddress']
+                self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, {
+                    'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
+                }, True)))
 
+        self.save_instance_data(all_instances)
         for t in self.threads: t.start()
         for t in self.threads: t.join()
         Cloud._raise_error()
         print('Done.')
 
-    def down(self):
+    def down(self, destroy=False):
         print('_' * 128 + '\n')
         print('    Bringing down services on AWS...')
         print('_' * 128 + '\n')
@@ -154,32 +194,67 @@ class AWS(Cloud):
             instances = self.find_aws_instances(image, image['build_ami'])
             print('Terminating the build instance for {}...'.format(image['name']))
             for instance in instances:
-                ins = ec2.Instance(instance['InstanceId'])
+                ins = self.ec2.Instance(instance['InstanceId'])
                 ins.terminate()
             if not image.get('run_ami'):
                 print('"run_ami" not found for {}, skipping...'.format(image['name']))
                 continue
             instances = self.find_aws_instances(image, image['run_ami'])
-            print('Dallocating {} elastic ips for {}...'.format(len(instances), image['name']))
-            self.deallocate_all_elastic_ips([ins['PublicIpAddress'] for ins in instances])
+            self.deallocate_all_elastic_ips([ins['PublicIpAddress'] for ins in instances], image, release=destroy)
             print('Terminating {} instances for {}...'.format(len(instances), image['name']))
             for instance in instances:
-                ins = ec2.Instance(instance['InstanceId'])
+                ins = self.ec2.Instance(instance['InstanceId'])
                 ins.terminate()
 
         print('Done.')
 
-    def allocate_elastic_ip(self, instance):
-        allocation = ec2_client.allocate_address(Domain='vpc')
-        response = ec2_client.associate_address(AllocationId=allocation['AllocationId'],
-                                         InstanceId=instance.id)
-        return allocation['PublicIp']
+    def save_instance_data(self, instances):
+        with open(self.instance_data_file, 'w+') as f:
+            f.write(json.dumps([{
+                key: instance[key] for key in instance if key in \
+                    ('PublicIpAddress', 'Tags', 'AmiLaunchIndex')
+            } for instance in instances], indent=4))
+        print('Saved instance data to {}'.format(self.instance_data_file))
 
-    def deallocate_all_elastic_ips(self, public_ips):
+    def allocate_elastic_ips(self, instances, image):
+        print('{} elastic IPs in total are needed for {}...'.format(len(instances), image['name']))
+
+        instance_data = []
+        if exists(self.instance_data_file):
+            with open(self.instance_data_file) as f:
+                instance_data = json.loads(f.read())
+        addrs = self.ec2_client.describe_addresses()['Addresses']
+        ins_ids = set([addr.get('InstanceId') for addr in addrs])
+        if len(instance_data) == 0:
+            for instance in instances:
+                 print('Requesting a new IP for {}'.format(instance['InstanceId']))
+                 allocation = self.ec2_client.allocate_address(Domain='vpc')
+                 self.ec2_client.associate_address(AllocationId=allocation['AllocationId'],
+                                                  InstanceId=instance['InstanceId'])
+        else:
+            for instance in instances:
+                for ins in instance_data:
+                    if ins['Tags'] == instance['Tags'] and ins['AmiLaunchIndex'] == instance['AmiLaunchIndex']:
+                        if instance['InstanceId'] in ins_ids:
+                            print('No change for {}.'.format(instance['InstanceId']))
+                            break
+                        else:
+                            print('Associating IP {} to {}'.format(ins['PublicIpAddress'], instance['InstanceId']))
+                            self.ec2_client.associate_address(PublicIp=ins['PublicIpAddress'],
+                                                             InstanceId=instance['InstanceId'])
+                            break
+
+        return instances
+
+    def deallocate_all_elastic_ips(self, public_ips, image, release=False):
+        print('Dallocating {} elastic ips for {}...'.format(len(public_ips), image['name']))
         try:
-            response = ec2_client.describe_addresses(PublicIps=public_ips)
+            response = self.ec2_client.describe_addresses(PublicIps=public_ips)
             for addr in response['Addresses']:
-                ec2_client.release_address(AllocationId=addr['AllocationId'])
+                if release:
+                    self.ec2_client.release_address(AllocationId=addr['AllocationId'])
+                else:
+                    self.ec2_client.disassociate_address(PublicIp=addr['PublicIp'])
         except botocore.exceptions.ClientError as e:
             print(e)
 
@@ -188,7 +263,7 @@ class AWS(Cloud):
         key_file = '{}.pem'.format(self.keyname)
         self.key_path = key_path = join(self.dir, 'certs', key_file)
         if not exists(key_path):
-            key_pair = ec2.create_key_pair(KeyName='{}'.format(self.keyname))
+            key_pair = self.ec2.create_key_pair(KeyName='{}'.format(self.keyname))
             with open(key_path, 'w+') as f:
                 f.write(str(key_pair.key_material))
             os.chmod(key_path, 0o400)
@@ -200,14 +275,14 @@ class AWS(Cloud):
         sg_desc = sg.get('description', sg_name)
         permissions = sg['permissions']
         security_group_id = None
-        vpc = list(ec2.vpcs.all())
+        vpc = list(self.ec2.vpcs.all())
         vpc_id = vpc[0].id
         print('_' * 128 + '\n')
         print('    Setting up security groups for {}...'.format(image['name']))
         print('_' * 128 + '\n')
         print('Creating Security Group "{}"...'.format(sg_name))
         try:
-            response = ec2.create_security_group(GroupName=sg_name, Description=sg_desc, VpcId=vpc_id)
+            response = self.ec2.create_security_group(GroupName=sg_name, Description=sg_desc, VpcId=vpc_id)
             security_group_id = response['GroupId']
         except botocore.exceptions.ClientError as e:
             print(e)
@@ -253,7 +328,7 @@ class AWS(Cloud):
                 'Values': [ami_id]
             }
         ] + additional_filters
-        response = ec2_client.describe_instances(Filters=filters)
+        response = self.ec2_client.describe_instances(Filters=filters)
         for r in response['Reservations']:
             for ins in r['Instances']:
                 if ins['State']['Name'] == 'running':
@@ -267,14 +342,14 @@ class AWS(Cloud):
             print('    Creating and uploading image for "{}"...'.format(image['name']))
             print('_' * 128 + '\n')
             vol_id = instance['BlockDeviceMappings'][0]['Ebs']['VolumeId']
-            snapshot_id = ec2_client.create_snapshot(
+            snapshot_id = self.ec2_client.create_snapshot(
                 Description='Snapshot generated by vmnet for {}'.format(vol_id),
                 VolumeId=vol_id
             )['SnapshotId']
-            while ec2_client.describe_snapshots(Filters=[{'Name':'volume-id', 'Values': [vol_id]}])['Snapshots'][0]['State'] != 'completed':
+            while self.ec2_client.describe_snapshots(Filters=[{'Name':'volume-id', 'Values': [vol_id]}])['Snapshots'][0]['State'] != 'completed':
                 print('waiting for snapshot to be created...')
                 time.sleep(5)
-            ami = ec2_client.create_image(
+            ami = self.ec2_client.create_image(
                 InstanceId=instance['InstanceId'],
                 Name=image['name'] + str(datetime.datetime.now().strftime("%Y%m%d%H%M")),
                 Description='Image generated by vmnet for {}'.format(snapshot_id),
@@ -288,10 +363,10 @@ class AWS(Cloud):
                     },
                 }],
             )
-            ec2_client.create_tags(Resources=[ami['ImageId']], Tags=[{'Key': 'Name', 'Value': image['name']}])
+            self.ec2_client.create_tags(Resources=[ami['ImageId']], Tags=[{'Key': 'Name', 'Value': image['name']}])
 
             print('Tearing down build environment')
-            ins = ec2.Instance(instance['InstanceId'])
+            ins = self.ec2.Instance(instance['InstanceId'])
             ins.terminate()
 
             print('Building complete ami_id="{}"...'.format(ami['ImageId']))
@@ -300,13 +375,13 @@ class AWS(Cloud):
 
     def remove_ami(self, ami_id):
         try:
-            ec2_client.deregister_image(ImageId=ami_id)
+            self.ec2_client.deregister_image(ImageId=ami_id)
         except:
             pass
 
     def build_aws_image(self, image, security_group_id, instance=None):
 
-        instance = ec2.create_instances(
+        instance = self.ec2.create_instances(
             ImageId=image['build_ami'],
             MinCount=1,
             MaxCount=1,
@@ -327,7 +402,7 @@ class AWS(Cloud):
         return instance_ip
 
     def start_aws_image(self, image, instance):
-        ins = ec2.Instance(instance['InstanceId'])
+        ins = self.ec2.Instance(instance['InstanceId'])
         if instance['State']['Name'] == 'stopped':
             ins.start()
             instances = self.wait_for_instances([ins])
@@ -344,9 +419,8 @@ class AWS(Cloud):
             time.sleep(5)
             print('{}/{} instances is ready: {}'.format(len(ready), len(instance_ids), ready))
             if len(ready) == len(instance_ids):
-                time.sleep(5)
-                return [ec2.Instance(ins_id) for ins_id in instance_ids]
-            response = ec2_client.describe_instance_status(InstanceIds=list(instance_ids-ready))
+                return [self.ec2.Instance(ins_id) for ins_id in instance_ids]
+            response = self.ec2_client.describe_instance_status(InstanceIds=list(instance_ids-ready))
             for status in response['InstanceStatuses']:
                 if status['InstanceState']['Name'] == 'running':
                     ready.add(status['InstanceId'])

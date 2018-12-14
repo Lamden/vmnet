@@ -1,4 +1,4 @@
-import unittest, asyncio, os, shutil
+import unittest, asyncio, os, shutil, time
 from vmnet.launch import launch
 from vmnet.webserver import start_ui
 from vmnet.parser import get_fn_str
@@ -7,6 +7,7 @@ from os.path import dirname, abspath, join, splitext, expandvars, realpath, exis
 class BaseNetworkTestCase(unittest.TestCase):
 
     enable_ui = True
+    scripts = {}
     @staticmethod
     def _set_configs(klass, config):
         for c in config:
@@ -18,6 +19,7 @@ class BaseNetworkTestCase(unittest.TestCase):
 
     @classmethod
     def execute_python(cls, node, fn, python_version=3.6, profiling=None, async=True):
+
         fname = 'tmp_exec_code_{}_{}_{}.py'.format(node, cls.__name__, fn.__name__)
         fpath = join(cls.project_path, fname)
         with open(fpath, 'w+') as f:
@@ -26,7 +28,33 @@ class BaseNetworkTestCase(unittest.TestCase):
             os.system('docker cp {} {}:/app/'.format(fpath, node))
         exc_str = 'docker exec {} /usr/bin/python{} {} {}'.format(
             node, python_version, fname, '&' if async else '')
+        cls.scripts[node] = exc_str
         os.system(exc_str)
+
+    @classmethod
+    def stop_node(cls, node):
+        print('Stopping node {}...'.format(node))
+        os.system('docker-compose stop {}'.format(node))
+
+    @classmethod
+    def start_node(cls, node):
+        print('Starting node {}...'.format(node))
+        os.system('docker-compose start {}'.format(node))
+
+    @classmethod
+    def restart_node(cls, node, dead_time=0):
+        cls.stop_node(node)
+        if dead_time > 0:
+            print('waiting {}s until starting node...'.format(node))
+            time.sleep(dead_time)
+        cls.start_node(node)
+        print('Rerunning script for {}...'.format(node))
+        cls.rerun_node_script(node)
+
+    @classmethod
+    def rerun_node_script(cls, node):
+        assert cls.scripts.get(node), 'No previous execution found for node "{}"!'.format(node)
+        os.system(cls.scripts[node])
 
     @classmethod
     def execute_nodejs(cls, node, fname):

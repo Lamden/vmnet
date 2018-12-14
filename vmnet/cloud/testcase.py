@@ -11,6 +11,7 @@ class CloudNetworkTestCase(unittest.TestCase):
     keep_up = False
     timeout = 30
     all_nodes_ready = False
+    logging = False
 
     @staticmethod
     def _set_configs(klass, config):
@@ -101,7 +102,7 @@ class AWSTestCase(CloudNetworkTestCase):
 
         ''')
         cls.api = AWS(cls.config_file)
-        cls.api.up(cls.keep_up)
+        cls.api.up(cls.keep_up, cls.logging)
         cls.group_ips = {}
         cls.groups = {}
         cls.nodemap = {}

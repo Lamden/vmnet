@@ -40,6 +40,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
 
         # Generate services
         dc["services"] = {}
+        global_environment = ['{}={}'.format(k,v) for k,v in dc.get('environment', {}).items()]
         nodemap = {}
         group_ips = {}
         group_names = {}
@@ -61,7 +62,7 @@ def _generate_compose_file(config_file, test_name='sample_test'):
                 envvar.append('VMNET_DOCKER=True')
                 dc["services"][name] = {
                     "container_name": name,
-                    "environment": envvar,
+                    "environment": envvar + global_environment,
                     "expose": ['1024-49151'],
                     "ports": service.get('ports', []),
                     "image": service['image'],

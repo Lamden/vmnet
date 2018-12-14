@@ -1,6 +1,6 @@
 import os, sys, json, paramiko, socket, queue, select, time, select, vmnet
 from dockerfile_parse import DockerfileParser
-from os.path import join, exists, expanduser, dirname, abspath
+from os.path import join, exists, expanduser, dirname, abspath, basename, splitext
 from vmnet.logger import get_logger
 from vmnet.cloud.comm import success_msg
 path = abspath(vmnet.__path__[0])
@@ -25,12 +25,15 @@ class Cloud:
             with open(old_config, 'w+') as f:
                 f.write(abspath(config_file))
 
-
+        self.config_name = splitext(basename(config_file))[0]
         self.config_file = abspath(config_file)
         self.dir = dirname(self.config_file)
         with open(self.config_file) as f:
             self.config = json.loads(f.read())
         self.setup_working_dir()
+
+    def log(self, msg):
+        print(msg, end='')
 
     @classmethod
     def _raise_error(cls, api=None):
@@ -89,14 +92,15 @@ class Cloud:
             while True:
                 if stdout.channel.recv_ready():
                     out = stdout.channel.recv(1024).decode()
+                    self.log(out)
                     if success_msg in out: return
-                    print(out, end='')
                 if stdout.channel.recv_stderr_ready():
                     err = stderr.channel.recv_stderr(len(stderr.channel.in_stderr_buffer)).decode()
+                    self.log(err)
                     if success_msg in err: return
-                    print(err)
                 if stdout.channel.exit_status_ready():
                     break
+
 
             status = stdout.channel.recv_exit_status()
             if status == 1 and err != '':
@@ -107,6 +111,7 @@ class Cloud:
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         environment.update({'VMNET_CLOUD': 'True'})
+        environment.update(self.config.get('environment', {}))
 
         try:
             print('Sending commands to {}'.format(instance_ip))
