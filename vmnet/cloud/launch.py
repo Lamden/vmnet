@@ -14,19 +14,21 @@ def build(image_name, all):
 
 @click.command()
 @click.option('--logging', '-l', help='Enable logging storage if the platform supports it', is_flag=True)
-def up(logging):
-    API.platform.up(logging=logging)
+@click.option('--service_name', '-n', help='Name of node to bring up', default=None)
+def up(logging, service_name):
+    API.platform.up(keep_up=True, logging=logging, service_name=service_name)
 
 @click.command()
 @click.option('--destroy', '-d', help='Destroy resources for each platform as much as possible', is_flag=True)
-def down(destroy):
-    API.platform.down(destroy=destroy)
+@click.option('--service_name', '-n', help='Name of node to bring down', default=None)
+def down(destroy, service_name):
+    API.platform.down(destroy=destroy, service_name=service_name)
 
 @click.command()
 @click.option('--service_name', '-n', help='Service name of the node as specified in the config.')
-@click.option('--index', '-i', help='The node index number in the service', type=int, default=0)
-def ssh(service_name, index):
-    API.platform.ssh(service_name, index)
+def ssh(service_name):
+    sn, idx = service_name.rsplit('_')
+    API.platform.ssh(service_name)
 
 @click.group()
 @click.option('--platform', '-p', help='Currently only support AWS', default='aws')

@@ -69,12 +69,12 @@ class AWS(Cloud):
             image = self.config['aws']['images'][img]
             old_run_ami = self.config['aws']['images'][image['name']].get('run_ami')
             security_group_id = self.update_security_groups(image)
-            instances = self.find_aws_instances(image, image['build_ami'])
+            instances = self.find_aws_instances(image, 'build')
             if len(instances) == 0:
                 instance_ip = self.build_aws_image(image, security_group_id)
             else:
                 instance_ip = self.start_aws_image(image, instances[0])
-            instance = self.find_aws_instances(image, image['build_ami'])[0]
+            instance = self.find_aws_instances(image, 'build')[0]
             self.update_image_code(image, instance_ip, init=True)
             self.run_image_setup_script(image, instance_ip)
             ami_id = self.upload_ami(image, instance)
@@ -83,19 +83,19 @@ class AWS(Cloud):
             if old_run_ami:
                 self.remove_ami(old_run_ami)
 
-    def ssh(self, service_name=None, index=None):
-        assert service_name != None and index != None, 'Must provide --service_name -n and --index -i'
-        try: service = [s for s in self.config['services'] if s['name'] == service_name][0]
-        except: raise Exception('No service named "{}"'.format(service_name))
-        if index+1 > service['count']:
-            raise Exception('There are only {} nodes in {}'.format(service['count'], service_name))
+    def ssh(self, service_name):
+        sn, idx = service_name.rsplit('_')
+        try: service = [s for s in self.config['services'] if s['name'] == sn][0]
+        except: raise Exception('No service named "{}"'.format(sn))
+        if idx+1 > service['count']:
+            raise Exception('There are only {} nodes in {}'.format(service['count'], sn))
         image = self.config['aws']['images'][service['image']]
-        instance = self.find_aws_instances(image, image['run_ami'], [{
+        instance = self.find_aws_instances(image, 'run', [{
             'Name': 'tag:Name',
             'Values': ['{}:{}:{}-run'.format(image['repo_name'], image['branch'], service['name'])]
         },{
             'Name': 'launch-index',
-            'Values': [str(index)]
+            'Values': [str(idx)]
         }])[0]
         cert = join(self.certs_dir, '{}.pem'.format(self.keyname))
         url = '{}@{}'.format(image['username'], instance['PublicDnsName'])
@@ -103,9 +103,10 @@ class AWS(Cloud):
                        shell=False)
         ssh.wait()
 
+    def up(self, keep_up=False, logging=False, service_name=None):
 
-    def up(self, keep_up=False, logging=False):
         self.logging = logging
+
 
         def _update_instance(image, ip, cmd, e={}, init=False):
             try:
@@ -116,42 +117,11 @@ class AWS(Cloud):
             except Exception:
                 Cloud.q.put(sys.exc_info())
 
-        if not keep_up: self.down()
-
-        all_instances = []
-
-        for img in self.config['aws']['images']:
-            image = self.config['aws']['images'][img]
-            service = [s for s in self.config['services'] if s['image'] == image['name']][0]
-            image['security_group_id'] = self.update_security_groups(image)
-            cmd = self.tasks[image['name']]['cmd']
-            instances = self.find_aws_instances(image, image['run_ami'])
-            if keep_up and len(instances) > 0:
-                self.allocate_elastic_ips(instances, image)
-                for idx, instance in enumerate(instances):
-                    all_instances.append(instance)
-                    instance_ip = instance['PublicIpAddress']
-                    self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, {
-                        'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
-                    })))
-
-        if keep_up and len(all_instances) != 0:
-            self.save_instance_data(all_instances)
-            for t in self.threads: t.start()
-            for t in self.threads: t.join()
-            Cloud._raise_error()
-            return
-
-        print('_' * 128 + '\n')
-        print('    Brining up services on AWS...')
-        print('_' * 128 + '\n')
-        instances = []
-        for service in self.config['services']:
-            image = self.config['aws']['images'][service['image']]
-            instances += self.ec2.create_instances(
+        def _create_instance(image, service, count):
+            return self.ec2.create_instances(
                 ImageId=image['run_ami'],
-                MinCount=service['count'],
-                MaxCount=service['count'],
+                MinCount=count,
+                MaxCount=count,
                 InstanceType=image['instance_type'],
                 KeyName=self.keyname,
                 SecurityGroupIds=[image['security_group_id']],
@@ -164,34 +134,73 @@ class AWS(Cloud):
                 }]
                 # TODO Add regions
             )
-        self.wait_for_instances(instances)
-        all_instances = []
+
+        if not keep_up: self.down()
+
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
-            instances = self.find_aws_instances(image, image['run_ami'])
-            instances = self.allocate_elastic_ips(instances, image)
-            print('Executing CMD for {}...'.format(image['name']))
-            cmd = self.tasks[image['name']]['cmd']
-            for idx, instance in enumerate(instances):
-                all_instances.append(instance)
-                instance_ip = instance['PublicIpAddress']
-                self.threads.append(Thread(target=_update_instance, args=(image, instance_ip, cmd, {
-                    'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
-                }, True)))
+            image['security_group_id'] = self.update_security_groups(image)
 
-        self.save_instance_data(all_instances)
+        print('_' * 128 + '\n')
+        print('    Brining up services on AWS...')
+        print('_' * 128 + '\n')
+
+        self.all_instances = []
+
+        if service_name:
+            sn, idx = service_name.rsplit('_')
+            service = [s for s in self.config['services'] if s['name'] == sn][0]
+            image = self.config['aws']['images'][service['image']]
+            instances = self.find_aws_instances(image, 'run', [{
+                'Name': 'launch-index',
+                'Values': [idx]
+            }])
+            if len(instances) == 0:
+                self.all_instances += _create_instance(image, service, 1)
+        else:
+            for service in self.config['services']:
+                image = self.config['aws']['images'][service['image']]
+                instances = self.find_aws_instances(image, 'run')
+                print('{}/{} instances are up for "{}".'.format(len(instances), service['count'], service['name']))
+                missing_count = service['count'] - len(instances)
+                if missing_count > 0:
+                    print('Creating {} new instances...'.format(missing_count))
+                    self.all_instances += _create_instance(image, service, missing_count)
+                print('Ok.')
+
+        self.wait_for_instances(self.all_instances)
+        self.all_instances = []
+
+        for img in self.config['aws']['images']:
+            image = self.config['aws']['images'][img]
+            instances = self.find_aws_instances(image, 'run')
+            self.allocate_elastic_ips(instances, image)
+            instances = self.find_aws_instances(image, 'run')
+            for instance in instances:
+                self.all_instances.append(instance)
+                cmd = self.tasks[image['name']]['cmd']
+                self.threads.append(Thread(target=_update_instance, args=(image, instance['PublicIpAddress'], cmd, {
+                    'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
+                })))
+
+        self.save_instance_data(self.all_instances)
         for t in self.threads: t.start()
         for t in self.threads: t.join()
         Cloud._raise_error()
-        print('Done.')
+        print('_' * 128 + '\n')
+        print('    AWS instances are now ready for use')
+        print('_' * 128 + '\n')
 
-    def down(self, destroy=False):
+    def down(self, destroy=False, service_name=None):
         print('_' * 128 + '\n')
         print('    Bringing down services on AWS...')
         print('_' * 128 + '\n')
+        if service_name:
+            sn, idx = service_name.rsplit('_')
+            img_name = [s['image'] for s in self.config['services'] if s['name'] == sn][0]
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
-            instances = self.find_aws_instances(image, image['build_ami'])
+            instances = self.find_aws_instances(image, mode='build')
             print('Terminating the build instance for {}...'.format(image['name']))
             for instance in instances:
                 ins = self.ec2.Instance(instance['InstanceId'])
@@ -199,22 +208,36 @@ class AWS(Cloud):
             if not image.get('run_ami'):
                 print('"run_ami" not found for {}, skipping...'.format(image['name']))
                 continue
-            instances = self.find_aws_instances(image, image['run_ami'])
+            if service_name:
+                if img_name != image['name']: continue
+                instances = self.find_aws_instances(image, 'run', [{
+                    'Name': 'launch-index',
+                    'Values': [idx]
+                }])
+            else:
+                instances = self.find_aws_instances(image, mode='run')
             self.deallocate_all_elastic_ips([ins['PublicIpAddress'] for ins in instances], image, release=destroy)
             print('Terminating {} instances for {}...'.format(len(instances), image['name']))
             for instance in instances:
                 ins = self.ec2.Instance(instance['InstanceId'])
                 ins.terminate()
-
+        if destroy:
+            self.remove_instance_data()
         print('Done.')
 
     def save_instance_data(self, instances):
+        if exists(self.instance_data_file): return
         with open(self.instance_data_file, 'w+') as f:
             f.write(json.dumps([{
                 key: instance[key] for key in instance if key in \
                     ('PublicIpAddress', 'Tags', 'AmiLaunchIndex')
             } for instance in instances], indent=4))
         print('Saved instance data to {}'.format(self.instance_data_file))
+
+    def remove_instance_data(self):
+        if exists(self.instance_data_file):
+            print('Removing instance data file')
+            os.remove(self.instance_data_file)
 
     def allocate_elastic_ips(self, instances, image):
         print('{} elastic IPs in total are needed for {}...'.format(len(instances), image['name']))
@@ -247,7 +270,9 @@ class AWS(Cloud):
         return instances
 
     def deallocate_all_elastic_ips(self, public_ips, image, release=False):
-        print('Dallocating {} elastic ips for {}...'.format(len(public_ips), image['name']))
+        if len(public_ips) == 0: return
+        mode = 'Releasing' if release else 'Disassociating'
+        print('{} {} elastic ips for {}...'.format(mode, len(public_ips), image['name']))
         try:
             response = self.ec2_client.describe_addresses(PublicIps=public_ips)
             for addr in response['Addresses']:
@@ -315,8 +340,7 @@ class AWS(Cloud):
                 break
         return security_group_id
 
-    def find_aws_instances(self, image, ami_id, additional_filters=[]):
-        if not ami_id: return []
+    def find_aws_instances(self, image, mode, additional_filters=[], return_all=False):
         instances = []
         filters = [
             {
@@ -325,14 +349,17 @@ class AWS(Cloud):
             },
             {
                 'Name': 'image-id',
-                'Values': [ami_id]
+                'Values': [image['{}_ami'.format(mode)]]
             }
         ] + additional_filters
         response = self.ec2_client.describe_instances(Filters=filters)
         for r in response['Reservations']:
             for ins in r['Instances']:
-                if ins['State']['Name'] == 'running':
-                    instances.append(ins)
+                if ins['Tags'][0]['Value'].endswith(mode):
+                    if return_all:
+                        instances.append(ins)
+                    elif ins['State']['Name'] == 'running':
+                        instances.append(ins)
         return instances
 
     def upload_ami(self, image, instance):
@@ -390,13 +417,15 @@ class AWS(Cloud):
             SecurityGroupIds=[security_group_id],
             TagSpecifications=[{
                 'ResourceType': 'instance',
-                'Tags': [{'Key':'Name','Value':'{}:{}-build'.format(image['repo_name'], image['branch'])}]
+                'Tags': [
+                    {'Key':'Name','Value':'{}:{}-build'.format(image['repo_name'], image['branch'])}
+                ]
             }]
         )[0]
 
         self.wait_for_instances([instance])
         time.sleep(10)
-        instances = self.find_aws_instances(image, image['build_ami'])
+        instances = self.find_aws_instances(image, 'build')
         instance_ip = instances[0]['PublicIpAddress']
 
         return instance_ip
@@ -412,6 +441,7 @@ class AWS(Cloud):
         return instance_ip
 
     def wait_for_instances(self, instances):
+        if len(instances) == 0: return
         ready = set()
         instance_ids = set([ins.id for ins in instances])
         print('Waiting for instances: {}'.format(instance_ids))

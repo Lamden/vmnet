@@ -13,7 +13,7 @@ class Cloud:
     def __init__(self, config_file=None):
 
 
-        old_config = join(path, '.vmnet_previous_config')
+        old_config = join(path, '.vmnet_cloud_previous_config')
         if not config_file:
             if not exists(old_config):
                 raise Exception('Please specify --config -c as it has not been set in the previous run.')

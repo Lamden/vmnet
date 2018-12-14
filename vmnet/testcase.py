@@ -1,5 +1,5 @@
 import unittest, asyncio, os, shutil, time
-from vmnet.launch import launch
+from vmnet.launch import launch, teardown
 from vmnet.webserver import start_ui
 from vmnet.parser import get_fn_str
 from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
@@ -8,6 +8,7 @@ class BaseNetworkTestCase(unittest.TestCase):
 
     enable_ui = True
     scripts = {}
+    environment = {}
     @staticmethod
     def _set_configs(klass, config):
         for c in config:
@@ -32,9 +33,9 @@ class BaseNetworkTestCase(unittest.TestCase):
         os.system(exc_str)
 
     @classmethod
-    def stop_node(cls, node):
-        print('Stopping node {}...'.format(node))
-        os.system('docker-compose stop {}'.format(node))
+    def kill_node(cls, node):
+        print('Kill node {}...'.format(node))
+        os.system('docker-compose kill {}'.format(node))
 
     @classmethod
     def start_node(cls, node):
@@ -43,9 +44,9 @@ class BaseNetworkTestCase(unittest.TestCase):
 
     @classmethod
     def restart_node(cls, node, dead_time=0):
-        cls.stop_node(node)
+        cls.kill_node(node)
         if dead_time > 0:
-            print('waiting {}s until starting node...'.format(node))
+            print('waiting {}s until starting node...'.format(dead_time))
             time.sleep(dead_time)
         cls.start_node(node)
         print('Rerunning script for {}...'.format(node))
@@ -65,7 +66,7 @@ class BaseNetworkTestCase(unittest.TestCase):
         if hasattr(cls, 'webserver_proc') and cls.enable_ui:
             cls.webserver_proc.terminate()
             cls.websocket_proc.terminate()
-            launch(cls.config_file, cls.test_name, clean=True)
+            teardown()
         os.system('rm -f ./tmp_*.py')
 
 class BaseTestCase(BaseNetworkTestCase):
@@ -87,7 +88,7 @@ class BaseTestCase(BaseNetworkTestCase):
     def setUp(self):
         BaseNetworkTestCase.test_name, BaseNetworkTestCase.test_id = self.id().split('.')[-2:]
         test_name = '{}.{}'.format(BaseNetworkTestCase.test_name, BaseNetworkTestCase.test_id)
-        BaseNetworkTestCase._set_configs(BaseTestCase, launch(self.config_file, test_name))
+        BaseNetworkTestCase._set_configs(BaseTestCase, launch(self.config_file, test_name, environment=self.environment))
         print('#' * 128 + '\n')
         print('    Running {}...\n'.format(test_name))
         print('#' * 128 + '\n')
@@ -104,4 +105,4 @@ class BaseTestCase(BaseNetworkTestCase):
         if hasattr(self, 'webserver_proc') and self.enable_ui:
             self.webserver_proc.terminate()
             self.websocket_proc.terminate()
-        launch(self.config_file, self.test_name, clean=True)
+        teardown()
