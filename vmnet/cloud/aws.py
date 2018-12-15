@@ -85,6 +85,7 @@ class AWS(Cloud):
 
     def ssh(self, service_name):
         sn, idx = service_name.rsplit('_')
+        idx = int(idx)
         try: service = [s for s in self.config['services'] if s['name'] == sn][0]
         except: raise Exception('No service named "{}"'.format(sn))
         if idx+1 > service['count']:
@@ -106,7 +107,6 @@ class AWS(Cloud):
     def up(self, keep_up=False, logging=False, service_name=None):
 
         self.logging = logging
-
 
         def _update_instance(image, ip, cmd, e={}, init=False):
             try:
@@ -161,6 +161,7 @@ class AWS(Cloud):
             for service in self.config['services']:
                 image = self.config['aws']['images'][service['image']]
                 instances = self.find_aws_instances(image, 'run')
+                instances = [ins for ins in instances if service['name'] in ins['Tags'][0]['Value']]
                 print('{}/{} instances are up for "{}".'.format(len(instances), service['count'], service['name']))
                 missing_count = service['count'] - len(instances)
                 if missing_count > 0:
@@ -308,9 +309,11 @@ class AWS(Cloud):
         print('Creating Security Group "{}"...'.format(sg_name))
         try:
             response = self.ec2.create_security_group(GroupName=sg_name, Description=sg_desc, VpcId=vpc_id)
-            security_group_id = response['GroupId']
+            security_group_id = response.id
         except botocore.exceptions.ClientError as e:
-            print(e)
+            if 'already exists' not in str(e):
+                raise
+
         print('Done.')
         print('Setting permissions for Security Group "{}"...'.format(sg_name))
         for group in list(vpc[0].security_groups.all()):

@@ -110,7 +110,7 @@ class AWSTestCase(CloudNetworkTestCase):
         cls.environment = {'VMNET_CLOUD': 'True'}
         for service in cls.api.config['services']:
             image = cls.api.config['aws']['images'][service['image']]
-            instances = cls.api.find_aws_instances(image, image['run_ami'], additional_filters=[{
+            instances = cls.api.find_aws_instances(image, 'run', additional_filters=[{
                 'Name': 'tag:Name',
                 'Values': ['{}:{}:{}-run'.format(image['repo_name'], image['branch'], service['name'])]
             }])
