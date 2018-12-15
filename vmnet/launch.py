@@ -230,19 +230,22 @@ def _clean():
     print('\nOk.\n')
 
 @click.command()
-@click.option('--config_file', '-c', help='.json file which specifies the image, contexts and build of your services', default='')
-@click.option('--project_path', '-p', help='Project path to run your code from', default='')
-def destroy(config_file='', project_path=''):
-    _destroy(config_file, project_path)
+def destroy(config_file=None, image_name=None):
 
-def _destroy(config_file, project_path):
-    _setup_config(config_file, project_path=project_path)
-    print('_' * 128 + '\n')
-    print('    Wiping Docker Images for {}...'.format(Docker.config["services"].keys()))
-    print('_' * 128 + '\n')
-    for service in Docker.config["services"]:
-        if service['image'] in _run_command('docker images'):
-            os.system('docker rmi -f {}'.format(service['image']))
+    if not config_file:
+        print('_' * 128 + '\n')
+        print('    Wiping all Docker Images...')
+        print('_' * 128 + '\n')
+        os.system('docker rmi -f {}'.format(image_name))
+    else:
+        with open(config_file) as f:
+            config = json.loads(f.read())
+            print('_' * 128 + '\n')
+            print('    Wiping Docker Images for {}...'.format(config["services"].keys()))
+            print('_' * 128 + '\n')
+            for service in config["services"]:
+                if service['image'] in _run_command('docker images'):
+                    os.system('docker rmi -f {}'.format(service['image']))
 
     print('\nOk.\n')
 
@@ -314,7 +317,6 @@ main.add_command(start)
 main.add_command(build)
 main.add_command(stop)
 main.add_command(clean)
-main.add_command(destroy)
 main.add_command(enter)
 
 if __name__ == '__main__':

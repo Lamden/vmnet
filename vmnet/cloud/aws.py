@@ -358,6 +358,7 @@ class AWS(Cloud):
         response = self.ec2_client.describe_instances(Filters=filters)
         for r in response['Reservations']:
             for ins in r['Instances']:
+                if not ins.get('Tags'): continue
                 if ins['Tags'][0]['Value'].endswith(mode):
                     if return_all:
                         instances.append(ins)
