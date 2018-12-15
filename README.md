@@ -64,23 +64,23 @@ CMD python3 -m http.server
 ## Start the network without unit-tests
 This will start the nodes without any test code. You can enter the node to see what's happening:
 ```
-$ vment -f /path/to/your_application/config_folder/nodes.json
+$ vment -c /path/to/your_application/config_folder/nodes.json -p /path/to/your_application start
 ```
 To stop the network:
 ```
-$ vment -f /path/to/your_application/config_folder/nodes.json -s
+$ vment stop
 ```
 To build the images only:
 ```
-$ vment -f /path/to/your_application/config_folder/nodes.json -b
+$ vment build -n specific_image_name
 ```
 To clean and remove related containers only:
 ```
-$ vment -f /path/to/your_application/config_folder/nodes.json -c
+$ vment clean
 ```
 To destroy and remove related containers and images:
 ```
-$ vment -f /path/to/your_application/config_folder/nodes.json -d
+$ vment destroy
 ```
 ## Start the network with unit-tests
 1. First, create a unit-test like this, let's name it `test_hello_world.py`:
