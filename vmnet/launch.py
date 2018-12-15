@@ -287,6 +287,7 @@ def launch(config_file, test_name='sample_test', project_path='', environment={}
 @click.option('--node_name', '-n', help='Name of node to enter')
 @click.option('--shell', '-s', help='Shell', default='/bin/bash')
 def enter(node_name, shell):
+    assert node_name, 'Please provide the name of the node (e.g.: node_1)'
     os.system('docker exec -ti {} {}'.format(node_name, shell))
 
 @click.command()
