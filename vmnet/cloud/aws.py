@@ -45,15 +45,14 @@ class AWS(Cloud):
     def log(self, msg):
         print(msg, end='')
         if self.logging:
-            self.log_file = '{}/{}'.format(self.log_config['bucket'], int(time.time() / self.log_config['freq']))
+            fname = datetime.datetime.fromtimestamp(int(time.time() / self.log_config['freq']) * self.log_config['freq']).strftime("%Y-%m-%d %H:%M:%S")
+            self.log_file = '{}/{}'.format(self.log_config['bucket'], fname)
             content = msg.encode()
-            try:
-                self.s3.create_bucket(Bucket=self.log_config['bucket'], CreateBucketConfiguration={'LocationConstraint': self.boto_session.region_name})
+            try: self.s3.create_bucket(Bucket=self.log_config['bucket'], CreateBucketConfiguration={'LocationConstraint': self.boto_session.region_name})
             except: pass
-            try:
+            if self.log_file in self.fs.ls(self.log_config['bucket']):
                 with self.fs.open(self.log_file, 'rb') as f:
                     content = f.read() + content
-            except: pass
             if len(content) == 0: return
             with self.fs.open(self.log_file, 'wb') as f:
                 f.write(content)
@@ -185,6 +184,7 @@ class AWS(Cloud):
             for instance in instances:
                 self.all_instances.append(instance)
                 cmd = self.tasks[image['name']]['cmd']
+                service = [s for s in self.config['services'] if s['image'] == image['name']][0]
                 self.threads.append(Thread(target=_update_instance, args=(image, instance['PublicIpAddress'], cmd, {
                     'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
                 })))

@@ -9,7 +9,7 @@ from vmnet.cloud.cloud import Cloud
 class CloudNetworkTestCase(unittest.TestCase):
 
     keep_up = False
-    timeout = 30
+    timeout = None
     all_nodes_ready = False
     logging = False
 
@@ -67,10 +67,16 @@ class CloudNetworkTestCase(unittest.TestCase):
         while not CloudNetworkTestCase.all_nodes_ready:
             time.sleep(1)
         print('_' * 128 + '\n')
-        print('    Running test for a max of {}s'.format(self.timeout))
+        if self.timeout:
+            print('    Running test for a max of {}s'.format(self.timeout))
+        else:
+            print('    Running test until keyboard interrupt')
         print('_' * 128 + '\n')
         current_time = 0
-        while current_time < self.timeout:
+        while True:
+            if self.timeout:
+                if current_time >= self.timeout:
+                    break
             exc = Cloud._raise_error(self.api)
             if exc != None:
                 if type(exc) == str:

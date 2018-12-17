@@ -154,8 +154,10 @@ class Cloud:
         print('    Cloning repository into instance with ip {}'.format(instance_ip))
         print('_' * 128 + '\n')
         pull = 'git pull origin {}'.format(image['branch'])
+        environment = image.get('environment', {})
+        environment.update(self.config.get('environment', {}))
         if init == False:
-            self.execute_command(instance_ip, pull, image['username'], image.get('environment', {}))
+            self.execute_command(instance_ip, pull, image['username'], environment)
         else:
             for cmd in [
                 'sudo chown -R {} .'.format(image['username']),
@@ -165,11 +167,13 @@ class Cloud:
                 'git checkout -f {}'.format(image['branch']),
                 pull
             ]:
-                self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
+                self.execute_command(instance_ip, cmd, image['username'], environment)
 
     def run_image_setup_script(self, image, instance_ip):
         print('_' * 128 + '\n')
         print('    Running setup scripts from Docker Image "{}" on instance with ip {}'.format(image['name'], instance_ip))
         print('_' * 128 + '\n')
         for cmd in self.tasks[image['name']]['run']:
-            self.execute_command(instance_ip, cmd, image['username'], image.get('environment', {}))
+            environment = image.get('environment', {})
+            environment.update(self.config.get('environment', {}))
+            self.execute_command(instance_ip, cmd, image['username'], environment)
