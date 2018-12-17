@@ -19,7 +19,7 @@ class AWS(Cloud):
         self.keyname = '{}-{}'.format(self.profile_name, self.config_name)
         self.environment = self.config.get('environment', {})
 
-        instance_data_dir = join(self.dir, 'data')
+        instance_data_dir = join(self.dir, 'instance_data')
         os.makedirs(instance_data_dir, exist_ok=True)
         self.instance_data_file = join(instance_data_dir, self.config_name + '.json')
 
