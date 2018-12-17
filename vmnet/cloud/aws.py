@@ -6,7 +6,6 @@ from threading import Thread
 from vmnet.cloud.cloud import Cloud
 import boto3, botocore
 
-
 class AWS(Cloud):
 
     def __init__(self, config_file):
@@ -15,7 +14,9 @@ class AWS(Cloud):
         self.tasks = {}
         self.threads = []
         self.logging = False
-        self.keyname = 'ec2-{}'.format(self.config_name)
+        self.profile_name = self.config['aws'].get('profile_name', 'default')
+        self.region_name = self.config['aws'].get('region_name', 'us-east-2')
+        self.keyname = '{}-{}'.format(self.profile_name, self.config_name)
         self.environment = self.config.get('environment', {})
 
         instance_data_dir = join(self.dir, 'data')
@@ -27,11 +28,14 @@ class AWS(Cloud):
         else:
             import s3fs
             logging.getLogger('s3fs.core').setLevel(logging.WARNING)
-            self.boto_session = boto3.session.Session()
-            self.ec2 = boto3.resource('ec2')
-            self.ec2_client = boto3.client('ec2')
-            self.s3 = boto3.resource('s3')
-            self.fs = s3fs.S3FileSystem(anon=False)
+            self.boto_session = boto3.session.Session(
+                profile_name=self.profile_name,
+                region_name=self.region_name
+            )
+            self.ec2 = self.boto_session.resource('ec2')
+            self.ec2_client = self.boto_session.client('ec2')
+            self.s3 = self.boto_session.resource('s3')
+            self.fs = s3fs.S3FileSystem(session=self.boto_session)
             self.log_config = self.environment.get('log', {
                 'freq': 1800,
                 'bucket': 'vmnet-{}'.format(self.config_name)
