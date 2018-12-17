@@ -179,7 +179,8 @@ class AWS(Cloud):
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
             instances = self.find_aws_instances(image, 'run')
-            self.allocate_elastic_ips(instances, image)
+            if self.config['aws'].get('use_elastic_ips'):
+                self.allocate_elastic_ips(instances, image)
             instances = self.find_aws_instances(image, 'run')
             for instance in instances:
                 self.all_instances.append(instance)
@@ -221,7 +222,8 @@ class AWS(Cloud):
                 }])
             else:
                 instances = self.find_aws_instances(image, mode='run')
-            self.deallocate_all_elastic_ips([ins['PublicIpAddress'] for ins in instances], image, release=destroy)
+            if self.config['aws'].get('use_elastic_ips'):
+                self.deallocate_all_elastic_ips([ins['PublicIpAddress'] for ins in instances], image, release=destroy)
             print('Terminating {} instances for {}...'.format(len(instances), image['name']))
             for instance in instances:
                 ins = self.ec2.Instance(instance['InstanceId'])
