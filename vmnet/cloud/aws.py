@@ -1,4 +1,4 @@
-import json, sys, os, time, datetime, subprocess, logging
+import json, sys, os, time, datetime, subprocess, logging, uuid
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
@@ -38,19 +38,21 @@ class AWS(Cloud):
             self.fs = s3fs.S3FileSystem(session=self.boto_session)
             self.log_config = self.environment.get('log', {
                 'freq': 1800,
-                'bucket': 'vmnet-{}'.format(self.config_name)
+                'bucket': 'vmnet-{}-'.format(self.config_name, uuid.uuid4().hex)
             })
             self.log_file = None
 
     def log(self, msg):
         print(msg, end='')
         if self.logging:
-            fname = datetime.datetime.fromtimestamp(int(time.time() / self.log_config['freq']) * self.log_config['freq']).strftime("%Y-%m-%d %H:%M:%S")
+            fname = datetime.datetime.fromtimestamp(int(time.time() / self.log_config['freq']) * self.log_config['freq']).strftime("%Y_%m_%d_%H_%M_%S")
             self.log_file = '{}/{}'.format(self.log_config['bucket'], fname)
             content = msg.encode()
             try: self.s3.create_bucket(Bucket=self.log_config['bucket'], CreateBucketConfiguration={'LocationConstraint': self.boto_session.region_name})
             except: pass
-            if self.log_file in self.fs.ls(self.log_config['bucket']):
+            try: bucket = self.fs.ls(self.log_config['bucket'])
+            except: bucket = []
+            if self.log_file in bucket:
                 with self.fs.open(self.log_file, 'rb') as f:
                     content = f.read() + content
             if len(content) == 0: return
