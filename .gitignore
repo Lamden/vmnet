@@ -15,3 +15,4 @@ dist
 *.log_color
 **/tmp_exec_code*
 *.pem
+.vmnet*

@@ -89,6 +89,7 @@ class Cloud:
 
             stdin, stdout, stderr = ssh.exec_command(command)
             err = ''
+            complete = False
             while True:
                 if stdout.channel.recv_ready():
                     out = stdout.channel.recv(1024).decode()
@@ -98,11 +99,13 @@ class Cloud:
                     err = stderr.channel.recv_stderr(len(stderr.channel.in_stderr_buffer)).decode()
                     self.log(err)
                     if success_msg in err: return
-                if stdout.channel.exit_status_ready():
+                if complete:
                     break
-
+                if stdout.channel.exit_status_ready():
+                    complete = True
 
             status = stdout.channel.recv_exit_status()
+
             if status == 1 and err != '':
                 raise Exception(err)
 
@@ -153,20 +156,22 @@ class Cloud:
         print('_' * 128 + '\n')
         print('    Cloning repository into instance with ip {}'.format(instance_ip))
         print('_' * 128 + '\n')
-        pull = 'git pull origin {}'.format(image['branch'])
+        pull = [
+            'git fetch origin',
+            'git checkout -f {}'.format(image['branch']),
+            'git pull origin {}'.format(image['branch'])
+        ]
         environment = image.get('environment', {})
         environment.update(self.config.get('environment', {}))
         if init == False:
-            self.execute_command(instance_ip, pull, image['username'], environment)
+            for cmd in pull:
+                self.execute_command(instance_ip, cmd, image['username'], environment)
         else:
             for cmd in [
                 'sudo chown -R {} .'.format(image['username']),
                 'git init',
-                'git remote add origin {}'.format(image['repo_url']),
-                'git fetch origin',
-                'git checkout -f {}'.format(image['branch']),
-                pull
-            ]:
+                'git remote add origin {}'.format(image['repo_url'])
+            ] + pull:
                 self.execute_command(instance_ip, cmd, image['username'], environment)
 
     def run_image_setup_script(self, image, instance_ip):

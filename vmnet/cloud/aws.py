@@ -38,7 +38,7 @@ class AWS(Cloud):
             self.fs = s3fs.S3FileSystem(session=self.boto_session)
             self.log_config = self.environment.get('log', {
                 'freq': 1800,
-                'bucket': 'vmnet-{}-'.format(self.config_name, uuid.uuid4().hex)
+                'bucket': 'vmnet-{}-{}'.format(self.config_name, uuid.uuid4().hex)
             })
             self.log_file = None
 

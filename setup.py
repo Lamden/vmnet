@@ -15,7 +15,7 @@ def package_data(path):
         all_files += [os.path.join(root, f) for f in files]
     return all_files
 
-__version__ = '0.4.16'
+__version__ = '0.4.19'
 
 setup(
     name='vmnet',
