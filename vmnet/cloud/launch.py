@@ -28,7 +28,6 @@ def down(destroy, service_name):
 @click.option('--service_name', '-n', help='Service name of the node as specified in the config.')
 def ssh(service_name):
     assert service_name, 'Please provide the name of the service (e.g.: cloud_service_0)'
-    sn, idx = service_name.rsplit('_')
     API.platform.ssh(service_name)
 
 @click.group()
