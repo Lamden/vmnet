@@ -87,7 +87,7 @@ class AWS(Cloud):
                 self.remove_ami(old_run_ami)
 
     def ssh(self, service_name):
-        sn, idx = service_name.rsplit('_')
+        sn, idx = service_name.rsplit('_') if len(service_name.rsplit('_')) == 2 else (service_name, 0)
         idx = int(idx)
         try: service = [s for s in self.config['services'] if s['name'] == sn][0]
         except: raise Exception('No service named "{}"'.format(sn))
@@ -151,7 +151,7 @@ class AWS(Cloud):
         self.all_instances = []
 
         if service_name:
-            sn, idx = service_name.rsplit('_')
+            sn, idx = service_name.rsplit('_') if len(service_name.rsplit('_')) == 2 else (service_name, 0)
             service = [s for s in self.config['services'] if s['name'] == sn][0]
             image = self.config['aws']['images'][service['image']]
             instances = self.find_aws_instances(image, 'run', [{
@@ -202,7 +202,7 @@ class AWS(Cloud):
         print('    Bringing down services on AWS...')
         print('_' * 128 + '\n')
         if service_name:
-            sn, idx = service_name.rsplit('_')
+            sn, idx = service_name.rsplit('_') if len(service_name.rsplit('_')) == 2 else (service_name, 0)
             img_name = [s['image'] for s in self.config['services'] if s['name'] == sn][0]
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
