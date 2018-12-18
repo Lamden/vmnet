@@ -36,9 +36,12 @@ class AWS(Cloud):
             self.ec2_client = self.boto_session.client('ec2')
             self.s3 = self.boto_session.resource('s3')
             self.fs = s3fs.S3FileSystem(session=self.boto_session)
+            self.iam = self.boto_session.resource('iam')
+            iam_username = self.iam.CurrentUser().arn.rsplit('user/')[-1]
+            quit()
             self.log_config = self.environment.get('log', {
                 'freq': 1800,
-                'bucket': 'vmnet-{}-{}'.format(self.config_name, uuid.uuid4().hex)
+                'bucket': 'vmnet-{}-{}'.format(iam_username, self.config_name)
             })
             self.log_file = None
 
