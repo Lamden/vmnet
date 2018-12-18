@@ -201,7 +201,7 @@ $ aws configure
                 "security_group": "my_security_group",
                 "build_ami": "ami-0f65671a86f061fcd", <-- Get the ami_id from AWS corresponding to your docker image
                 "instance_type": "t2.micro",
-                "build_instance_type": "t2.medium" <-- This is used when build the service image
+                "build_instance_type": "t2.medium" <-- This is used when building the service image
             }
         }
     },
