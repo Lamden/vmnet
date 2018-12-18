@@ -1,10 +1,40 @@
-import json, sys, os, time, datetime, subprocess, logging
+import json, sys, os, time, datetime, subprocess, logging, coloredlogs
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
+from logging.handlers import TimedRotatingFileHandler
 
 from vmnet.cloud.cloud import Cloud
 import boto3, botocore
+
+class S3FileHandler(TimedRotatingFileHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        format = '%(asctime)s.%(msecs)03d %(name)s[%(process)d][%(processName)s] <{}> %(levelname)-2s %(message)s'.format(os.getenv('HOST_NAME', 'Node'))
+        self.setFormatter(
+            coloredlogs.ColoredFormatter(format)
+        )
+
+    def rotate(self, source, dest):
+        if not callable(self.rotator):
+            if os.path.exists(source):
+                os.rename(source, dest)
+        else:
+            self.rotator(source, dest)
+        if self.is_logging:
+            print('<ROTATE> running S3FileHandler', source, dest)
+            pass
+            # fname = datetime.datetime.fromtimestamp(int(time.time() / self.log_config['freq']) * self.log_config['freq']).strftime("%Y-%m-%d %H:%M:%S")
+            # log_file = '{}/{}'.format(self.log_config['bucket'], fname)
+            # content = msg.encode()
+            # try: self.s3.create_bucket(Bucket=self.log_config['bucket'], CreateBucketConfiguration={'LocationConstraint': self.boto_session.region_name})
+            # except: pass
+            # if log_file in self.fs.ls(self.log_config['bucket']):
+            #     with self.fs.open(log_file, 'rb') as f:
+            #         content = f.read() + content
+            # if len(content) == 0: return
+            # with self.fs.open(log_file, 'wb') as f:
+            #     f.write(content)
 
 class AWS(Cloud):
 
@@ -13,11 +43,11 @@ class AWS(Cloud):
         super().__init__(config_file)
         self.tasks = {}
         self.threads = []
-        self.logging = False
         self.profile_name = self.config['aws'].get('profile_name', 'default')
         self.region_name = self.config['aws'].get('region_name', 'us-east-2')
         self.keyname = '{}-{}'.format(self.profile_name, self.config_name)
         self.environment = self.config.get('environment', {})
+        S3FileHandler.is_logging = False
 
         instance_data_dir = join(self.dir, 'instance_data')
         os.makedirs(instance_data_dir, exist_ok=True)
@@ -36,26 +66,10 @@ class AWS(Cloud):
             self.ec2_client = self.boto_session.client('ec2')
             self.s3 = self.boto_session.resource('s3')
             self.fs = s3fs.S3FileSystem(session=self.boto_session)
-            self.log_config = self.environment.get('log', {
+            S3FileHandler.log_config = self.environment.get('log', {
                 'freq': 1800,
                 'bucket': 'vmnet-{}'.format(self.config_name)
             })
-            self.log_file = None
-
-    def log(self, msg):
-        print(msg, end='')
-        if self.logging:
-            fname = datetime.datetime.fromtimestamp(int(time.time() / self.log_config['freq']) * self.log_config['freq']).strftime("%Y-%m-%d %H:%M:%S")
-            self.log_file = '{}/{}'.format(self.log_config['bucket'], fname)
-            content = msg.encode()
-            try: self.s3.create_bucket(Bucket=self.log_config['bucket'], CreateBucketConfiguration={'LocationConstraint': self.boto_session.region_name})
-            except: pass
-            if self.log_file in self.fs.ls(self.log_config['bucket']):
-                with self.fs.open(self.log_file, 'rb') as f:
-                    content = f.read() + content
-            if len(content) == 0: return
-            with self.fs.open(self.log_file, 'wb') as f:
-                f.write(content)
 
     def update_security_groups(self, image):
         self.tasks[image['name']] = self.parse_docker_file(image)
@@ -109,7 +123,7 @@ class AWS(Cloud):
 
     def up(self, keep_up=False, logging=False, service_name=None):
 
-        self.logging = logging
+        S3FileHandler.is_logging = logging
 
         def _update_instance(image, ip, cmd, e={}, init=False):
             try:
