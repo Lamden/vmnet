@@ -120,18 +120,15 @@ class Cloud:
             print('Sending commands to {}'.format(instance_ip))
             ssh.connect(hostname=instance_ip, username=username, pkey=key)
             for c in cmd.split('&&'):
-                print('+ '+ c)
+                print('+ '+ c +'\n')
                 if immediate_raise:
                     _run(ssh, c)
                 else:
-
                     if c.startswith('sudo'):
                         _run(ssh, c)
                     else:
                         try: _run(ssh, 'sudo '+c)
                         except: _run(ssh, c)
-
-            ssh.close()
 
         except Exception as e:
             raise

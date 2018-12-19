@@ -1,10 +1,31 @@
-import json, sys, os, time, datetime, subprocess, logging, uuid
+import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
+from logging.handlers import TimedRotatingFileHandler
 
 from vmnet.cloud.cloud import Cloud
 import boto3, botocore
+
+class S3FileHandler(TimedRotatingFileHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        format = '%(asctime)s.%(msecs)03d %(name)s[%(process)d][%(processName)s] <{}> %(levelname)-2s %(message)s'.format(os.getenv('HOST_NAME', 'Node'))
+        self.setFormatter(
+            coloredlogs.ColoredFormatter(format)
+        )
+
+        # fname = datetime.datetime.fromtimestamp(int(time.time() / self.log_config['freq']) * self.log_config['freq']).strftime("%Y-%m-%d %H:%M:%S")
+        # log_file = '{}/{}'.format(self.log_config['bucket'], fname)
+        # content = msg.encode()
+        # try: self.s3.create_bucket(Bucket=self.log_config['bucket'], CreateBucketConfiguration={'LocationConstraint': self.boto_session.region_name})
+        # except: pass
+        # if log_file in self.fs.ls(self.log_config['bucket']):
+        #     with self.fs.open(log_file, 'rb') as f:
+        #         content = f.read() + content
+        # if len(content) == 0: return
+        # with self.fs.open(log_file, 'wb') as f:
+        #     f.write(content)
 
 class AWS(Cloud):
 
@@ -38,7 +59,6 @@ class AWS(Cloud):
             self.fs = s3fs.S3FileSystem(session=self.boto_session)
             self.iam = self.boto_session.resource('iam')
             iam_username = self.iam.CurrentUser().arn.rsplit('user/')[-1]
-            quit()
             self.log_config = self.environment.get('log', {
                 'freq': 1800,
                 'bucket': 'vmnet-{}-{}'.format(iam_username, self.config_name)
