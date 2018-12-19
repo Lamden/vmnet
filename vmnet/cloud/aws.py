@@ -48,6 +48,7 @@ class AWS(Cloud):
             self.ec2 = self.boto_session.resource('ec2')
             self.ec2_client = self.boto_session.client('ec2')
             self.iam = self.boto_session.resource('iam')
+            self.r53 = self.boto_session.resource('route53')
             self.iam_name = self.iam.CurrentUser().arn.rsplit('user/')[-1]
             self.cloudwatch = self.boto_session.client('logs')
             self.log_config.update({
@@ -180,16 +181,19 @@ class AWS(Cloud):
 
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
+            service = [s for s in self.config['services'] if s['image'] == image['name']][0]
             instances = self.find_aws_instances(image, 'run')
             if self.config['aws'].get('use_elastic_ips'):
                 self.allocate_elastic_ips(instances, image)
             instances = self.find_aws_instances(image, 'run')
+            if self.config['aws'].get('use_dns'):
+                self.create_dns_records(instances, image, service)
             for instance in instances:
+                hostname = '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
                 self.all_instances.append(instance)
                 cmd = self.tasks[image['name']]['cmd']
-                service = [s for s in self.config['services'] if s['image'] == image['name']][0]
                 self.threads.append(Thread(target=_update_instance, args=(image, instance['PublicIpAddress'], cmd, {
-                    'HOST_NAME': '{}_{}'.format(service['name'], int(instance['AmiLaunchIndex']))
+                    'HOST_NAME': hostname
                 })))
 
         self.save_instance_data(self.all_instances)
@@ -249,13 +253,90 @@ class AWS(Cloud):
             print('Removing instance data file')
             os.remove(self.instance_data_file)
 
+    def _load_instance_data(self):
+        """
+        Load in the instance data file if it exists
+
+        Args:
+            N/A (all requirements internal to class)
+
+        Returns:
+            instance_data (list): A list of instance data loaded from the instance_data file, if not exists, empty list
+
+        Raises:
+            N/A
+        """
+        if exists(self.instance_data_file):
+            with open(self.instance_data_file) as f:
+                return json.loads(f.read())
+        return []
+
+    def create_dns_records(self, instances, image, service):
+        """
+        Creates DNS records for EIPs if feature is enabled
+
+        Args:
+            instances (list): A list of instance information returned from the boto3 ec2 call 'describe instances'
+            image (dict):     A section of the configuration dedicated to the runtime configuration of different
+                              types of nodes
+            service (str):    The name of the service being brought up (e.g. masternode, delegate, etc)
+
+        Returns:
+            N/A
+
+        Raises:
+            ValueError:       If the service is incorrectly specified
+            ValueError:       Could not find domain name in route53 for account
+        """
+        if not self.config['aws']['use_elastic_ips']:
+            print("WARNING (create_dns_records): Generating DNS records for instances without elastic ip addresses. \
+                    Records are not guaranteed to stay active for any extended period of time.")
+
+        # Load in expected parameters at beginning of function to fail fast in the case of misconfiguration
+        dns_config = self.config['aws']['dns_configuration']
+        domain_name = dns_config['domain_name']
+        record_type = dns_config['record_type']
+        service = dns_config['service']
+        if service != 'route53':
+            raise ValueError("Only DNS service type 'route53' supported at this time")
+
+        print("Creating DNS records for image {} on domain {}".format(domain_name))
+
+        # Get hosted_zone from route53 and validate we got the correct one
+        hosted_zone = self.r53.list_hosted_zones_by_name(DNSName=domain_name)['HostedZones'][0]
+        if domain_name not in hosted_zone['Name']:
+            raise ValueError("Was unable to retrieve domain name {}. Are you sure you're running in the correct AWS account?".format(domain_name))
+        hzid = hosted_zone['Id']
+
+        # 
+        instance_data = self._load_instance_data()
+        for instance in instances:
+            self.r53.change_resource_record_sets(
+                HostedZoneId = hzid,
+                ChangeBatch = {
+                    'Comment': 'Procedurally generated record for service {} index {}'.format(service, instance['AmiLaunchIndex']),
+                    'Changes': [
+                        {
+                            'Action': 'CREATE',
+                            'ResourceRecordSet': {
+                                'Name': '{}{}.{}'.format(service, instance['AmiLaunchIndex'], domain_name),
+                                'Type': record_type,
+                                'ResourceRecords': [
+                                    {
+                                        "Value": instance['PublicIpAddress']
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            )
+
+            
     def allocate_elastic_ips(self, instances, image):
         print('{} elastic IPs in total are needed for {}...'.format(len(instances), image['name']))
 
-        instance_data = []
-        if exists(self.instance_data_file):
-            with open(self.instance_data_file) as f:
-                instance_data = json.loads(f.read())
+        instance_data = self._load_instance_data()
         addrs = self.ec2_client.describe_addresses()['Addresses']
         ins_ids = set([addr.get('InstanceId') for addr in addrs])
         if len(instance_data) == 0:
