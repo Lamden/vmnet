@@ -12,7 +12,6 @@ class Cloud:
 
     def __init__(self, config_file=None):
 
-
         old_config = join(path, '.vmnet_cloud_previous_config')
         if not config_file:
             if not exists(old_config):
@@ -24,7 +23,6 @@ class Cloud:
         else:
             with open(old_config, 'w+') as f:
                 f.write(abspath(config_file))
-
         self.config_name = splitext(basename(config_file))[0]
         self.config_file = abspath(config_file)
         self.dir = dirname(self.config_file)
@@ -113,7 +111,7 @@ class Cloud:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        environment.update({'VMNET_CLOUD': 'True'})
+        environment.update({'VMNET_CLOUD': self.config_name})
         environment.update(self.config.get('environment', {}))
 
         try:
@@ -149,7 +147,7 @@ class Cloud:
         except: pass
         print('\n{} is done.\n'.format(instance_ip))
 
-    def update_image_code(self, image, instance_ip, init=False):
+    def update_image_code(self, image, instance_ip, init=False, update_commands=[]):
         print('_' * 128 + '\n')
         print('    Cloning repository into instance with ip {}'.format(instance_ip))
         print('_' * 128 + '\n')
@@ -161,7 +159,7 @@ class Cloud:
         environment = image.get('environment', {})
         environment.update(self.config.get('environment', {}))
         if init == False:
-            for cmd in pull:
+            for cmd in pull + update_commands:
                 self.execute_command(instance_ip, cmd, image['username'], environment)
         else:
             for cmd in [

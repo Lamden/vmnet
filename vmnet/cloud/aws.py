@@ -1,35 +1,14 @@
-import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs
+import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
-from logging.handlers import TimedRotatingFileHandler
 
 from vmnet.cloud.cloud import Cloud
 import boto3, botocore
 
-class S3FileHandler(TimedRotatingFileHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        format = '%(asctime)s.%(msecs)03d %(name)s[%(process)d][%(processName)s] <{}> %(levelname)-2s %(message)s'.format(os.getenv('HOST_NAME', 'Node'))
-        self.setFormatter(
-            coloredlogs.ColoredFormatter(format)
-        )
-
-        # fname = datetime.datetime.fromtimestamp(int(time.time() / self.log_config['freq']) * self.log_config['freq']).strftime("%Y-%m-%d %H:%M:%S")
-        # log_file = '{}/{}'.format(self.log_config['bucket'], fname)
-        # content = msg.encode()
-        # try: self.s3.create_bucket(Bucket=self.log_config['bucket'], CreateBucketConfiguration={'LocationConstraint': self.boto_session.region_name})
-        # except: pass
-        # if log_file in self.fs.ls(self.log_config['bucket']):
-        #     with self.fs.open(log_file, 'rb') as f:
-        #         content = f.read() + content
-        # if len(content) == 0: return
-        # with self.fs.open(log_file, 'wb') as f:
-        #     f.write(content)
-
 class AWS(Cloud):
 
-    def __init__(self, config_file):
+    def __init__(self, config_file=None):
 
         super().__init__(config_file)
         self.tasks = {}
@@ -58,29 +37,12 @@ class AWS(Cloud):
             self.s3 = self.boto_session.resource('s3')
             self.fs = s3fs.S3FileSystem(session=self.boto_session)
             self.iam = self.boto_session.resource('iam')
-            iam_username = self.iam.CurrentUser().arn.rsplit('user/')[-1]
-            self.log_config = self.environment.get('log', {
-                'freq': 1800,
-                'bucket': 'vmnet-{}-{}'.format(iam_username, self.config_name)
-            })
-            self.log_file = None
-
-    def log(self, msg):
-        print(msg, end='')
-        if self.logging:
-            fname = datetime.datetime.fromtimestamp(int(time.time() / self.log_config['freq']) * self.log_config['freq']).strftime("%Y_%m_%d_%H_%M_%S")
-            self.log_file = '{}/{}'.format(self.log_config['bucket'], fname)
-            content = msg.encode()
-            try: self.s3.create_bucket(Bucket=self.log_config['bucket'], CreateBucketConfiguration={'LocationConstraint': self.boto_session.region_name})
-            except: pass
-            try: bucket = self.fs.ls(self.log_config['bucket'])
-            except: bucket = []
-            if self.log_file in bucket:
-                with self.fs.open(self.log_file, 'rb') as f:
-                    content = f.read() + content
-            if len(content) == 0: return
-            with self.fs.open(self.log_file, 'wb') as f:
-                f.write(content)
+            self.iam_username = self.iam.CurrentUser().arn.rsplit('user/')[-1]
+            self.log_config = {
+                'interval': 1800,
+                'bucket': 'vmnet-{}-{}'.format(self.iam_username, self.config_name)
+            }
+            self.log_config.update(self.config['aws'].get('logging', {}))
 
     def update_security_groups(self, image):
         self.tasks[image['name']] = self.parse_docker_file(image)
@@ -138,8 +100,8 @@ class AWS(Cloud):
 
         def _update_instance(image, ip, cmd, e={}, init=False):
             try:
-                self.update_image_code(image, ip, init=init)
-                e.update({'HOST_IP': ip, 'VMNET_CLOUD': 'True'})
+                self.update_image_code(image, ip, init=init, update_commands=image.get('update_commands', []))
+                e.update({'HOST_IP': ip, 'VMNET_CLOUD': self.config_name})
                 e.update(image.get('environment', {}))
                 self.execute_command(ip, cmd, image['username'], e)
             except Exception:
@@ -211,7 +173,7 @@ class AWS(Cloud):
                 cmd = self.tasks[image['name']]['cmd']
                 service = [s for s in self.config['services'] if s['image'] == image['name']][0]
                 self.threads.append(Thread(target=_update_instance, args=(image, instance['PublicIpAddress'], cmd, {
-                    'HOST_NAME': '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
+                    'HOST_NAME': '{}_{}'.format(service['name'], int(instance['AmiLaunchIndex'])+1)
                 })))
 
         self.save_instance_data(self.all_instances)
@@ -489,3 +451,46 @@ class AWS(Cloud):
             for status in response['InstanceStatuses']:
                 if status['InstanceState']['Name'] == 'running':
                     ready.add(status['InstanceId'])
+
+class S3Handler(logging.StreamHandler):
+
+    is_setup = False
+
+    def __init__(self, *args, **kwargs):
+        config_file = None
+        for root, dirs, files in os.walk(os.getcwd()):
+            for f in files:
+                if f == os.getenv('VMNET_CLOUD', '') + '.json' and 'instance_data' not in root:
+                    config_file = os.path.join(root, f)
+        self.aws = AWS(config_file)
+        self.log_captor = io.StringIO()
+        super().__init__(self.log_captor, *args, **kwargs)
+        format = '%(asctime)s.%(msecs)03d %(name)s[%(process)d][%(processName)s] <{}> %(levelname)-2s %(message)s'.format(os.getenv('HOST_NAME', 'Node'))
+        self.setFormatter(
+            coloredlogs.ColoredFormatter(format)
+        )
+        if not S3Handler.is_setup:
+            S3Handler.is_setup = True
+            self._log_to_s3()
+
+    def _log_to_s3(self):
+        fname = datetime.datetime.fromtimestamp(int(time.time() / self.aws.log_config['interval']) * self.aws.log_config['interval']).strftime("%Y_%m_%d_%H_%M_%S")
+        log_file = '{}/{}'.format(self.aws.log_config['bucket'], fname)
+        print('!!!!!!!', self.aws.log_config['bucket'])
+        try: self.aws.s3.create_bucket(
+            Bucket=self.aws.log_config['bucket'],
+            CreateBucketConfiguration={'LocationConstraint': self.aws.boto_session.region_name}
+        )
+        except: pass
+        try: bucket = self.aws.fs.ls(self.aws.log_config['bucket'])
+        except: bucket = []
+        while True:
+            content = self.log_captor.getvalue()
+            if content:
+                if log_file in bucket:
+                    with self.aws.fs.open(log_file, 'rb') as f:
+                        content = f.read() + content
+                if len(content) == 0: return
+                with self.aws.fs.open(log_file, 'wb') as f:
+                    f.write(content)
+            time.sleep(1)
