@@ -113,7 +113,7 @@ class AWSTestCase(CloudNetworkTestCase):
         cls.groups = {}
         cls.nodemap = {}
         cls.images = {}
-        cls.environment = { 'VMNET_CLOUD': cls.api.config_file }
+        cls.environment = { 'VMNET_CLOUD': cls.api.config_name }
         for service in cls.api.config['services']:
             image = cls.api.config['aws']['images'][service['image']]
             instances = cls.api.find_aws_instances(image, 'run', additional_filters=[{

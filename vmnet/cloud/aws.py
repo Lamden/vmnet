@@ -22,21 +22,21 @@ class AWS(Cloud):
         os.makedirs(instance_data_dir, exist_ok=True)
         self.instance_data_file = join(instance_data_dir, self.config_name + '.json')
 
-        if os.getenv('VMNET_CLOUD'):
+        if os.getenv('VMNET_CLOUD') and self.config['aws'].get('logging'):
             import s3fs
             logging.getLogger('s3fs.core').setLevel(logging.WARNING)
             creds = requests.get('http://169.254.169.254/latest/meta-data/iam/security-credentials/{}'.format(self.config['aws']['logging']['arn_name'])).json()
             self.boto_session = boto3.session.Session(
                 aws_access_key_id=creds['AccessKeyId'],
-                aws_secret_access_key=creds['SecretAccessKey']
+                aws_secret_access_key=creds['SecretAccessKey'],
+                aws_session_token=creds['Token'],
+                region_name=self.region_name
             )
             self.s3 = self.boto_session.resource('s3')
             self.fs = s3fs.S3FileSystem(session=self.boto_session)
-            self.iam = self.boto_session.resource('iam')
-            self.iam_username = self.iam.CurrentUser().arn.rsplit('user/')[-1]
             self.log_config = {
                 'interval': 1800,
-                'bucket': 'vmnet-{}-{}'.format(self.iam_username, self.config_name)
+                'bucket': 'vmnet-{}-{}'.format(self.config['aws']['logging']['arn_name'], self.config_name)
             }
             self.log_config.update(self.config['aws'].get('logging', {}))
         elif not exists(expanduser('~/.aws/')):
@@ -481,12 +481,12 @@ class S3Handler(logging.StreamHandler):
         )
         if not S3Handler.is_setup:
             S3Handler.is_setup = True
-            self._log_to_s3()
+            t = Thread(target=self._log_to_s3)
+            t.start()
 
     def _log_to_s3(self):
         fname = datetime.datetime.fromtimestamp(int(time.time() / self.aws.log_config['interval']) * self.aws.log_config['interval']).strftime("%Y_%m_%d_%H_%M_%S")
         log_file = '{}/{}'.format(self.aws.log_config['bucket'], fname)
-        print('!!!!!!!', self.aws.log_config['bucket'])
         try: self.aws.s3.create_bucket(
             Bucket=self.aws.log_config['bucket'],
             CreateBucketConfiguration={'LocationConstraint': self.aws.boto_session.region_name}
@@ -495,7 +495,7 @@ class S3Handler(logging.StreamHandler):
         try: bucket = self.aws.fs.ls(self.aws.log_config['bucket'])
         except: bucket = []
         while True:
-            content = self.log_captor.getvalue()
+            content = self.log_captor.getvalue().encode()
             if content:
                 if log_file in bucket:
                     with self.aws.fs.open(log_file, 'rb') as f:
