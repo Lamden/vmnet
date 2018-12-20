@@ -2,9 +2,8 @@ import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
-
 from vmnet.cloud.cloud import Cloud
-import boto3, botocore
+import boto3, botocore, requests
 
 class AWS(Cloud):
 
@@ -23,17 +22,14 @@ class AWS(Cloud):
         os.makedirs(instance_data_dir, exist_ok=True)
         self.instance_data_file = join(instance_data_dir, self.config_name + '.json')
 
-        if not exists(expanduser('~/.aws/')):
-            raise Exception('You must first run "aws configure" to set-up your AWS credentials. Follow these steps from: https://blog.ipswitch.com/how-to-create-an-ec2-instance-with-python')
-        else:
+        if os.getenv('VMNET_CLOUD'):
             import s3fs
             logging.getLogger('s3fs.core').setLevel(logging.WARNING)
+            creds = requests.get('http://169.254.169.254/latest/meta-data/iam/security-credentials/{}'.format(self.config['aws']['logging']['arn_name'])).json()
             self.boto_session = boto3.session.Session(
-                profile_name=self.profile_name,
-                region_name=self.region_name
+                aws_access_key_id=creds['AccessKeyId'],
+                aws_secret_access_key=creds['SecretAccessKey']
             )
-            self.ec2 = self.boto_session.resource('ec2')
-            self.ec2_client = self.boto_session.client('ec2')
             self.s3 = self.boto_session.resource('s3')
             self.fs = s3fs.S3FileSystem(session=self.boto_session)
             self.iam = self.boto_session.resource('iam')
@@ -43,6 +39,15 @@ class AWS(Cloud):
                 'bucket': 'vmnet-{}-{}'.format(self.iam_username, self.config_name)
             }
             self.log_config.update(self.config['aws'].get('logging', {}))
+        elif not exists(expanduser('~/.aws/')):
+            raise Exception('You must first run "aws configure" to set-up your AWS credentials. Follow these steps from: https://blog.ipswitch.com/how-to-create-an-ec2-instance-with-python')
+        else:
+            self.boto_session = boto3.session.Session(
+                profile_name=self.profile_name,
+                region_name=self.region_name
+            )
+            self.ec2 = self.boto_session.resource('ec2')
+            self.ec2_client = self.boto_session.client('ec2')
 
     def update_security_groups(self, image):
         self.tasks[image['name']] = self.parse_docker_file(image)
@@ -121,7 +126,10 @@ class AWS(Cloud):
                         image['repo_name'], image['branch'],
                         service['name']
                     )}]
-                }]
+                }],
+                IamInstanceProfile={
+                    'Arn': self.config['aws']['logging']['arn_id']
+                },
                 # TODO Add regions
             )
 
@@ -462,6 +470,8 @@ class S3Handler(logging.StreamHandler):
             for f in files:
                 if f == os.getenv('VMNET_CLOUD', '') + '.json' and 'instance_data' not in root:
                     config_file = os.path.join(root, f)
+                    break
+            if config_file: break
         self.aws = AWS(config_file)
         self.log_captor = io.StringIO()
         super().__init__(self.log_captor, *args, **kwargs)
