@@ -6,13 +6,9 @@ from vmnet.cloud.comm import success_msg
 from threading import Thread
 path = abspath(vmnet.__path__[0])
 
-def __signal_handler__(signal, frame):
-    Cloud.killed = True
-
 class Cloud:
 
     q = queue.Queue()
-    killed = False
     signal.signal(signal.SIGINT, __signal_handler__)
 
     def __init__(self, config_file=None):
@@ -95,8 +91,6 @@ class Cloud:
             err = ''
             complete = False
             while True:
-                if Cloud.killed:
-                    break
                 if stdout.channel.recv_ready():
                     out = stdout.channel.recv(1024).decode()
                     self.log(out)
