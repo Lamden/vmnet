@@ -36,7 +36,7 @@ class AWS(Cloud):
             self.fs = s3fs.S3FileSystem(session=self.boto_session)
             self.log_config = {
                 'interval': 1800,
-                'bucket': 'vmnet-{}-{}'.format(self.config['aws']['logging']['arn_name'], self.config_name)
+                'bucket': 'vmnet-{}-{}'.format(os.getenv('IAM_NAME'), self.config_name)
             }
             self.log_config.update(self.config['aws'].get('logging', {}))
         elif not exists(expanduser('~/.aws/')):
@@ -48,6 +48,8 @@ class AWS(Cloud):
             )
             self.ec2 = self.boto_session.resource('ec2')
             self.ec2_client = self.boto_session.client('ec2')
+            self.iam = self.boto_session.resource('iam')
+            self.iam_name = self.iam.CurrentUser().arn.rsplit('user/')[-1]
 
     def update_security_groups(self, image):
         self.tasks[image['name']] = self.parse_docker_file(image)
@@ -106,7 +108,7 @@ class AWS(Cloud):
         def _update_instance(image, ip, cmd, e={}, init=False):
             try:
                 self.update_image_code(image, ip, init=init, update_commands=image.get('update_commands', []))
-                e.update({'HOST_IP': ip, 'VMNET_CLOUD': self.config_name})
+                e.update({'HOST_IP': ip, 'VMNET_CLOUD': self.config_name, 'IAM_NAME': self.iam_name})
                 e.update(image.get('environment', {}))
                 self.execute_command(ip, cmd, image['username'], e)
             except Exception:
@@ -486,7 +488,7 @@ class S3Handler(logging.StreamHandler):
 
     def _log_to_s3(self):
         fname = datetime.datetime.fromtimestamp(int(time.time() / self.aws.log_config['interval']) * self.aws.log_config['interval']).strftime("%Y_%m_%d_%H_%M_%S")
-        log_file = '{}/{}'.format(self.aws.log_config['bucket'], fname)
+        log_file = '{}/{}-{}'.format(self.aws.log_config['bucket'], os.getenv('HOST_NAME'), fname)
         try: self.aws.s3.create_bucket(
             Bucket=self.aws.log_config['bucket'],
             CreateBucketConfiguration={'LocationConstraint': self.aws.boto_session.region_name}

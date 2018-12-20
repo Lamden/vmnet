@@ -1,14 +1,18 @@
-import os, sys, json, paramiko, socket, queue, select, time, select, vmnet
+import os, sys, json, paramiko, socket, queue, select, time, select, vmnet, uuid, signal
 from dockerfile_parse import DockerfileParser
 from os.path import join, exists, expanduser, dirname, abspath, basename, splitext
 from vmnet.logger import get_logger
 from vmnet.cloud.comm import success_msg
+from threading import Thread
 path = abspath(vmnet.__path__[0])
+
+def __signal_handler__(signal, frame):
+    quit()
 
 class Cloud:
 
     q = queue.Queue()
-
+    signal.signal(signal.SIGINT, __signal_handler__)
 
     def __init__(self, config_file=None):
 
@@ -79,6 +83,7 @@ class Cloud:
     def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False):
 
         def _run(ssh, command):
+
             env_str = ''
             for k,v in environment.items():
                 env_str += '{}={}\n'.format(k,v)
@@ -120,7 +125,10 @@ class Cloud:
             for c in cmd.split('&&'):
                 print('+ '+ c +'\n')
                 if immediate_raise:
-                    _run(ssh, c)
+                    if self.config['deployment_mode'] == 'production':
+                        _run(ssh, c + ' > /dev/null 2>&1 &')
+                    else:
+                        _run(ssh, c)
                 else:
                     if c.startswith('sudo'):
                         _run(ssh, c)

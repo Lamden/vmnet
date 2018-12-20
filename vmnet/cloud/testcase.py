@@ -38,7 +38,7 @@ class CloudNetworkTestCase(unittest.TestCase):
                     time.sleep(1)
                 CloudNetworkTestCase.all_nodes_ready = True
                 if not no_kill:
-                    cls.api.execute_command(instance_ip, 'sudo pkill python{}'.format(python_version), username, immediate_raise=True)
+                    cls.api.execute_command(instance_ip, 'sudo pkill python{}'.format(python_version), username)
                 cls.api.execute_command(instance_ip, 'sudo python{} {}'.format(python_version, fname), username, environment=environment, immediate_raise=True)
                 Cloud.q.put(node)
             except Exception as e:
@@ -113,7 +113,7 @@ class AWSTestCase(CloudNetworkTestCase):
         cls.groups = {}
         cls.nodemap = {}
         cls.images = {}
-        cls.environment = { 'VMNET_CLOUD': cls.api.config_name }
+        cls.environment = { 'VMNET_CLOUD': cls.api.config_name, 'IAM_NAME': cls.api.iam_name }
         for service in cls.api.config['services']:
             image = cls.api.config['aws']['images'][service['image']]
             instances = cls.api.find_aws_instances(image, 'run', additional_filters=[{
