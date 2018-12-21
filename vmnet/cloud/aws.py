@@ -1,9 +1,10 @@
-import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io
+import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io, watchtower
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
 from vmnet.cloud.cloud import Cloud
 import boto3, botocore, requests
+from contextlib import contextmanager
 
 class AWS(Cloud):
 
@@ -22,23 +23,21 @@ class AWS(Cloud):
         os.makedirs(instance_data_dir, exist_ok=True)
         self.instance_data_file = join(instance_data_dir, self.config_name + '.json')
 
-        if os.getenv('VMNET_CLOUD') and self.config['aws'].get('logging'):
-            import s3fs
-            logging.getLogger('s3fs.core').setLevel(logging.WARNING)
-            creds = requests.get('http://169.254.169.254/latest/meta-data/iam/security-credentials/{}'.format(self.config['aws']['logging']['arn_name'])).json()
+        self.log_config = self.config['aws'].get('logging', {})
+
+        if os.getenv('VMNET_CLOUD') and self.log_config.get('enabled') == True:
+            creds = requests.get('http://169.254.169.254/latest/meta-data/iam/security-credentials/{}'.format(
+                self.config['aws']['logging']['arn_name'])).json()
             self.boto_session = boto3.session.Session(
                 aws_access_key_id=creds['AccessKeyId'],
                 aws_secret_access_key=creds['SecretAccessKey'],
                 aws_session_token=creds['Token'],
                 region_name=self.region_name
             )
-            self.s3 = self.boto_session.resource('s3')
-            self.fs = s3fs.S3FileSystem(session=self.boto_session)
-            self.log_config = {
-                'interval': 1800,
-                'bucket': 'vmnet-{}-{}'.format(os.getenv('IAM_NAME'), self.config_name)
-            }
-            self.log_config.update(self.config['aws'].get('logging', {}))
+            self.log_config.update({
+                'log_group': 'vmnet-{}-{}'.format(os.getenv('IAM_NAME'), self.config_name)
+            })
+
         elif not exists(expanduser('~/.aws/')):
             raise Exception('You must first run "aws configure" to set-up your AWS credentials. Follow these steps from: https://blog.ipswitch.com/how-to-create-an-ec2-instance-with-python')
         else:
@@ -50,6 +49,10 @@ class AWS(Cloud):
             self.ec2_client = self.boto_session.client('ec2')
             self.iam = self.boto_session.resource('iam')
             self.iam_name = self.iam.CurrentUser().arn.rsplit('user/')[-1]
+            self.cloudwatch = self.boto_session.client('logs')
+            self.log_config.update({
+                'log_group': 'vmnet-{}-{}'.format(self.iam_name, self.config_name)
+            })
 
     def update_security_groups(self, image):
         self.tasks[image['name']] = self.parse_docker_file(image)
@@ -141,6 +144,8 @@ class AWS(Cloud):
             image = self.config['aws']['images'][img]
             image['security_group_id'] = self.update_security_groups(image)
 
+        self.set_log_groups()
+
         print('_' * 128 + '\n')
         print('    Brining up services on AWS...')
         print('_' * 128 + '\n')
@@ -183,7 +188,7 @@ class AWS(Cloud):
                 cmd = self.tasks[image['name']]['cmd']
                 service = [s for s in self.config['services'] if s['image'] == image['name']][0]
                 self.threads.append(Thread(target=_update_instance, args=(image, instance['PublicIpAddress'], cmd, {
-                    'HOST_NAME': '{}_{}'.format(service['name'], int(instance['AmiLaunchIndex'])+1)
+                    'HOST_NAME': '{}_{}'.format(service['name'], int(instance['AmiLaunchIndex']))
                 })))
 
         self.save_instance_data(self.all_instances)
@@ -297,6 +302,16 @@ class AWS(Cloud):
                 f.write(str(key_pair.key_material))
             os.chmod(key_path, 0o400)
         return key_path
+
+    def set_log_groups(self):
+        print('_' * 128 + '\n')
+        print('    Creating Log Group {}...'.format(self.log_config['log_group']))
+        print('_' * 128 + '\n')
+        try:
+            self.cloudwatch.create_log_group(logGroupName=self.log_config['log_group'])
+            print('Created log group "{}"'.format(self.log_config['log_group']))
+        except:
+            print('Log group "{}" already exist'.format(self.log_config['log_group']))
 
     def set_aws_security_groups(self, image):
         sg = self.config['aws']['security_groups'][image['security_group']]
@@ -462,11 +477,17 @@ class AWS(Cloud):
                 if status['InstanceState']['Name'] == 'running':
                     ready.add(status['InstanceId'])
 
-class S3Handler(logging.StreamHandler):
+class AWSCloudWatchHandler(watchtower.CloudWatchLogHandler):
+    def __init__(self):
+        self.shutting_down = False
+        aws = AWS(self._find_config_file())
+        super().__init__(
+            log_group=aws.log_config['log_group'], stream_name=os.getenv('HOST_NAME'),
+            boto3_session=aws.boto_session,
+            send_interval=aws.log_config.get('interval', 60),
+            create_log_group=False, use_queues=False)
 
-    is_setup = False
-
-    def __init__(self, *args, **kwargs):
+    def _find_config_file(self):
         config_file = None
         for root, dirs, files in os.walk(os.getcwd()):
             for f in files:
@@ -474,35 +495,4 @@ class S3Handler(logging.StreamHandler):
                     config_file = os.path.join(root, f)
                     break
             if config_file: break
-        self.aws = AWS(config_file)
-        self.log_captor = io.StringIO()
-        super().__init__(self.log_captor, *args, **kwargs)
-        format = '%(asctime)s.%(msecs)03d %(name)s[%(process)d][%(processName)s] <{}> %(levelname)-2s %(message)s'.format(os.getenv('HOST_NAME', 'Node'))
-        self.setFormatter(
-            coloredlogs.ColoredFormatter(format)
-        )
-        if not S3Handler.is_setup:
-            S3Handler.is_setup = True
-            t = Thread(target=self._log_to_s3)
-            t.start()
-
-    def _log_to_s3(self):
-        fname = datetime.datetime.fromtimestamp(int(time.time() / self.aws.log_config['interval']) * self.aws.log_config['interval']).strftime("%Y_%m_%d_%H_%M_%S")
-        log_file = '{}/{}-{}'.format(self.aws.log_config['bucket'], os.getenv('HOST_NAME'), fname)
-        try: self.aws.s3.create_bucket(
-            Bucket=self.aws.log_config['bucket'],
-            CreateBucketConfiguration={'LocationConstraint': self.aws.boto_session.region_name}
-        )
-        except: pass
-        try: bucket = self.aws.fs.ls(self.aws.log_config['bucket'])
-        except: bucket = []
-        while True:
-            content = self.log_captor.getvalue().encode()
-            if content:
-                if log_file in bucket:
-                    with self.aws.fs.open(log_file, 'rb') as f:
-                        content = f.read() + content
-                if len(content) == 0: return
-                with self.aws.fs.open(log_file, 'wb') as f:
-                    f.write(content)
-            time.sleep(1)
+        return config_file

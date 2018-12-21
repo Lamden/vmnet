@@ -1,4 +1,4 @@
-import os, sys, json, paramiko, socket, queue, select, time, select, vmnet, uuid, signal
+import os, sys, json, paramiko, socket, queue, select, time, select, vmnet, uuid
 from dockerfile_parse import DockerfileParser
 from os.path import join, exists, expanduser, dirname, abspath, basename, splitext
 from vmnet.logger import get_logger
@@ -9,7 +9,6 @@ path = abspath(vmnet.__path__[0])
 class Cloud:
 
     q = queue.Queue()
-    signal.signal(signal.SIGINT, __signal_handler__)
 
     def __init__(self, config_file=None):
 

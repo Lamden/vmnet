@@ -25,23 +25,27 @@ def _track_logs(test_name, project_path):
     server = WebsocketServer(WS_PORT, host='0.0.0.0')
     def new_client(cli, svr):
         opened_files = {}
-        while True:
-            for root, dirs, files in os.walk(project_path):
-                for f in files:
-                    if f.endswith('_color') and test_name in root:
-                        if not opened_files.get(f):
-                            opened_files[f] = open(join(root, f))
-                        log_lines = [convert(l) for l in opened_files[f].readlines()]
-                        if log_lines != []:
-                            node = splitext(f)[0].split('_')
-                            node_num = node[-1] if node[-1].isdigit() else None
-                            node_type = node[:-1] if node[-1].isdigit() else node
-                            svr.send_message_to_all(json.dumps({
-                                'node_type': '_'.join(node_type),
-                                'node_num': node_num,
-                                'log_lines': log_lines
-                            }))
-            time.sleep(0.01)
+        try:
+            while True:
+                for root, dirs, files in os.walk(project_path):
+                    for f in files:
+                        if f.endswith('_color') and test_name in root:
+                            if not opened_files.get(f):
+                                opened_files[f] = open(join(root, f))
+                            log_lines = [convert(l) for l in opened_files[f].readlines()]
+                            if log_lines != []:
+                                node = splitext(f)[0].split('_')
+                                node_num = node[-1] if node[-1].isdigit() else None
+                                node_type = node[:-1] if node[-1].isdigit() else node
+                                svr.send_message_to_all(json.dumps({
+                                    'node_type': '_'.join(node_type),
+                                    'node_num': node_num,
+                                    'log_lines': log_lines
+                                }))
+                time.sleep(0.01)
+        except:
+            for f in opened_files:
+                opened_files[f].close()
     server.set_fn_new_client(new_client)
     server.run_forever()
 
