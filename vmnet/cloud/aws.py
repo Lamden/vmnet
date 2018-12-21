@@ -16,7 +16,6 @@ class AWS(Cloud):
         self.logging = False
         self.profile_name = self.config['aws'].get('profile_name', 'default')
         self.region_name = self.config['aws'].get('region_name', 'us-east-2')
-        self.keyname = '{}-{}'.format(self.profile_name, self.config_name)
         self.environment = self.config.get('environment', {})
 
         instance_data_dir = join(self.dir, 'instance_data')
@@ -37,6 +36,7 @@ class AWS(Cloud):
             self.log_config.update({
                 'log_group': 'vmnet-{}-{}'.format(os.getenv('IAM_NAME'), self.config_name)
             })
+            self.keyname = '{}-{}'.format(os.getenv('IAM_NAME'), self.config_name)
 
         elif not exists(expanduser('~/.aws/')):
             raise Exception('You must first run "aws configure" to set-up your AWS credentials. Follow these steps from: https://blog.ipswitch.com/how-to-create-an-ec2-instance-with-python')
@@ -53,6 +53,7 @@ class AWS(Cloud):
             self.log_config.update({
                 'log_group': 'vmnet-{}-{}'.format(self.iam_name, self.config_name)
             })
+            self.keyname = '{}-{}'.format(self.iam_name, self.config_name)
 
     def update_security_groups(self, image):
         self.tasks[image['name']] = self.parse_docker_file(image)
