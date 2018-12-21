@@ -4,6 +4,7 @@ from os.path import join, exists, expanduser, dirname, abspath, basename, splite
 from vmnet.logger import get_logger
 from vmnet.cloud.comm import success_msg
 from threading import Thread
+import datetime
 path = abspath(vmnet.__path__[0])
 
 class Cloud:
@@ -76,7 +77,7 @@ class Cloud:
 
                     return tasks
 
-    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False):
+    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, hostname=None):
 
         def _run(ssh, command):
 
@@ -89,14 +90,34 @@ class Cloud:
             stdin, stdout, stderr = ssh.exec_command(command)
             err = ''
             complete = False
+            log_prefix_fmt = "[{datetime}"
+            if hostname:
+                log_prefix_fmt += " {}".format(hostname)
+            log_prefix_fmt += "]"
+            prefix_colors  = {
+                    "green": "\033[92m",
+                    "endc": "\033[0m",
+                    "error": "\033[91m"
+            }
             while True:
                 if stdout.channel.recv_ready():
                     out = stdout.channel.recv(1024).decode()
                     self.log(out)
+                    self.log("{color}{prefix}{endc} {out}".format(
+                        color = prefix_colors['green'],
+                        prefix = log_prefix_fmt.format(datetime=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                        endc = prefix_colors['endc'],
+                        out = out
+                    ))
                     if success_msg in out: return
                 if stdout.channel.recv_stderr_ready():
                     err = stderr.channel.recv_stderr(len(stderr.channel.in_stderr_buffer)).decode()
-                    self.log(err)
+                    self.log("{color}{prefix}{endc} {out}".format(
+                        color = prefix_colors['green'],
+                        prefix = log_prefix_fmt.format(datetime=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                        endc = prefix_colors['endc'],
+                        out = err
+                    ))
                     if success_msg in err: return
                 if complete:
                     break
@@ -117,6 +138,11 @@ class Cloud:
 
         try:
             print('Sending commands to {}'.format(instance_ip))
+            for _ in range(6):
+                if self.check_ssh_alive(instance_ip, username):
+                    break
+                print("SSH connection to {host} not alive yet, waiting 5 seconds then retrying...".format(host=instance_ip))
+                time.sleep(5)
             ssh.connect(hostname=instance_ip, username=username, pkey=key)
             for c in cmd.split('&&'):
                 print('+ '+ c +'\n')
@@ -151,7 +177,18 @@ class Cloud:
         except: pass
         print('\n{} is done.\n'.format(instance_ip))
 
-    def update_image_code(self, image, instance_ip, init=False, update_commands=[]):
+    def check_ssh_alive(self, instance_ip, username):
+        try:
+            key = paramiko.RSAKey.from_private_key_file(self.key_path)
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(hostname=instance_ip, username=username, pkey=key)
+        except:
+            return False
+        return True
+
+
+    def update_image_code(self, image, instance_ip, hostname, init=False, update_commands=[], env={}):
         print('_' * 128 + '\n')
         print('    Cloning repository into instance with ip {}'.format(instance_ip))
         print('_' * 128 + '\n')
@@ -161,17 +198,18 @@ class Cloud:
             'git pull origin {}'.format(image['branch'])
         ]
         environment = image.get('environment', {})
+        environment.update(env)
         environment.update(self.config.get('environment', {}))
         if init == False:
             for cmd in pull + update_commands:
-                self.execute_command(instance_ip, cmd, image['username'], environment)
+                self.execute_command(instance_ip, cmd, image['username'], environment, hostname=hostname)
         else:
             for cmd in [
                 'sudo chown -R {} .'.format(image['username']),
                 'git init',
                 'git remote add origin {}'.format(image['repo_url'])
             ] + pull:
-                self.execute_command(instance_ip, cmd, image['username'], environment)
+                self.execute_command(instance_ip, cmd, image['username'], environment, hostname=hostname)
 
     def run_image_setup_script(self, image, instance_ip):
         print('_' * 128 + '\n')
@@ -180,4 +218,4 @@ class Cloud:
         for cmd in self.tasks[image['name']]['run']:
             environment = image.get('environment', {})
             environment.update(self.config.get('environment', {}))
-            self.execute_command(instance_ip, cmd, image['username'], environment)
+            self.execute_command(instance_ip, cmd, image['username'], environment, hostname=hostname)

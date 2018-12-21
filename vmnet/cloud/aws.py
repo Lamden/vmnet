@@ -48,7 +48,7 @@ class AWS(Cloud):
             self.ec2 = self.boto_session.resource('ec2')
             self.ec2_client = self.boto_session.client('ec2')
             self.iam = self.boto_session.resource('iam')
-            self.r53 = self.boto_session.resource('route53')
+            self.r53 = self.boto_session.client('route53')
             self.iam_name = self.iam.CurrentUser().arn.rsplit('user/')[-1]
             self.cloudwatch = self.boto_session.client('logs')
             self.log_config.update({
@@ -110,13 +110,24 @@ class AWS(Cloud):
 
         self.logging = logging
 
-        def _update_instance(image, ip, cmd, e={}, init=False):
+        def _update_instance(image, ip, cmd, hostname, e={}, init=False):
+            prefix_colors  = {
+                    "green": "\033[92m",
+                    "endc": "\033[0m",
+                    "error": "\033[91m"
+            }
             try:
-                self.update_image_code(image, ip, init=init, update_commands=image.get('update_commands', []))
+                self.update_image_code(image, ip, init=init, update_commands=image.get('update_commands', []), env=e)
                 e.update({'HOST_IP': ip, 'VMNET_CLOUD': self.config_name, 'IAM_NAME': self.iam_name})
                 e.update(image.get('environment', {}))
-                self.execute_command(ip, cmd, image['username'], e)
-            except Exception:
+                self.execute_command(ip, cmd, image['username'], e, hostname=hostname)
+            except Exception as e:
+                print("{color}[THREAD ERROR {host}] {err}{endc}".format(
+                    color=prefix_colors['error'],
+                    host=hostname,
+                    err=e,
+                    endc=prefix_colors['endc']
+                ))
                 Cloud.q.put(sys.exc_info())
 
         def _create_instance(image, service, count):
@@ -181,20 +192,27 @@ class AWS(Cloud):
 
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
-            service = [s for s in self.config['services'] if s['image'] == image['name']][0]
             instances = self.find_aws_instances(image, 'run')
             if self.config['aws'].get('use_elastic_ips'):
                 self.allocate_elastic_ips(instances, image)
             instances = self.find_aws_instances(image, 'run')
-            if self.config['aws'].get('use_dns'):
-                self.create_dns_records(instances, image, service)
             for instance in instances:
-                hostname = '{}_{}'.format(service['name'], instance['AmiLaunchIndex'])
+                service = [ x['Value'] for x in instance['Tags'] if x['Key'] == 'Name' ][0].split(':')[-1].split('-')[0]
+                hostname = '{}_{}'.format(service, instance['AmiLaunchIndex'])
+                env = {
+                    'HOST_NAME': hostname
+                }
+                if self.config['aws'].get('use_dns', ''):
+                    self.dns_records([instance], image, service, 'UPSERT')
+                    if self.config['aws']['dns_configuration'].get('use_ssl', ''):
+                        env['SSL_ENABLED'] = 'True'
+                        env['TYPEREGEX'] = "'^(" + '|'.join(self.config['aws']['dns_configuration']['ssl_nodes']) + ")$'"
+                    if self.config['aws']['dns_configuration'].get('subnet_prefix', ''):
+                        env['SUBNET_PREFIX'] = self.config['aws']['dns_configuration']['subnet_prefix']
+                    env['DNS_NAME'] = self.config['aws']['dns_configuration']['domain_name']
                 self.all_instances.append(instance)
                 cmd = self.tasks[image['name']]['cmd']
-                self.threads.append(Thread(target=_update_instance, args=(image, instance['PublicIpAddress'], cmd, {
-                    'HOST_NAME': hostname
-                })))
+                self.threads.append(Thread(target=_update_instance, name=hostname, args=(image, instance['PublicIpAddress'], cmd, hostname, env)))
 
         self.save_instance_data(self.all_instances)
         for t in self.threads: t.start()
@@ -214,6 +232,7 @@ class AWS(Cloud):
         for img in self.config['aws']['images']:
             image = self.config['aws']['images'][img]
             instances = self.find_aws_instances(image, mode='build')
+            service = [s for s in self.config['services'] if s['image'] == image['name']][0]
             print('Terminating the build instance for {}...'.format(image['name']))
             for instance in instances:
                 ins = self.ec2.Instance(instance['InstanceId'])
@@ -231,6 +250,8 @@ class AWS(Cloud):
                 instances = self.find_aws_instances(image, mode='run')
             if self.config['aws'].get('use_elastic_ips'):
                 self.deallocate_all_elastic_ips([ins['PublicIpAddress'] for ins in instances], image, release=destroy)
+            if self.config['aws'].get('use_dns') and destroy:
+                self.dns_records(instances, image, service, 'DELETE');
             print('Terminating {} instances for {}...'.format(len(instances), image['name']))
             for instance in instances:
                 ins = self.ec2.Instance(instance['InstanceId'])
@@ -271,7 +292,7 @@ class AWS(Cloud):
                 return json.loads(f.read())
         return []
 
-    def create_dns_records(self, instances, image, service):
+    def dns_records(self, instances, image, service, operation):
         """
         Creates DNS records for EIPs if feature is enabled
 
@@ -280,6 +301,7 @@ class AWS(Cloud):
             image (dict):     A section of the configuration dedicated to the runtime configuration of different
                               types of nodes
             service (str):    The name of the service being brought up (e.g. masternode, delegate, etc)
+            operation (str):  The operation to take on the record, options are 'UPSERT', 'CREATE', 'DELETE'
 
         Returns:
             N/A
@@ -295,12 +317,16 @@ class AWS(Cloud):
         # Load in expected parameters at beginning of function to fail fast in the case of misconfiguration
         dns_config = self.config['aws']['dns_configuration']
         domain_name = dns_config['domain_name']
-        record_type = dns_config['record_type']
-        service = dns_config['service']
-        if service != 'route53':
+        record_type = dns_config.get('record_type', 'A')
+        dns_service = dns_config.get('service', 'route53')
+        subnet_prefix = dns_config.get('subnet_prefix', '')
+        ttl = dns_config.get("TTL", 20)
+        if subnet_prefix:
+            subnet_prefix += '-'
+        if dns_service != 'route53':
             raise ValueError("Only DNS service type 'route53' supported at this time")
 
-        print("Creating DNS records for image {} on domain {}".format(domain_name))
+        print("Creating DNS records for image {} on domain {}".format(image['name'], domain_name))
 
         # Get hosted_zone from route53 and validate we got the correct one
         hosted_zone = self.r53.list_hosted_zones_by_name(DNSName=domain_name)['HostedZones'][0]
@@ -311,25 +337,28 @@ class AWS(Cloud):
         # 
         instance_data = self._load_instance_data()
         for instance in instances:
+            changebatch = {
+                'Comment': 'Procedurally generated record for service {} index {}'.format(service, instance['AmiLaunchIndex']),
+                'Changes': [
+                    {
+                        'Action': operation,
+                        'ResourceRecordSet': {
+                            'Name': '{}{}{}.{}'.format(subnet_prefix, service, instance['AmiLaunchIndex'], domain_name),
+                            'Type': record_type,
+                            'TTL': ttl,
+                            'ResourceRecords': [
+                                {
+                                    "Value": instance['PublicIpAddress']
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+            print(json.dumps(changebatch, indent=2))
             self.r53.change_resource_record_sets(
                 HostedZoneId = hzid,
-                ChangeBatch = {
-                    'Comment': 'Procedurally generated record for service {} index {}'.format(service, instance['AmiLaunchIndex']),
-                    'Changes': [
-                        {
-                            'Action': 'CREATE',
-                            'ResourceRecordSet': {
-                                'Name': '{}{}.{}'.format(service, instance['AmiLaunchIndex'], domain_name),
-                                'Type': record_type,
-                                'ResourceRecords': [
-                                    {
-                                        "Value": instance['PublicIpAddress']
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
+                ChangeBatch = changebatch
             )
 
             
