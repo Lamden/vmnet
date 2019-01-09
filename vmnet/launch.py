@@ -109,7 +109,11 @@ def _generate_compose_file(config_file, test_name='sample_test', environment={})
 
 @click.command()
 @click.option('--image_name', '-n', help='Rebuild specific image in the config', default='')
-def build(image_name=''):
+@click.option('--project_path', '-p', help='Project path to run your code from', default='.')
+def build(image_name='', project_path='.'):
+    if not hasattr(Docker, 'project_path'):
+        Docker.project_path = abspath(project_path)
+        Docker.no_cache = True
     _build(image_name)
 
 def _build_image(image):
@@ -117,25 +121,21 @@ def _build_image(image):
     print('    Building image "{}"'.format(image))
     print('_' * 128 + '\n')
     dockerfile = None
+    image_found = False
     for root, dirs, files in os.walk(Docker.project_path):
         for file in files:
             if file == image:
-                # The API does not show any output!!!
+                image_found = True
                 os.system('docker build -t {} -f {} {}'.format(
                     image, join(root, file),
                     Docker.project_path
                 ))
+    assert image_found, 'Cannot find image in {}'.format(Docker.project_path)
     print('\nDone.\n')
 
 def _build(image_name=''):
     if image_name != '':
-        for root, dirs, files in os.walk('.'):
-            for file in files:
-                if image_name == file:
-                    os.system('docker build -t {} -f {} {}'.format(
-                        image_name, join(root, image_name),
-                        '.'
-                    ))
+        _build_image(image_name)
     else:
         with open(Docker.config_file) as f:
             config = json.loads(f.read())
