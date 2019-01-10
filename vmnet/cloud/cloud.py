@@ -77,16 +77,21 @@ class Cloud:
 
                     return tasks
 
-    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, hostname=None):
+    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, hostname=None, detached=False):
 
-        def _run(ssh, command):
+        def _run(ssh, command, detached, sudo=True):
 
             env_str = ''
-            for k,v in environment.items():
-                env_str += '{}={}\n'.format(k,v)
+            env_str = " ".join([ '{}={}'.format(k,v) for k,v in environment.items() ])
             if env_str != '':
-                command = 'echo "{}" > .env; source .env; '.format(env_str) + command
+                command = '{} {}'.format(env_str, command)
 
+            if sudo:
+                command = 'sudo {}'.format(command)
+
+            if detached:
+                command = '{} 2>&1 &'.format(command)
+            print('+ '+ command +'\n')
             stdin, stdout, stderr = ssh.exec_command(command)
             err = ''
             complete = False
@@ -145,18 +150,16 @@ class Cloud:
                 time.sleep(5)
             ssh.connect(hostname=instance_ip, username=username, pkey=key)
             for c in cmd.split('&&'):
-                print('+ '+ c +'\n')
-                if immediate_raise:
-                    if self.config['deployment_mode'] == 'production':
-                        _run(ssh, c + ' > /dev/null 2>&1 &')
-                    else:
-                        _run(ssh, c)
+                sudo = c.startswith('sudo') 
+                c = c.split('sudo ')[-1]
+                if sudo:
+                    _run(ssh, c, detached=detached, sudo=True)
                 else:
-                    if c.startswith('sudo'):
-                        _run(ssh, c)
-                    else:
-                        try: _run(ssh, 'sudo '+c)
-                        except: _run(ssh, c)
+                    # Try to push everything to run as sudo for reasons? Idk why but I'm too afraid to change it lol
+                    try:
+                        _run(ssh, c, detached=detached, sudo=True)
+                    except:
+                        _run(ssh, c, detached=detached, sudo=False)
 
         except Exception as e:
             raise

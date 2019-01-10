@@ -1,4 +1,4 @@
-awscli==1.16.67
+awscli==1.16.80
 boto3==1.9.70
 Click==7.0
 coloredlogs==10.0
