@@ -1,4 +1,4 @@
-import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io, multiprocessing
+import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io, psutil
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
@@ -598,7 +598,7 @@ class AWS(Cloud):
 class AWSCloudWatchHandler(watchtower.CloudWatchLogHandler):
     def __init__(self, name):
         self.shutting_down = False
-        pname = multiprocessing.current_process().name
+        pname = os.getpid()#psutil.Process(os.getpid()).name()
         aws = AWS(self._find_config_file())
         super().__init__(
             log_group=aws.log_config['log_group'], stream_name="{}-{}-{}".format(os.getenv('HOST_NAME'), pname, name),
