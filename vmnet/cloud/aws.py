@@ -58,7 +58,7 @@ class AWS(Cloud):
             self.iam_name = self.iam.CurrentUser().arn.rsplit('user/')[-1]
             self.cloudwatch = self.boto_session.client('logs')
             self.log_config.update({
-                'log_group': 'vmnet-{}-{}-{}'.format(self.iam_name, self.config_name)
+                'log_group': 'vmnet-{}-{}'.format(self.iam_name, self.config_name)
             })
             self.keyname = '{}-{}'.format(self.iam_name, self.config_name)
 
