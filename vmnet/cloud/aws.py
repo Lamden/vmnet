@@ -1,4 +1,4 @@
-import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io
+import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io, multiprocessing
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
@@ -58,7 +58,7 @@ class AWS(Cloud):
             self.iam_name = self.iam.CurrentUser().arn.rsplit('user/')[-1]
             self.cloudwatch = self.boto_session.client('logs')
             self.log_config.update({
-                'log_group': 'vmnet-{}-{}-{}'.format(self.iam_name, self.config_name, str(self.launch_begin.strftime("%Y-%m-%d_%H-%M-%Z")))
+                'log_group': 'vmnet-{}-{}-{}'.format(self.iam_name, self.config_name, str(self.launch_begin.strftime("%Y-%m-%d_%H-%M")))
             })
             self.keyname = '{}-{}'.format(self.iam_name, self.config_name)
 
@@ -341,7 +341,7 @@ class AWS(Cloud):
             raise ValueError("Was unable to retrieve domain name {}. Are you sure you're running in the correct AWS account?".format(domain_name))
         hzid = hosted_zone['Id']
 
-        # 
+        #
         instance_data = self._load_instance_data()
         for instance in instances:
             changebatch = {
@@ -368,7 +368,7 @@ class AWS(Cloud):
                 ChangeBatch = changebatch
             )
 
-            
+
     def allocate_elastic_ips(self, instances, image):
         print('{} elastic IPs in total are needed for {}...'.format(len(instances), image['name']))
 
@@ -598,9 +598,10 @@ class AWS(Cloud):
 class AWSCloudWatchHandler(watchtower.CloudWatchLogHandler):
     def __init__(self, name):
         self.shutting_down = False
+        pname = multiprocessing.current_process().name
         aws = AWS(self._find_config_file())
         super().__init__(
-            log_group=aws.log_config['log_group'], stream_name="{}-{}".format(os.getenv('HOST_NAME'), name),
+            log_group=aws.log_config['log_group'], stream_name="{}-{}-{}".format(os.getenv('HOST_NAME'), pname, name),
             boto3_session=aws.boto_session,
             send_interval=aws.log_config.get('interval', 60),
             create_log_group=False, use_queues=True)
