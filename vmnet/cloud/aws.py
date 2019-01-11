@@ -1,4 +1,4 @@
-import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io, psutil
+import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io, psutil, threading
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
@@ -598,10 +598,10 @@ class AWS(Cloud):
 class AWSCloudWatchHandler(watchtower.CloudWatchLogHandler):
     def __init__(self, name):
         self.shutting_down = False
-        pname = os.getpid()#psutil.Process(os.getpid()).name()
+        # pname = '{}-{}'.format(os.getpid(), threading.get_ident())
         aws = AWS(self._find_config_file())
         super().__init__(
-            log_group=aws.log_config['log_group'], stream_name="{}-{}-{}".format(os.getenv('HOST_NAME'), pname, name),
+            log_group=aws.log_config['log_group'], stream_name="{}-{}".format(os.getenv('HOST_NAME'), name),
             boto3_session=aws.boto_session,
             send_interval=aws.log_config.get('interval', 60),
             create_log_group=False, use_queues=True)
