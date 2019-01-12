@@ -28,7 +28,7 @@ class CloudNetworkTestCase(unittest.TestCase):
         print('#' * 128 + '\n')
 
     @classmethod
-    def execute_python(cls, node, fn, python_version=3.6, no_kill=False, detached=False):
+    def execute_python(cls, node, fn, python_version=3.6, no_kill=False, *args, **kwargs):
         def _run():
             try:
                 CloudNetworkTestCase.all_nodes.add(node)
@@ -39,7 +39,7 @@ class CloudNetworkTestCase(unittest.TestCase):
                 CloudNetworkTestCase.all_nodes_ready = True
                 if not no_kill:
                     cls.api.execute_command(instance_ip, 'sudo pkill python{}'.format(python_version), username)
-                cls.api.execute_command(instance_ip, 'sudo python{} {}'.format(python_version, fname), username, environment=environment, immediate_raise=True, detached=detached)
+                cls.api.execute_command(instance_ip, 'sudo python{} {}'.format(python_version, fname), username, environment=environment, immediate_raise=True)
                 Cloud.q.put(node)
             except Exception as e:
                 Cloud.q.put(sys.exc_info())

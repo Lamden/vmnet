@@ -77,9 +77,9 @@ class Cloud:
 
                     return tasks
 
-    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, hostname=None, detached=False):
+    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, hostname=None, *args, **kwargs):
 
-        def _run(ssh, command, detached, sudo=True):
+        def _run(ssh, command, sudo=True):
 
             env_str = ''
             env_str = " ".join([ '{}={}'.format(k,v) for k,v in environment.items() ])
@@ -89,7 +89,7 @@ class Cloud:
             if sudo:
                 command = 'sudo {}'.format(command)
 
-            if detached:
+            if self.config.get('deployment_mode', 'testing') == 'production':
                 command = '{} 2>&1 &'.format(command)
             print('+ '+ command +'\n')
             stdin, stdout, stderr = ssh.exec_command(command)
@@ -150,16 +150,16 @@ class Cloud:
                 time.sleep(5)
             ssh.connect(hostname=instance_ip, username=username, pkey=key)
             for c in cmd.split('&&'):
-                sudo = c.startswith('sudo') 
+                sudo = c.startswith('sudo')
                 c = c.split('sudo ')[-1]
                 if sudo:
-                    _run(ssh, c, detached=detached, sudo=True)
+                    _run(ssh, c, sudo=True)
                 else:
                     # Try to push everything to run as sudo for reasons? Idk why but I'm too afraid to change it lol
                     try:
-                        _run(ssh, c, detached=detached, sudo=True)
+                        _run(ssh, c, sudo=True)
                     except:
-                        _run(ssh, c, detached=detached, sudo=False)
+                        _run(ssh, c, sudo=False)
 
         except Exception as e:
             raise

@@ -1,4 +1,4 @@
-import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io, psutil, threading
+import json, sys, os, time, datetime, subprocess, logging, uuid, coloredlogs, io, psutil, threading, logging
 from os.path import join, exists, expanduser, dirname, splitext, basename
 from pprint import pprint
 from threading import Thread
@@ -7,8 +7,6 @@ import boto3, botocore, requests
 from contextlib import contextmanager
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-import watchtower
 
 class AWS(Cloud):
 
@@ -39,6 +37,7 @@ class AWS(Cloud):
                 aws_session_token=creds['Token'],
                 region_name=self.region_name
             )
+            self.cloudwatch = self.boto_session.client('logs')
             self.log_config.update({
                 'log_group': 'vmnet-{}-{}'.format(os.getenv('IAM_NAME'), self.config_name)
             })
@@ -595,16 +594,18 @@ class AWS(Cloud):
                 if status['InstanceState']['Name'] == 'running':
                     ready.add(status['InstanceId'])
 
+import watchtower, logging
+
 class AWSCloudWatchHandler(watchtower.CloudWatchLogHandler):
     def __init__(self, name):
-        self.shutting_down = False
-        # pname = '{}-{}'.format(os.getpid(), threading.get_ident())
         aws = AWS(self._find_config_file())
+        if aws.config.get('deployment_mode') == 'production':
+            logging.raiseExceptions = False
         super().__init__(
             log_group=aws.log_config['log_group'], stream_name="{}-{}".format(os.getenv('HOST_NAME'), name),
             boto3_session=aws.boto_session,
             send_interval=aws.log_config.get('interval', 60),
-            create_log_group=False, use_queues=True)
+            create_log_group=False, use_queues=False)
 
     def _find_config_file(self):
         config_file = None
