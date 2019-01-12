@@ -28,7 +28,7 @@ class CloudNetworkTestCase(unittest.TestCase):
         print('#' * 128 + '\n')
 
     @classmethod
-    def execute_python(cls, node, fn, python_version=3.6, no_kill=False):
+    def execute_python(cls, node, fn, python_version=3.6, no_kill=False, *args, **kwargs):
         def _run():
             try:
                 CloudNetworkTestCase.all_nodes.add(node)
