@@ -13,6 +13,9 @@ class AWS(Cloud):
     def __init__(self, config_file=None):
 
         super().__init__(config_file)
+        self.platform_name = 'aws'
+        self.filter_services(self.platform_name)
+
         self.tasks = {}
         self.threads = []
         self.logging = False
@@ -25,9 +28,16 @@ class AWS(Cloud):
         self.instance_data_file = join(instance_data_dir, self.config_name + '.json')
 
         self.launch_begin = datetime.datetime.now()
-
         self.log_config = self.config['aws'].get('logging', {})
+        self.regions = set([service['platform']['region'] for service in self.config['services']])
 
+        self.set_session()
+
+    def set_session(self, region_name=None):
+        """
+            Sets all necessary AWS services and sessions for immediate use
+        """
+        if region_name: self.region_name = region_name
         if os.getenv('VMNET_CLOUD') and self.log_config.get('enabled') == True:
             creds = requests.get('http://169.254.169.254/latest/meta-data/iam/security-credentials/{}'.format(
                 self.config['aws']['logging']['arn_name'])).json()
@@ -45,6 +55,7 @@ class AWS(Cloud):
 
         elif not exists(expanduser('~/.aws/')):
             raise Exception('You must first run "aws configure" to set-up your AWS credentials. Follow these steps from: https://blog.ipswitch.com/how-to-create-an-ec2-instance-with-python')
+
         else:
             self.boto_session = boto3.session.Session(
                 profile_name=self.profile_name,
@@ -61,6 +72,21 @@ class AWS(Cloud):
             })
             self.keyname = '{}-{}'.format(self.iam_name, self.config_name)
 
+    def service_name_to_service(self, service_name):
+        """
+            Gets the specific service config from the list of services provided
+        """
+        sn, idx = service_name.rsplit('_') if len(service_name.rsplit('_')) == 2 else (service_name, 0)
+        services = []
+        for service in self.config['services']:
+            if service['name'] == sn:
+                for c in service['count']:
+                    services.append(service)
+        assert len(services) > 0, 'No service named "{}"'.format(service_name)
+        if idx+1 > service['count']:
+            raise Exception('There are only {} nodes in {}'.format(service['count'], sn))
+        return services[idx], idx
+
     def update_security_groups(self, image):
         self.tasks[image['name']] = self.parse_docker_file(image)
         self.create_aws_key_pair(image)
@@ -75,10 +101,9 @@ class AWS(Cloud):
         for img in image_list:
             image = self.config['aws']['images'][img]
             old_run_ami = self.config['aws']['images'][image['name']].get('run_ami')
-            security_group_id = self.update_security_groups(image)
             instances = self.find_aws_instances(image, 'build')
             if len(instances) == 0:
-                instance_ip = self.build_aws_image(image, security_group_id)
+                instance_ip = self.build_aws_image(image)
             else:
                 instance_ip = self.start_aws_image(image, instances[0])
             instance = self.find_aws_instances(image, 'build')[0]
@@ -92,12 +117,8 @@ class AWS(Cloud):
                 self.remove_ami(old_run_ami)
 
     def ssh(self, service_name):
-        sn, idx = service_name.rsplit('_') if len(service_name.rsplit('_')) == 2 else (service_name, 0)
-        idx = int(idx)
-        try: service = [s for s in self.config['services'] if s['name'] == sn][0]
-        except: raise Exception('No service named "{}"'.format(sn))
-        if idx+1 > service['count']:
-            raise Exception('There are only {} nodes in {}'.format(service['count'], sn))
+        service, idx = self.service_name_to_service(service_name)
+        self.set_session(service['platform']['region'])
         image = self.config['aws']['images'][service['image']]
         instance = self.find_aws_instances(image, 'run', [{
             'Name': 'tag:Name',
@@ -118,9 +139,9 @@ class AWS(Cloud):
 
         def _update_instance(image, ip, cmd, hostname, e={}, init=False):
             prefix_colors  = {
-                    "green": "\033[92m",
-                    "endc": "\033[0m",
-                    "error": "\033[91m"
+                "green": "\033[92m",
+                "endc": "\033[0m",
+                "error": "\033[91m"
             }
             try:
                 self.update_image_code(image, ip, hostname, init=init, update_commands=image.get('update_commands', []), env=e)
@@ -137,6 +158,7 @@ class AWS(Cloud):
                 Cloud.q.put(sys.exc_info())
 
         def _create_instance(image, service, count):
+
             return self.ec2.create_instances(
                 ImageId=image['run_ami'],
                 MinCount=count,
@@ -153,8 +175,7 @@ class AWS(Cloud):
                 }],
                 IamInstanceProfile={
                     'Arn': self.config['aws']['logging']['arn_id']
-                },
-                # TODO Add regions
+                }
             )
 
         if not keep_up: self.down()
@@ -172,8 +193,8 @@ class AWS(Cloud):
         self.all_instances = []
 
         if service_name:
-            sn, idx = service_name.rsplit('_') if len(service_name.rsplit('_')) == 2 else (service_name, 0)
-            service = [s for s in self.config['services'] if s['name'] == sn][0]
+            service, idx = self.service_name_to_service(service_name)
+            self.set_session(service['platform']['region'])
             image = self.config['aws']['images'][service['image']]
             instances = self.find_aws_instances(image, 'run', [{
                 'Name': 'launch-index',
@@ -183,6 +204,7 @@ class AWS(Cloud):
                 self.all_instances += _create_instance(image, service, 1)
         else:
             for service in self.config['services']:
+                self.set_session(service['platform']['region'])
                 image = self.config['aws']['images'][service['image']]
                 instances = self.find_aws_instances(image, 'run')
                 instances = [ins for ins in instances if service['name'] in ins['Tags'][0]['Value']]
@@ -545,7 +567,7 @@ class AWS(Cloud):
         except:
             pass
 
-    def build_aws_image(self, image, security_group_id, instance=None):
+    def build_aws_image(self, image, instance=None):
 
         instance = self.ec2.create_instances(
             ImageId=image['build_ami'],
@@ -553,7 +575,6 @@ class AWS(Cloud):
             MaxCount=1,
             InstanceType=image.get('build_instance_type', image['instance_type']),
             KeyName=self.keyname,
-            SecurityGroupIds=[security_group_id],
             TagSpecifications=[{
                 'ResourceType': 'instance',
                 'Tags': [

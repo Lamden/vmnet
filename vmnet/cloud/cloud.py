@@ -31,6 +31,17 @@ class Cloud:
             self.config = json.loads(f.read())
         self.setup_working_dir()
 
+        self.deployment_mode = self.config['aws'].get('deployment_mode', 'testing')
+        self.deployment_type = self.config['aws'].get('deployment_type', 'multi-region')
+
+    def filter_services(self, platform_name):
+        services = []
+        for service in self.config['services']:
+            assert service.get('platform'), 'You must specify "platform" for the service "{}"'.format(service['name'])
+            if service['platform']['name'] == platform_name:
+                services.append(service)
+        self.config['services'] = services
+
     def log(self, msg):
         print(msg, end='')
 
