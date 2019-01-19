@@ -1,5 +1,5 @@
 import unittest, asyncio, os, shutil, time
-from vmnet.launch import launch, teardown
+from vmnet.launch import launch, teardown, config_ports, Docker
 from vmnet.webserver import start_ui
 from vmnet.parser import get_fn_str
 from os.path import dirname, abspath, join, splitext, expandvars, realpath, exists
@@ -41,6 +41,14 @@ class BaseNetworkTestCase(unittest.TestCase):
     def start_node(cls, node):
         print('Starting node {}...'.format(node))
         os.system('docker-compose start {}'.format(node))
+
+        time.sleep(3)
+        print("Configuring ports...")
+        config_ports(container_name=node)
+
+        # sorry this is so ratchet lol... --davis
+        BaseNetworkTestCase._set_configs(cls, Docker.config)
+        BaseNetworkTestCase._set_configs(BaseNetworkTestCase, Docker.config)
 
     @classmethod
     def restart_node(cls, node, dead_time=0):
