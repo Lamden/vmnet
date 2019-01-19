@@ -109,11 +109,7 @@ def _generate_compose_file(config_file, test_name='sample_test', environment={})
 
 @click.command()
 @click.option('--image_name', '-n', help='Rebuild specific image in the config', default='')
-@click.option('--project_path', '-p', help='Project path to run your code from', default='.')
-def build(image_name='', project_path='.'):
-    if not hasattr(Docker, 'project_path'):
-        Docker.project_path = abspath(project_path)
-        Docker.no_cache = True
+def build(image_name=''):
     _build(image_name)
 
 def _build_image(image):
@@ -121,21 +117,25 @@ def _build_image(image):
     print('    Building image "{}"'.format(image))
     print('_' * 128 + '\n')
     dockerfile = None
-    image_found = False
     for root, dirs, files in os.walk(Docker.project_path):
         for file in files:
             if file == image:
-                image_found = True
+                # The API does not show any output!!!
                 os.system('docker build -t {} -f {} {}'.format(
                     image, join(root, file),
                     Docker.project_path
                 ))
-    assert image_found, 'Cannot find image in {}'.format(Docker.project_path)
     print('\nDone.\n')
 
 def _build(image_name=''):
     if image_name != '':
-        _build_image(image_name)
+        for root, dirs, files in os.walk('.'):
+            for file in files:
+                if image_name == file:
+                    os.system('docker build -t {} -f {} {}'.format(
+                        image_name, join(root, image_name),
+                        '.'
+                    ))
     else:
         with open(Docker.config_file) as f:
             config = json.loads(f.read())
@@ -147,7 +147,6 @@ def _build(image_name=''):
                 built[service['image']] = True
 
 def run(node_name=None):
-    ports, containers_up = {}, {}
     if node_name:
         os.system('docker-compose start {}'.format(node_name))
     else:
@@ -158,6 +157,11 @@ def run(node_name=None):
         print('_' * 128 + '\n')
         os.system('docker-compose up --remove-orphans &')
 
+    config_ports()
+
+
+def config_ports(container_name=''):
+    ports, containers_up = {}, {}
     with open('docker-compose.yml') as f:
         config = yaml.load(f)
         services = list(config["services"].keys())
@@ -167,8 +171,10 @@ def run(node_name=None):
                 if containers_up.get(s): continue
                 if s in _run_command('docker ps'):
                     containers_up[s] = True
-            if len(services) == len(containers_up):
-                break
+            if container_name:
+                if container_name in containers_up: break
+            else:
+                if len(services) == len(containers_up): break
             time.sleep(0.5)
 
         for s in config["services"]:
@@ -176,7 +182,8 @@ def run(node_name=None):
                 os.system('docker cp {}/. {}:/app/'.format(Docker.project_path, s))
             service = config["services"][s]
             for port in service.get('ports', []):
-                cmd = """docker inspect --format='{{(index (index .NetworkSettings.Ports """ + '"{}/tcp"'.format(port) + """) 0).HostPort}}' """ + s
+                cmd = """docker inspect --format='{{(index (index .NetworkSettings.Ports """ + '"{}/tcp"'.format(
+                    port) + """) 0).HostPort}}' """ + s
                 if not ports.get(s): ports[s] = {}
                 proc = os.popen(cmd)
                 ports[s][str(port)] = 'localhost:{}'.format(proc.read().strip())
