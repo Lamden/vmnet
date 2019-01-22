@@ -4,15 +4,16 @@ from os.path import join, exists, expanduser, dirname, abspath, basename, splite
 from vmnet.logger import get_logger
 from vmnet.cloud.comm import success_msg
 from threading import Thread
-import datetime
+import datetime, resource
 path = abspath(vmnet.__path__[0])
+RESOURCE_LIMIT = 10000
 
 class Cloud:
 
     q = queue.Queue()
 
     def __init__(self, config_file=None):
-
+        resource.setrlimit(resource.RLIMIT_NOFILE, (RESOURCE_LIMIT, RESOURCE_LIMIT))
         old_config = join(path, '.vmnet_cloud_previous_config')
         if not config_file:
             if not exists(old_config):
