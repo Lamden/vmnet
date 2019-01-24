@@ -1,4 +1,4 @@
-import os, sys, json, paramiko, socket, queue, select, time, select, vmnet, uuid
+import os, sys, json, paramiko, socket, queue, select, time, select, vmnet, uuid, re
 from dockerfile_parse import DockerfileParser
 from os.path import join, exists, expanduser, dirname, abspath, basename, splitext
 from vmnet.logger import get_logger
@@ -78,7 +78,7 @@ class Cloud:
 
                     return tasks
 
-    def execute_command(self, instance_ip, cmd, username, environment={}, immediate_raise=False, hostname=None, *args, **kwargs):
+    def execute_command(self, instance_ip, cmd, username, environment={}, build_mode=False, hostname=None, *args, **kwargs):
 
         def _run(ssh, command, sudo=True):
 
@@ -90,7 +90,7 @@ class Cloud:
             if sudo:
                 command = 'sudo {}'.format(command)
 
-            if self.config.get('deployment_mode', 'testing') == 'production':
+            if self.config.get('deployment_mode', 'testing') == 'production' and not build_mode:
                 command = '{} 2>&1 &'.format(command)
             print('+ '+ command +'\n')
             stdin, stdout, stderr = ssh.exec_command(command)
@@ -150,9 +150,10 @@ class Cloud:
                 print("SSH connection to {host} not alive yet, waiting 5 seconds then retrying...".format(host=instance_ip))
                 time.sleep(5)
             ssh.connect(hostname=instance_ip, username=username, pkey=key)
+
             for c in cmd.split('&&'):
+                c = re.sub('\s+', ' ', c).strip()
                 sudo = c.startswith('sudo')
-                c = c.split('sudo ')[-1]
                 if sudo:
                     _run(ssh, c, sudo=True)
                 else:
@@ -169,14 +170,14 @@ class Cloud:
         print('_' * 128 + '\n')
         print('    Sending file "{}" to {}'.format(fname, instance_ip))
         print('_' * 128 + '\n')
+        with open(fname, 'w+') as f:
+            f.write(file_content)
         key = paramiko.RSAKey.from_private_key_file(self.key_path)
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(hostname=instance_ip, username=username, pkey=key)
-        sftp = client.open_sftp()
-        with open(fname, 'w+') as f:
-            f.write(file_content)
-        sftp.put(fname, fname, callback=None, confirm=True)
+        with client.open_sftp() as sftp_f:
+            sftp_f.put(fname, fname, callback=None, confirm=True)
         try: os.remove(fname)
         except: pass
         print('\n{} is done.\n'.format(instance_ip))
@@ -213,13 +214,13 @@ class Cloud:
                 'git init',
                 'git remote add origin {}'.format(image['repo_url'])
             ] + pull:
-                self.execute_command(instance_ip, cmd, image['username'], environment, hostname=hostname)
+                self.execute_command(instance_ip, cmd, image['username'], environment, hostname=hostname, build_mode=init)
 
-    def run_image_setup_script(self, image, instance_ip):
+    def run_image_setup_script(self, image, instance_ip, hostname):
         print('_' * 128 + '\n')
         print('    Running setup scripts from Docker Image "{}" on instance with ip {}'.format(image['name'], instance_ip))
         print('_' * 128 + '\n')
         for cmd in self.tasks[image['name']]['run']:
             environment = image.get('environment', {})
             environment.update(self.config.get('environment', {}))
-            self.execute_command(instance_ip, cmd, image['username'], environment, hostname=hostname)
+            self.execute_command(instance_ip, cmd, image['username'], environment, hostname=hostname, build_mode=True)
