@@ -540,7 +540,7 @@ class AWS(Cloud):
             self.ec2_client.create_tags(Resources=[ami['ImageId']], Tags=[{'Key': 'Name', 'Value': image['name']}])
 
             print('Waiting for AMI to be created...')
-            while self.ec2_client.describe_images(Filter=[{'image-id': ami['ImageId']}])['Images'][0]['State'] != 'available':
+            while self.ec2_client.describe_images(Filters=[{'image-id': ami['ImageId']}])['Images'][0]['State'] != 'available':
                 time.sleep(5)
             print('done.')
 
