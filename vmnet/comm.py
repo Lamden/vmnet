@@ -6,6 +6,7 @@ def file_listener(test, callback, failure, timeout, fname='fsock'):
         os.remove(fname)
     open(fname, 'w+').close()
     start = time.time()
+    os.environ['TEST_COMPLETE'] = 'False'
     with open(fname, 'r') as f:
         while True:
             msg = f.readlines()
@@ -17,7 +18,7 @@ def file_listener(test, callback, failure, timeout, fname='fsock'):
                 os.remove(fname)
                 failure()
                 break
-            if os.getenv('TEST_COMPLETE'):
+            if os.getenv('TEST_COMPLETE') == 'True':
                 break
             time.sleep(0.01)
 
