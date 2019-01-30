@@ -155,6 +155,7 @@ class Cloud:
                 c = re.sub('\s+', ' ', c).strip()
                 sudo = c.startswith('sudo')
                 if sudo:
+                    c = c[len('sudo'):].strip()
                     _run(ssh, c, sudo=True)
                 else:
                     # Try to push everything to run as sudo for reasons? Idk why but I'm too afraid to change it lol

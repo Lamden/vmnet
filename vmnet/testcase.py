@@ -107,7 +107,7 @@ class BaseTestCase(BaseNetworkTestCase):
             except: pass
             os.makedirs(log_dir, exist_ok=True)
             if self.enable_ui:
-                self.webserver_proc, self.websocket_proc = start_ui(self.id(), self.project_path)
+                self.webserver_proc, self.websocket_proc = start_ui(test_name, self.project_path)
 
     def tearDown(self):
         if hasattr(self, 'webserver_proc') and self.enable_ui:
