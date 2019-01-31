@@ -3,6 +3,7 @@ import time, os
 def file_listener(test, callback, failure, timeout):
     start = time.time()
     os.environ['TEST_COMPLETE'] = 'False'
+    fname = os.path.join(test.project_path, 'fsock')
     with open(fname, 'r') as f:
         while True:
             msg = f.readlines()
