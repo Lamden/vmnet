@@ -100,6 +100,7 @@ class BaseTestCase(BaseNetworkTestCase):
         print('#' * 128 + '\n')
         print('    Running {}...\n'.format(test_name))
         print('#' * 128 + '\n')
+        self._clear_fsock()
         if not hasattr(self, '_launched'):
             self._launched = True
             log_dir = join(self.project_path, 'logs', test_name)
@@ -108,6 +109,12 @@ class BaseTestCase(BaseNetworkTestCase):
             os.makedirs(log_dir, exist_ok=True)
             if self.enable_ui:
                 self.webserver_proc, self.websocket_proc = start_ui(test_name, self.project_path)
+
+    def _clear_fsock(self):
+        fname = os.path.join(self.project_path, 'fsock')
+        if os.path.exists(fname):
+            os.remove(fname)
+        open(fname, 'w+').close()
 
     def tearDown(self):
         if hasattr(self, 'webserver_proc') and self.enable_ui:
