@@ -6,7 +6,7 @@ coloredlogs==10.0
 dill==0.2.8.2
 dockerfile-parse==0.0.13
 PyYAML
-paramiko==2.4.2
+paramiko==2.10.1
 s3fs==0.2.0
 sanic==0.8.3
 websocket-server==0.4
